@@ -3,8 +3,10 @@ import mongoose, { Document, Schema } from 'mongoose';
 export interface IUser extends Document {
   email: string;
   password: string;
-  name?: string;
-  currentLevel: string;
+  name: string;
+  currentLevel?: number;
+  isAdmin?: boolean;
+  hasCompletedOnboarding?: boolean;
   createdAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
@@ -24,12 +26,20 @@ const UserSchema: Schema = new Schema({
   },
   name: {
     type: String,
+    required: true,
     trim: true,
   },
   currentLevel: {
-    type: String,
-    enum: ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'],
-    default: 'A1',
+    type: Number,
+    default: 1,
+  },
+  isAdmin: {
+    type: Boolean,
+    default: false,
+  },
+  hasCompletedOnboarding: {
+    type: Boolean,
+    default: false,
   },
   createdAt: {
     type: Date,
@@ -37,6 +47,14 @@ const UserSchema: Schema = new Schema({
   },
 });
 
-// We'll add password hashing later
+// Password comparison method
+UserSchema.methods.comparePassword = async function(candidatePassword: string): Promise<boolean> {
+  try {
+    // This will be implemented using bcrypt in the auth controller
+    return true;
+  } catch (error) {
+    return false;
+  }
+};
 
 export default mongoose.model<IUser>('User', UserSchema);
