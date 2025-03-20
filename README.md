@@ -1,54 +1,96 @@
-<<<<<<< HEAD
-# Welcome to your Expo app 👋
+# Dutch Language Learning App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A modern mobile application designed to help users learn Dutch through interactive practice sessions, personalized learning paths, and AI-powered feedback.
 
-## Get started
+## Features
 
-1. Install dependencies
+- **Personalized Learning Experience**
+  - Custom onboarding flow to understand user preferences
+  - Tailored practice content based on skill level and interests
+  - Progress tracking and skill level visualization
 
-   ```bash
-   npm install
-   ```
+- **Interactive Practice Sessions**
+  - Various practice types for different language skills
+  - Real-time AI-powered feedback on answers
+  - Difficulty adaptation based on user performance
 
-2. Start the app
+- **User Progress Tracking**
+  - Detailed progress statistics
+  - Skill level tracking for different language aspects
+  - Practice history and performance analytics
 
-   ```bash
-    npx expo start
-   ```
+- **AI Integration**
+  - Intelligent practice generation
+  - Natural language processing for answer evaluation
+  - Personalized feedback and suggestions
 
-In the output, you'll find options to open the app in a
+## Tech Stack
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+### Frontend
+- React Native with Expo
+- TypeScript
+- Axios for API communication
+- Secure storage for user data
+- Modern UI components
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+### Backend
+- Node.js with Express
+- MongoDB for data storage
+- JWT authentication
+- OpenAI integration for AI features
 
-## Get a fresh project
+## Getting Started
 
-When you're ready, run:
+### Prerequisites
+- Node.js (v14 or higher)
+- MongoDB
+- OpenAI API key
+- npm or yarn
 
+### Installation
+
+1. Clone the repository:
 ```bash
-npm run reset-project
+git clone https://github.com/li6834300/DutchTestPrep.git
+cd DutchTestPrep
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+2. Install frontend dependencies:
+```bash
+npm install
+```
 
-## Learn more
+3. Install backend dependencies:
+```bash
+cd backend
+npm install
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+4. Set up environment variables:
+Create a `.env` file in the backend directory with:
+```
+DATABASE_URL=your_mongodb_url
+PORT=3000
+JWT_SECRET=your_jwt_secret
+OPENAI_API_KEY=your_openai_api_key
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+5. Start the backend server:
+```bash
+cd backend
+npm run dev
+```
 
-## Join the community
+6. Start the frontend application:
+```bash
+# In the root directory
+npm start
+```
 
-Join our community of developers creating universal apps.
+## Contributing
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
-=======
-# DutchTestPrep
->>>>>>> f6da3d71b96698480f3d6a08d24fafa0f878e7ed
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
