@@ -1,8 +1,8 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import axios from 'axios';
-import * as SecureStore from 'expo-secure-store';
 import { router } from 'expo-router';
 import Config from '@/constants/Config';
+import { storage } from '@/utils/storage';
 
 // Define user type
 interface User {
@@ -20,8 +20,8 @@ interface AuthContextType {
   isLoading: boolean;
   error: string | null;
   clearError: () => void;
-  login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, customApiUrl?: string) => Promise<void>;
+  register: (name: string, email: string, password: string, customApiUrl?: string) => Promise<void>;
   logout: () => void;
   checkOnboardingStatus: () => boolean;
   setOnboardingComplete: () => Promise<void>;
@@ -41,15 +41,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const loadStoredUser = async () => {
       try {
-        const storedToken = await SecureStore.getItemAsync(Config.STORAGE_KEYS.AUTH_TOKEN);
+        const storedToken = await storage.getItem(Config.STORAGE_KEYS.AUTH_TOKEN);
         if (storedToken) {
           setToken(storedToken);
-          const storedUserData = await SecureStore.getItemAsync(Config.STORAGE_KEYS.USER_DATA);
+          
+          // Get the active network profile if it exists
+          const activeNetwork = await storage.getItem(Config.STORAGE_KEYS.ACTIVE_NETWORK);
+          let apiUrl = Config.API_URL;
+          
+          if (activeNetwork && Object.keys(Config.NETWORK_PROFILES).includes(activeNetwork)) {
+            apiUrl = Config.NETWORK_PROFILES[activeNetwork as keyof typeof Config.NETWORK_PROFILES];
+          }
+          
+          const storedUserData = await storage.getItem(Config.STORAGE_KEYS.USER_DATA);
           if (storedUserData) {
             setUser(JSON.parse(storedUserData));
           } else {
             // If we have a token but no user data, fetch user data
-            await fetchCurrentUser(storedToken);
+            await fetchCurrentUser(storedToken, apiUrl);
           }
         }
       } catch (error) {
@@ -63,16 +72,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // Fetch current user data from API
-  const fetchCurrentUser = async (authToken: string) => {
+  const fetchCurrentUser = async (authToken: string, customApiUrl?: string) => {
     try {
-      const response = await axios.get(`${Config.API_URL}/api/auth/me`, {
+      const apiUrl = customApiUrl || Config.API_URL;
+      const response = await axios.get(`${apiUrl}/api/auth/me`, {
         headers: { Authorization: `Bearer ${authToken}` }
       });
 
       if (response.data.success) {
         const userData = response.data.data;
         setUser(userData);
-        await SecureStore.setItemAsync(Config.STORAGE_KEYS.USER_DATA, JSON.stringify(userData));
+        await storage.setItem(Config.STORAGE_KEYS.USER_DATA, JSON.stringify(userData));
       } else {
         throw new Error('Failed to fetch user data');
       }
@@ -88,12 +98,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   // Login handler
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string, customApiUrl?: string) => {
     setIsLoading(true);
     try {
-      const response = await axios.post(`${Config.API_URL}/api/auth/login`, {
+      const apiUrl = customApiUrl || Config.API_URL;
+      console.log(`Attempting to login with API URL: ${apiUrl}`);
+      
+      const response = await axios.post(`${apiUrl}/api/auth/login`, {
         email,
         password
+      }, {
+        timeout: Config.API_TIMEOUT, // Use the configured timeout
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
 
       // Check if successful response from backend
@@ -108,8 +126,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         };
         
         // Save token and user data
-        await SecureStore.setItemAsync(Config.STORAGE_KEYS.AUTH_TOKEN, newToken);
-        await SecureStore.setItemAsync(Config.STORAGE_KEYS.USER_DATA, JSON.stringify(userData));
+        await storage.setItem(Config.STORAGE_KEYS.AUTH_TOKEN, newToken);
+        await storage.setItem(Config.STORAGE_KEYS.USER_DATA, JSON.stringify(userData));
         
         // Update state
         setToken(newToken);
@@ -126,20 +144,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch (error: any) {
       console.error('Login error:', error);
-      setError(error.response?.data?.message || 'Login failed. Please check your credentials.');
+      
+      // More detailed error handling
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        console.error('Response data:', error.response.data);
+        console.error('Response status:', error.response.status);
+        setError(error.response.data.message || `Login failed (${error.response.status})`);
+      } else if (error.request) {
+        // The request was made but no response was received
+        console.error('Request error:', error.request);
+        setError('Network error. Please check your connection and try again.');
+      } else {
+        // Something happened in setting up the request
+        setError(`Request setup error: ${error.message}`);
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
   // Register handler
-  const register = async (name: string, email: string, password: string) => {
+  const register = async (name: string, email: string, password: string, customApiUrl?: string) => {
     setIsLoading(true);
     try {
-      const response = await axios.post(`${Config.API_URL}/api/auth/register`, {
+      const apiUrl = customApiUrl || Config.API_URL;
+      console.log(`Attempting to register with API URL: ${apiUrl}`);
+      
+      const response = await axios.post(`${apiUrl}/api/auth/register`, {
         name,
         email,
         password
+      }, {
+        timeout: Config.API_TIMEOUT, // Use the configured timeout
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
 
       // Check if successful response from backend
@@ -154,8 +194,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         };
         
         // Save token and user data
-        await SecureStore.setItemAsync(Config.STORAGE_KEYS.AUTH_TOKEN, newToken);
-        await SecureStore.setItemAsync(Config.STORAGE_KEYS.USER_DATA, JSON.stringify(userData));
+        await storage.setItem(Config.STORAGE_KEYS.AUTH_TOKEN, newToken);
+        await storage.setItem(Config.STORAGE_KEYS.USER_DATA, JSON.stringify(userData));
         
         // Update state
         setToken(newToken);
@@ -168,7 +208,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch (error: any) {
       console.error('Registration error:', error);
-      setError(error.response?.data?.message || 'Registration failed. Please try again.');
+      
+      // More detailed error handling
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        console.error('Response data:', error.response.data);
+        console.error('Response status:', error.response.status);
+        setError(error.response.data.message || `Registration failed (${error.response.status})`);
+      } else if (error.request) {
+        // The request was made but no response was received
+        console.error('Request error:', error.request);
+        setError('Network error. Please check your connection and try again.');
+      } else {
+        // Something happened in setting up the request
+        setError(`Request setup error: ${error.message}`);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -178,8 +232,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     try {
       // Clear secure storage
-      await SecureStore.deleteItemAsync(Config.STORAGE_KEYS.AUTH_TOKEN);
-      await SecureStore.deleteItemAsync(Config.STORAGE_KEYS.USER_DATA);
+      await storage.removeItem(Config.STORAGE_KEYS.AUTH_TOKEN);
+      await storage.removeItem(Config.STORAGE_KEYS.USER_DATA);
       
       // Reset state
       setUser(null);
@@ -207,7 +261,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(updatedUser);
       
       // Save to secure storage
-      await SecureStore.setItemAsync(Config.STORAGE_KEYS.USER_DATA, JSON.stringify(updatedUser));
+      await storage.setItem(Config.STORAGE_KEYS.USER_DATA, JSON.stringify(updatedUser));
       
       // Update on server (if needed)
       // This would typically be handled by the preferences API
