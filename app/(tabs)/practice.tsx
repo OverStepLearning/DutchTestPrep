@@ -24,14 +24,16 @@ interface PracticeItem {
 export default function PracticeScreen() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [generatingBatch, setGeneratingBatch] = useState(false);
   const [currentPractice, setCurrentPractice] = useState<PracticeItem | null>(null);
   const [userAnswer, setUserAnswer] = useState('');
   const [feedback, setFeedback] = useState<{ isCorrect: boolean; feedback: string | string[] } | null>(null);
   const [practiceType, setPracticeType] = useState<'vocabulary' | 'grammar' | 'conversation'>('vocabulary');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [questionQueue, setQuestionQueue] = useState<PracticeItem[]>([]);
 
   // Function to generate practice with additional error handling
-  const generatePractice = async () => {
+  const generatePractice = async (forceNew = false) => {
     try {
       setErrorMessage(null);
       
@@ -40,6 +42,25 @@ export default function PracticeScreen() {
         return;
       }
       
+      // If we're not forcing new generation and we have questions in the queue, use the next one
+      if (!forceNew && questionQueue.length > 0) {
+        const nextQuestion = questionQueue[0];
+        const remainingQuestions = questionQueue.slice(1);
+        
+        setCurrentPractice(nextQuestion);
+        setQuestionQueue(remainingQuestions);
+        setFeedback(null);
+        setUserAnswer('');
+        
+        // If we're running low on queued questions, generate more in the background
+        if (remainingQuestions.length < 2 && !generatingBatch) {
+          generatePracticeBatch();
+        }
+        
+        return;
+      }
+      
+      // Otherwise, we need to fetch from the server
       setLoading(true);
       setFeedback(null);
       setUserAnswer('');
@@ -50,7 +71,8 @@ export default function PracticeScreen() {
       console.log('Starting practice request with type:', practiceType);
       const response = await axios.post(`${config.API_URL}/api/practice/generate`, {
         userId: user._id,
-        type: practiceType
+        type: practiceType,
+        batchSize: 5 // Request 5 questions at once
       }, {
         headers: {
           Authorization: `Bearer ${token}`
@@ -61,7 +83,7 @@ export default function PracticeScreen() {
       console.log('Practice API Response Data:', JSON.stringify(response.data, null, 2));
       
       // Ensure we have valid data before setting it
-      if (response.data && response.data.data && typeof response.data.data === 'object') {
+      if (response.data?.success && response.data?.data) {
         // Make a safe copy of the data with fallbacks
         const practice: PracticeItem = {
           _id: response.data.data._id || '',
@@ -89,6 +111,40 @@ export default function PracticeScreen() {
       Alert.alert('Error', 'Failed to generate practice. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Function to generate a batch of practice questions in the background
+  const generatePracticeBatch = async () => {
+    if (!user || generatingBatch) return;
+    
+    try {
+      setGeneratingBatch(true);
+      
+      const token = await storage.getItem(config.STORAGE_KEYS.AUTH_TOKEN);
+      
+      const response = await axios.post(`${config.API_URL}/api/practice/generate`, {
+        userId: user._id,
+        type: practiceType,
+        batchSize: 5 // Request 5 questions at once
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      
+      console.log('Batch generation status:', response.status);
+      
+      if (response.data?.success && response.data?.data) {
+        // Current implementation only returns the first practice, so we don't add anything to queue here
+        // Backend will store the rest for later fetching
+        console.log(`Generated batch of questions, ${response.data.remainingCount} remaining on server`);
+      }
+    } catch (error) {
+      console.error('Error generating practice batch:', error);
+      // Don't show error to user for background generation
+    } finally {
+      setGeneratingBatch(false);
     }
   };
 
@@ -132,8 +188,13 @@ export default function PracticeScreen() {
       let feedbackText: string | string[] = '';
       let isCorrect = false;
       
-      if (response.data && response.data.data) {
+      if (response.data?.success && response.data?.data) {
         console.log('Response data structure:', Object.keys(response.data.data));
+        
+        // Store the next practice item in the queue if available
+        if (response.data.data.nextPractice) {
+          setQuestionQueue(prevQueue => [...prevQueue, response.data.data.nextPractice]);
+        }
         
         if (response.data.data.evaluation) {
           const evaluation = response.data.data.evaluation;
@@ -179,9 +240,16 @@ export default function PracticeScreen() {
   useEffect(() => {
     console.log('PracticeScreen mounted, user:', user ? 'User exists' : 'No user');
     if (user) {
-      generatePractice();
+      generatePractice(true);
     }
   }, [user]);
+
+  // When practice type changes, force a new practice generation
+  useEffect(() => {
+    if (user) {
+      generatePractice(true);
+    }
+  }, [practiceType]);
 
   // Helper function to safely display content that might be string or array
   const displayContent = (content: string | string[] | undefined): string => {
@@ -200,6 +268,11 @@ export default function PracticeScreen() {
     return '';
   };
 
+  // Function to handle next practice
+  const handleNextPractice = () => {
+    generatePractice();
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -215,7 +288,6 @@ export default function PracticeScreen() {
             onPress={() => {
               setPracticeType('vocabulary');
               setFeedback(null);
-              generatePractice();
             }}
           >
             <Text style={styles.typeButtonText}>Vocabulary</Text>
@@ -229,7 +301,6 @@ export default function PracticeScreen() {
             onPress={() => {
               setPracticeType('grammar');
               setFeedback(null);
-              generatePractice();
             }}
           >
             <Text style={styles.typeButtonText}>Grammar</Text>
@@ -243,12 +314,18 @@ export default function PracticeScreen() {
             onPress={() => {
               setPracticeType('conversation');
               setFeedback(null);
-              generatePractice();
             }}
           >
             <Text style={styles.typeButtonText}>Conversation</Text>
           </TouchableOpacity>
         </View>
+        
+        {/* Background generation indicator */}
+        {generatingBatch && !loading && (
+          <View style={styles.backgroundGenerationContainer}>
+            <Text style={styles.backgroundGenerationText}>Generating more questions...</Text>
+          </View>
+        )}
         
         {/* Error message display */}
         {errorMessage && (
@@ -351,7 +428,7 @@ export default function PracticeScreen() {
                     {/* Next practice button */}
                     <TouchableOpacity 
                       style={styles.nextButton} 
-                      onPress={generatePractice}
+                      onPress={handleNextPractice}
                     >
                       <Text style={styles.buttonText}>Next Practice</Text>
                     </TouchableOpacity>
@@ -562,5 +639,15 @@ const styles = StyleSheet.create({
   errorText: {
     color: '#d32f2f',
     fontSize: 14,
+  },
+  backgroundGenerationContainer: {
+    padding: 10,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  backgroundGenerationText: {
+    fontSize: 12,
+    color: '#777',
+    fontStyle: 'italic',
   },
 }); 
