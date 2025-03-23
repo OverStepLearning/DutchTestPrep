@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, ActivityIndicator, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from 'axios';
 import config from '@/constants/Config';
 import { useAuth } from '@/contexts/AuthContext';
 import { storage } from '@/utils/storage';
+import { Ionicons } from '@expo/vector-icons';
 
 // Define types for practice content
 interface PracticeItem {
@@ -31,6 +32,10 @@ export default function PracticeScreen() {
   const [practiceType, setPracticeType] = useState<'vocabulary' | 'grammar' | 'conversation'>('vocabulary');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [questionQueue, setQuestionQueue] = useState<PracticeItem[]>([]);
+  const [adjusting, setAdjusting] = useState(false);
+  const [difficultyTrend, setDifficultyTrend] = useState<'increasing' | 'decreasing' | 'stable'>('stable');
+  const previousDifficultyRef = useRef<number | null>(null);
+  const [difficultyChange, setDifficultyChange] = useState<string | null>(null);
 
   // Function to generate practice with additional error handling
   const generatePractice = async (forceNew = false) => {
@@ -236,6 +241,123 @@ export default function PracticeScreen() {
     }
   };
 
+  // Function to adjust difficulty level
+  const adjustDifficulty = async (direction: 'up' | 'down') => {
+    try {
+      setAdjusting(true);
+      setErrorMessage(null);
+      
+      if (!user) {
+        Alert.alert('Error', 'You must be logged in to adjust difficulty');
+        return;
+      }
+      
+      const token = await storage.getItem(config.STORAGE_KEYS.AUTH_TOKEN);
+      
+      const response = await axios.post(`${config.API_URL}/api/practice/adjust-difficulty`, {
+        type: practiceType,
+        direction
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      
+      if (response.data?.success) {
+        const newLevel = response.data.data.level;
+        // Save the old difficulty for comparison
+        const oldDifficulty = currentPractice?.difficulty ? currentPractice.difficulty.toFixed(2) : '1.00';
+        
+        // Update difficulty trend immediately for visual feedback
+        setDifficultyTrend(direction === 'up' ? 'increasing' : 'decreasing');
+        
+        // Calculate and display the change
+        const oldValue = parseFloat(oldDifficulty);
+        const newValue = parseFloat(newLevel.toFixed(2));
+        const change = (newValue - oldValue).toFixed(2);
+        const sign = change.startsWith('-') ? '' : '+';
+        setDifficultyChange(`${sign}${change}`);
+        
+        // Show alert with more detailed information
+        Alert.alert(
+          'Difficulty Adjusted',
+          `Your ${practiceType} difficulty level has changed from ${oldDifficulty} to ${newLevel.toFixed(2)}.\n\nChange: ${sign}${change}\n\nNew questions will reflect this change.`,
+          [{ text: 'OK' }]
+        );
+        
+        // Force a new practice generation with the updated difficulty
+        generatePractice(true);
+        
+        // Clear the change message after some time
+        setTimeout(() => {
+          setDifficultyChange(null);
+        }, 15000);
+      }
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      console.error('Error adjusting difficulty:', error);
+      setErrorMessage(`Failed to adjust difficulty: ${errorMsg}`);
+      Alert.alert('Error', 'Failed to adjust difficulty. Please try again.');
+    } finally {
+      setAdjusting(false);
+    }
+  };
+
+  // Function to show difficulty adjustment dialog - make this more robust
+  const showAdjustmentDialog = () => {
+    console.log('Opening adjustment dialog');
+    
+    try {
+      Alert.alert(
+        'Adjust Difficulty Level',
+        'How would you like to adjust the difficulty of your practice questions?',
+        [
+          {
+            text: 'Make it Easier (-1.0)',
+            onPress: () => {
+              console.log('User selected: Make it Easier');
+              adjustDifficulty('down');
+            }
+          },
+          {
+            text: 'Make it Harder (+1.0)',
+            onPress: () => {
+              console.log('User selected: Make it Harder');
+              adjustDifficulty('up');
+            }
+          },
+          {
+            text: 'Cancel',
+            style: 'cancel',
+            onPress: () => console.log('User canceled difficulty adjustment')
+          }
+        ],
+        { cancelable: true }
+      );
+    } catch (error) {
+      console.error('Error showing dialog:', error);
+      // Fallback in case Alert.alert fails
+      const direction = confirm('Make questions harder? (Cancel for easier)') ? 'up' : 'down';
+      adjustDifficulty(direction);
+    }
+  };
+
+  // Update difficulty trend when current practice changes
+  useEffect(() => {
+    if (currentPractice && currentPractice.difficulty) {
+      if (previousDifficultyRef.current !== null) {
+        if (currentPractice.difficulty > previousDifficultyRef.current) {
+          setDifficultyTrend('increasing');
+        } else if (currentPractice.difficulty < previousDifficultyRef.current) {
+          setDifficultyTrend('decreasing');
+        } else {
+          setDifficultyTrend('stable');
+        }
+      }
+      previousDifficultyRef.current = currentPractice.difficulty;
+    }
+  }, [currentPractice]);
+
   // Generate initial practice on component mount
   useEffect(() => {
     console.log('PracticeScreen mounted, user:', user ? 'User exists' : 'No user');
@@ -276,47 +398,94 @@ export default function PracticeScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <Text style={styles.title}>Dutch Practice</Text>
+        <View style={styles.header}>
+          <Text style={styles.title}>Dutch Practice</Text>
+        </View>
         
-        {/* Practice type selector */}
-        <View style={styles.typeSelector}>
-          <TouchableOpacity
-            style={[
-              styles.typeButton, 
-              practiceType === 'vocabulary' ? styles.selectedType : null
-            ]}
-            onPress={() => {
-              setPracticeType('vocabulary');
-              setFeedback(null);
-            }}
-          >
-            <Text style={styles.typeButtonText}>Vocabulary</Text>
-          </TouchableOpacity>
+        <View style={styles.practiceTypeContainer}>
+          {['vocabulary', 'grammar', 'conversation'].map((type) => (
+            <TouchableOpacity
+              key={type}
+              style={[
+                styles.practiceTypeButton,
+                practiceType === type && styles.practiceTypeButtonActive
+              ]}
+              onPress={() => {
+                setPracticeType(type as any);
+                setFeedback(null);
+                generatePractice(true);
+              }}
+            >
+              <Text
+                style={[
+                  styles.practiceTypeText,
+                  practiceType === type && styles.practiceTypeTextActive
+                ]}
+              >
+                {type.charAt(0).toUpperCase() + type.slice(1)}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+        
+        {/* Difficulty adjustment section */}
+        <View style={[styles.difficultyAdjustContainer, difficultyTrend !== 'stable' && {
+          backgroundColor: difficultyTrend === 'increasing' ? '#e6f7ef' : '#fde8e8',
+          borderWidth: 1,
+          borderColor: difficultyTrend === 'increasing' ? '#b7ebd8' : '#f8c9c9'
+        }]}>
+          <View style={styles.difficultyHeader}>
+            <Text style={styles.difficultyText}>
+              Current Difficulty: {currentPractice?.difficulty ? currentPractice.difficulty.toFixed(2) : '1.00'}/10
+            </Text>
+            
+            {/* Always show trend, just changing the content based on state */}
+            <View style={[styles.trendContainer, {
+              backgroundColor: difficultyTrend === 'increasing' 
+                ? '#d4f7e7' 
+                : difficultyTrend === 'decreasing' 
+                  ? '#fad0d0'
+                  : '#f0f0f0'
+            }]}>
+              {difficultyTrend !== 'stable' ? (
+                <>
+                  <Ionicons 
+                    name={difficultyTrend === 'increasing' ? 'arrow-up' : 'arrow-down'} 
+                    size={16} 
+                    color={difficultyTrend === 'increasing' ? '#27ae60' : '#e74c3c'} 
+                  />
+                  <Text style={[
+                    styles.trendText, 
+                    {color: difficultyTrend === 'increasing' ? '#27ae60' : '#e74c3c'}
+                  ]}>
+                    {difficultyTrend === 'increasing' ? 'Increasing' : 'Decreasing'}
+                  </Text>
+                </>
+              ) : (
+                <Text style={styles.trendText}>Stable</Text>
+              )}
+            </View>
+          </View>
+          
+          {/* Show numeric change when available */}
+          {difficultyChange && (
+            <View style={styles.changeContainer}>
+              <Text style={[
+                styles.changeText,
+                {color: difficultyChange.startsWith('-') ? '#e74c3c' : '#27ae60'}
+              ]}>
+                Change: {difficultyChange}
+              </Text>
+            </View>
+          )}
           
           <TouchableOpacity
-            style={[
-              styles.typeButton, 
-              practiceType === 'grammar' ? styles.selectedType : null
-            ]}
-            onPress={() => {
-              setPracticeType('grammar');
-              setFeedback(null);
-            }}
+            style={[styles.adjustMeButton, adjusting && styles.adjustingButton]}
+            onPress={showAdjustmentDialog}
+            disabled={adjusting || loading}
           >
-            <Text style={styles.typeButtonText}>Grammar</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity
-            style={[
-              styles.typeButton, 
-              practiceType === 'conversation' ? styles.selectedType : null
-            ]}
-            onPress={() => {
-              setPracticeType('conversation');
-              setFeedback(null);
-            }}
-          >
-            <Text style={styles.typeButtonText}>Conversation</Text>
+            <Ionicons name="options" size={18} color="white" />
+            <Text style={styles.adjustButtonText}>{adjusting ? 'Adjusting...' : 'Adjust Difficulty'}</Text>
           </TouchableOpacity>
         </View>
         
@@ -348,8 +517,8 @@ export default function PracticeScreen() {
                 
                 {/* Difficulty and complexity indicators */}
                 <View style={styles.difficultyContainer}>
-                  <Text style={styles.levelText}>Difficulty: {currentPractice.difficulty || 1}/10</Text>
-                  <Text style={styles.levelText}>Complexity: {currentPractice.complexity || 1}/10</Text>
+                  <Text style={styles.levelText}>Difficulty: {currentPractice.difficulty ? currentPractice.difficulty.toFixed(2) : '1.00'}/10</Text>
+                  <Text style={styles.levelText}>Complexity: {currentPractice.complexity ? currentPractice.complexity.toFixed(2) : '1.00'}/10</Text>
                 </View>
                 
                 {/* Categories */}
@@ -461,19 +630,23 @@ const styles = StyleSheet.create({
   scrollContainer: {
     padding: 20,
   },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 20,
-    textAlign: 'center',
+    marginLeft: 10,
   },
-  typeSelector: {
+  practiceTypeContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 20,
   },
-  typeButton: {
+  practiceTypeButton: {
     flex: 1,
     paddingVertical: 10,
     paddingHorizontal: 5,
@@ -482,12 +655,15 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
     alignItems: 'center',
   },
-  selectedType: {
+  practiceTypeButtonActive: {
     backgroundColor: '#4f86f7',
   },
-  typeButtonText: {
+  practiceTypeText: {
     fontWeight: '600',
     color: '#333',
+  },
+  practiceTypeTextActive: {
+    color: 'white',
   },
   loader: {
     marginTop: 40,
@@ -649,5 +825,72 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#777',
     fontStyle: 'italic',
+  },
+  difficultyAdjustContainer: {
+    marginVertical: 15,
+    padding: 15,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  difficultyHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+    width: '100%',
+  },
+  difficultyText: {
+    fontSize: 16,
+    fontWeight: '600',
+    flex: 1,
+  },
+  trendContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginLeft: 10,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  trendText: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginLeft: 4,
+  },
+  changeContainer: {
+    marginVertical: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  changeText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  adjustMeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+    backgroundColor: '#4f86f7',
+    minWidth: 180,
+  },
+  adjustingButton: {
+    backgroundColor: '#7ba7f9',
+    opacity: 0.8,
+  },
+  adjustButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    marginLeft: 8,
   },
 }); 
