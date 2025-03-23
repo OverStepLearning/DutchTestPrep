@@ -13,7 +13,6 @@ export function usePractice() {
   const [currentPractice, setCurrentPractice] = useState<PracticeItem | null>(null);
   const [userAnswer, setUserAnswer] = useState('');
   const [feedback, setFeedback] = useState<FeedbackResponse | null>(null);
-  const [practiceType, setPracticeType] = useState<'vocabulary' | 'grammar' | 'conversation'>('vocabulary');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [questionQueue, setQuestionQueue] = useState<PracticeItem[]>([]);
   const [adjusting, setAdjusting] = useState(false);
@@ -64,7 +63,7 @@ export function usePractice() {
       
       const response = await axios.post(`${config.API_URL}/api/practice/generate`, {
         userId: user._id,
-        type: practiceType,
+        random: true, // Request random questions instead of specific type
         batchSize: 5 // Request 5 questions at once
       }, {
         headers: {
@@ -111,7 +110,7 @@ export function usePractice() {
       
       const response = await axios.post(`${config.API_URL}/api/practice/generate`, {
         userId: user._id,
-        type: practiceType,
+        random: true, // Request random questions instead of specific type
         batchSize: 5 // Request 5 questions at once
       }, {
         headers: {
@@ -210,8 +209,7 @@ export function usePractice() {
       const token = await storage.getItem(config.STORAGE_KEYS.AUTH_TOKEN);
       
       const response = await axios.post(`${config.API_URL}/api/practice/adjust-difficulty`, {
-        type: practiceType,
-        direction
+        direction // No longer need to specify type
       }, {
         headers: {
           Authorization: `Bearer ${token}`
@@ -236,7 +234,7 @@ export function usePractice() {
         // Show alert with more detailed information
         Alert.alert(
           'Difficulty Adjusted',
-          `Your ${practiceType} difficulty level has changed from ${oldDifficulty} to ${newLevel.toFixed(2)}.\n\nChange: ${sign}${change}\n\nNew questions will reflect this change.`,
+          `Your difficulty level has changed from ${oldDifficulty} to ${newLevel.toFixed(2)}.\n\nChange: ${sign}${change}\n\nNew questions will reflect this change.`,
           [{ text: 'OK' }]
         );
         
@@ -353,19 +351,12 @@ export function usePractice() {
     }
   }, [currentPractice]);
 
-  // Generate initial practice on component mount
+  // Load initial practice when component mounts
   useEffect(() => {
     if (user) {
       generatePractice(true);
     }
   }, [user]);
-
-  // When practice type changes, force a new practice generation
-  useEffect(() => {
-    if (user) {
-      generatePractice(true);
-    }
-  }, [practiceType]);
 
   return {
     loading,
@@ -373,7 +364,6 @@ export function usePractice() {
     currentPractice,
     userAnswer,
     feedback,
-    practiceType,
     errorMessage,
     adjusting,
     difficultyTrend,
@@ -384,12 +374,12 @@ export function usePractice() {
     
     setUserAnswer,
     setFeedbackQuestion,
-    setPracticeType,
     
     generatePractice,
     submitAnswer,
     handleNextPractice,
     showAdjustmentDialog,
-    askFeedbackQuestion
+    askFeedbackQuestion,
+    adjustDifficulty
   };
 } 

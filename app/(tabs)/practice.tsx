@@ -1,9 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ActivityIndicator, ScrollView, View, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { usePractice } from '../hooks/usePractice';
 import { practiceStyles } from '../components/practice/styles';
-import { PracticeTypeSelector } from '../components/practice/PracticeTypeSelector';
 import { DifficultyAdjuster } from '../components/practice/DifficultyAdjuster';
 import { PracticeContent } from '../components/practice/PracticeContent';
 import { AnswerInput } from '../components/practice/AnswerInput';
@@ -16,7 +15,6 @@ export default function PracticeScreen() {
     currentPractice,
     userAnswer,
     feedback,
-    practiceType,
     errorMessage,
     adjusting,
     difficultyTrend,
@@ -27,7 +25,6 @@ export default function PracticeScreen() {
     
     setUserAnswer,
     setFeedbackQuestion,
-    setPracticeType,
     
     generatePractice,
     submitAnswer,
@@ -36,21 +33,19 @@ export default function PracticeScreen() {
     askFeedbackQuestion
   } = usePractice();
 
+  // Generate initial practice on mount if not already loaded
+  useEffect(() => {
+    if (!currentPractice && !loading) {
+      generatePractice(true);
+    }
+  }, [currentPractice, loading, generatePractice]);
+
   return (
     <SafeAreaView style={practiceStyles.container}>
       <ScrollView contentContainerStyle={practiceStyles.scrollContainer}>
         <View style={practiceStyles.header}>
           <Text style={practiceStyles.title}>Dutch Practice</Text>
         </View>
-        
-        {/* Practice type selection */}
-        <PracticeTypeSelector 
-          currentType={practiceType} 
-          onSelectType={(type: 'vocabulary' | 'grammar' | 'conversation') => {
-            setPracticeType(type);
-            generatePractice(true);
-          }} 
-        />
         
         {/* Difficulty adjuster */}
         {currentPractice && (

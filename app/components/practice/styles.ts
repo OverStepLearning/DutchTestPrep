@@ -19,30 +19,6 @@ export const practiceStyles = StyleSheet.create({
     color: '#333',
     marginLeft: 10,
   },
-  practiceTypeContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-  },
-  practiceTypeButton: {
-    flex: 1,
-    paddingVertical: 10,
-    paddingHorizontal: 5,
-    borderRadius: 8,
-    backgroundColor: '#e0e0e0',
-    marginHorizontal: 5,
-    alignItems: 'center',
-  },
-  practiceTypeButtonActive: {
-    backgroundColor: '#4f86f7',
-  },
-  practiceTypeText: {
-    fontWeight: '600',
-    color: '#333',
-  },
-  practiceTypeTextActive: {
-    color: 'white',
-  },
   loader: {
     marginTop: 40,
   },
