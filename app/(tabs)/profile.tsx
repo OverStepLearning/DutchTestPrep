@@ -13,13 +13,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import axios from 'axios';
 import Config from '@/constants/Config';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import * as SecureStore from 'expo-secure-store';
+import { storage } from '@/utils/storage';
 
 interface UserProfile {
   user: {
     _id: string;
     name: string;
     email: string;
+    motherLanguage?: string;
   };
   progress: {
     skillLevels: {
@@ -45,15 +46,24 @@ export default function ProfileScreen() {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [editingLanguage, setEditingLanguage] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState<string>('');
+  
+  // Available languages for selection
+  const availableLanguages = [
+    'English', 'Spanish', 'French', 'German', 'Dutch',
+    'Italian', 'Portuguese', 'Russian', 'Chinese', 'Japanese'
+  ];
 
   // Fetch user profile data
   const fetchUserProfile = async () => {
     try {
       setLoading(true);
       
+      const token = await storage.getItem(Config.STORAGE_KEYS.AUTH_TOKEN);
       const response = await axios.get(`${Config.API_URL}/api/user/profile`, {
         headers: {
-          Authorization: `Bearer ${await SecureStore.getItemAsync(Config.STORAGE_KEYS.AUTH_TOKEN)}`,
+          Authorization: `Bearer ${token}`,
         },
       });
       
@@ -85,6 +95,56 @@ export default function ProfileScreen() {
       Alert.alert('Error', 'Failed to logout. Please try again.');
     }
   };
+
+  // Update mother language
+  const updateMotherLanguage = async () => {
+    try {
+      setLoading(true);
+      
+      const token = await storage.getItem(Config.STORAGE_KEYS.AUTH_TOKEN);
+      const response = await axios.put(
+        `${Config.API_URL}/api/auth/profile`, 
+        { motherLanguage: selectedLanguage },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      
+      if (response.data && response.data.user) {
+        // Update the profile state with the new mother language
+        setProfile(prev => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            user: {
+              ...prev.user,
+              motherLanguage: selectedLanguage
+            }
+          };
+        });
+        Alert.alert('Success', 'Your mother language has been updated.');
+      } else {
+        Alert.alert('Error', 'Failed to update mother language.');
+      }
+    } catch (error) {
+      console.error('Error updating mother language:', error);
+      Alert.alert('Error', 'Failed to update mother language. Please try again.');
+    } finally {
+      setLoading(false);
+      setEditingLanguage(false);
+    }
+  };
+
+  // Set initial selected language when profile loads
+  useEffect(() => {
+    if (profile && profile.user.motherLanguage) {
+      setSelectedLanguage(profile.user.motherLanguage);
+    } else {
+      setSelectedLanguage('English'); // Default to English
+    }
+  }, [profile]);
 
   // Render skill level bar
   const renderSkillLevel = (label: string, level: number) => {
@@ -139,6 +199,78 @@ export default function ProfileScreen() {
           </View>
         ) : profile ? (
           <>
+            {/* Mother Language Section */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Language Settings</Text>
+              
+              <View style={styles.preferenceRow}>
+                <Text style={styles.preferencesLabel}>Mother Language</Text>
+                {editingLanguage ? (
+                  <View style={styles.languageSelector}>
+                    <ScrollView 
+                      horizontal 
+                      showsHorizontalScrollIndicator={false}
+                      contentContainerStyle={styles.languageSelectorContent}
+                    >
+                      {availableLanguages.map((lang) => (
+                        <TouchableOpacity
+                          key={lang}
+                          style={[
+                            styles.languageOption,
+                            selectedLanguage === lang && styles.languageOptionSelected
+                          ]}
+                          onPress={() => setSelectedLanguage(lang)}
+                        >
+                          <Text 
+                            style={[
+                              styles.languageOptionText,
+                              selectedLanguage === lang && styles.languageOptionTextSelected
+                            ]}
+                          >
+                            {lang}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                    
+                    <View style={styles.languageActions}>
+                      <TouchableOpacity 
+                        style={[styles.languageButton, styles.languageButtonCancel]} 
+                        onPress={() => {
+                          setEditingLanguage(false);
+                          // Reset to original value from profile
+                          if (profile && profile.user.motherLanguage) {
+                            setSelectedLanguage(profile.user.motherLanguage);
+                          }
+                        }}
+                      >
+                        <Text style={styles.languageButtonTextCancel}>Cancel</Text>
+                      </TouchableOpacity>
+                      
+                      <TouchableOpacity 
+                        style={[styles.languageButton, styles.languageButtonSave]} 
+                        onPress={updateMotherLanguage}
+                      >
+                        <Text style={styles.languageButtonTextSave}>Save</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ) : (
+                  <View style={styles.languageDisplay}>
+                    <Text style={styles.languageValue}>
+                      {profile.user.motherLanguage || 'English'}
+                    </Text>
+                    <TouchableOpacity 
+                      style={styles.editButton}
+                      onPress={() => setEditingLanguage(true)}
+                    >
+                      <Text style={styles.editButtonText}>Change</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
+            </View>
+
             {/* Progress Section */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Skill Levels</Text>
@@ -412,5 +544,79 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     color: '#6c757d',
     padding: 8,
+  },
+  preferenceRow: {
+    marginVertical: 10,
+  },
+  languageDisplay: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 5,
+  },
+  languageValue: {
+    fontSize: 16,
+    color: '#333',
+  },
+  editButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 6,
+  },
+  editButtonText: {
+    color: '#4f86f7',
+    fontWeight: '600',
+  },
+  languageSelector: {
+    marginTop: 10,
+  },
+  languageSelectorContent: {
+    paddingVertical: 10,
+  },
+  languageOption: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 20,
+    marginRight: 8,
+  },
+  languageOptionSelected: {
+    backgroundColor: '#4f86f7',
+  },
+  languageOptionText: {
+    fontSize: 14,
+    color: '#333',
+  },
+  languageOptionTextSelected: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  languageActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 15,
+  },
+  languageButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 6,
+    marginLeft: 10,
+  },
+  languageButtonCancel: {
+    backgroundColor: '#f0f0f0',
+  },
+  languageButtonSave: {
+    backgroundColor: '#4f86f7',
+  },
+  languageButtonTextCancel: {
+    color: '#333',
+  },
+  languageButtonTextSave: {
+    color: '#fff',
+    fontWeight: '600',
   },
 }); 

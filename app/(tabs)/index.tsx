@@ -5,261 +5,298 @@ import {
   View,
   ScrollView,
   TouchableOpacity,
-  TextInput,
   ActivityIndicator,
-  Alert
+  Dimensions
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/contexts/AuthContext';
 import axios from 'axios';
 import Config from '@/constants/Config';
-import * as SecureStore from 'expo-secure-store';
+import { storage } from '@/utils/storage';
+import { router } from 'expo-router';
 
-interface Practice {
-  _id: string;
-  content: string;
-  translation?: string;
-  type: 'vocabulary' | 'grammar' | 'conversation' | 'reading' | 'listening';
-  difficulty: number;
-  categories: string[];
+interface PracticeStats {
+  total: number;
+  correct: number;
+  vocabulary: number;
+  grammar: number;
+  conversation: number;
+  streak: number;
+  lastPractice: string;
 }
 
-interface PracticeResponse {
-  feedback: string;
-  isCorrect: boolean;
+interface CategoryPerformance {
+  category: string;
+  correct: number;
+  total: number;
 }
 
-const PRACTICE_TYPES = [
-  { id: 'vocabulary', label: 'Vocabulary' },
-  { id: 'grammar', label: 'Grammar' },
-  { id: 'conversation', label: 'Conversation' },
-  { id: 'reading', label: 'Reading' },
-  { id: 'listening', label: 'Listening' }
-];
-
-export default function PracticeScreen() {
+export default function HomeScreen() {
   const { user } = useAuth();
-  const [loading, setLoading] = useState(false);
-  const [generating, setGenerating] = useState(false);
-  const [selectedType, setSelectedType] = useState<string>('vocabulary');
-  const [practice, setPractice] = useState<Practice | null>(null);
-  const [answer, setAnswer] = useState('');
-  const [response, setResponse] = useState<PracticeResponse | null>(null);
-  const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<PracticeStats>({
+    total: 0,
+    correct: 0,
+    vocabulary: 0,
+    grammar: 0,
+    conversation: 0,
+    streak: 0,
+    lastPractice: ''
+  });
+  const [categoryPerformance, setCategoryPerformance] = useState<CategoryPerformance[]>([]);
+  const [recentActivity, setRecentActivity] = useState<any[]>([]);
 
-  // Generate practice based on selected type
-  const generatePractice = async () => {
+  // Fetch user progress data
+  const fetchUserProgress = async () => {
     if (!user) return;
 
     try {
-      setGenerating(true);
-      setSubmitted(false);
-      setResponse(null);
-      setAnswer('');
-
-      const token = await SecureStore.getItemAsync(Config.STORAGE_KEYS.AUTH_TOKEN);
-      
-      const response = await axios.post(
-        `${Config.API_URL}/api/practice/generate`,
-        {
-          userId: user._id,
-          type: selectedType
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      );
-
-      setPractice(response.data);
-    } catch (error) {
-      console.error('Error generating practice:', error);
-      Alert.alert('Error', 'Failed to generate practice. Please try again.');
-    } finally {
-      setGenerating(false);
-    }
-  };
-
-  // Submit answer for evaluation
-  const submitAnswer = async () => {
-    if (!practice || !answer.trim()) return;
-
-    try {
       setLoading(true);
-
-      const token = await SecureStore.getItemAsync(Config.STORAGE_KEYS.AUTH_TOKEN);
+      const token = await storage.getItem(Config.STORAGE_KEYS.AUTH_TOKEN);
       
-      const response = await axios.post(
-        `${Config.API_URL}/api/practice/submit`,
-        {
-          practiceId: practice._id,
-          answer: answer.trim()
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
+      // For demonstration, using placeholder data
+      // In a real app, you would fetch this from API:
+      // const response = await axios.get(`${Config.API_URL}/api/progress`, {
+      //   headers: { Authorization: `Bearer ${token}` }
+      // });
+      
+      // Simulate API response with placeholder data
+      setTimeout(() => {
+        // Placeholder stats
+        setStats({
+          total: 120,
+          correct: 85,
+          vocabulary: 65,
+          grammar: 40,
+          conversation: 15,
+          streak: 7,
+          lastPractice: new Date().toISOString()
+        });
+        
+        // Placeholder category performance
+        setCategoryPerformance([
+          { category: 'Verbs', correct: 28, total: 35 },
+          { category: 'Nouns', correct: 22, total: 25 },
+          { category: 'Adjectives', correct: 15, total: 20 },
+          { category: 'Prepositions', correct: 10, total: 15 },
+          { category: 'Phrases', correct: 12, total: 15 }
+        ]);
+        
+        // Placeholder recent activity
+        setRecentActivity([
+          { 
+            date: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), 
+            type: 'vocabulary',
+            score: 90,
+            topic: 'Daily routines'
+          },
+          { 
+            date: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), 
+            type: 'grammar',
+            score: 75,
+            topic: 'Present tense'
+          },
+          { 
+            date: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(), 
+            type: 'conversation',
+            score: 85,
+            topic: 'At the restaurant'
           }
-        }
-      );
-
-      setResponse({
-        feedback: response.data.feedback,
-        isCorrect: response.data.isCorrect
-      });
-      setSubmitted(true);
+        ]);
+        
+        setLoading(false);
+      }, 1000);
+      
     } catch (error) {
-      console.error('Error submitting answer:', error);
-      Alert.alert('Error', 'Failed to submit answer. Please try again.');
-    } finally {
+      console.error('Error fetching user progress:', error);
       setLoading(false);
     }
   };
 
-  // Generate practice on initial load
   useEffect(() => {
     if (user) {
-      generatePractice();
+      fetchUserProgress();
     }
   }, [user]);
+
+  // Get accuracy percentage
+  const getAccuracyPercentage = () => {
+    if (stats.total === 0) return 0;
+    return Math.round((stats.correct / stats.total) * 100);
+  };
+
+  // Format date string
+  const formatDate = (dateString: string) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString();
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <Text style={styles.title}>Dutch Practice</Text>
-          <Text style={styles.subtitle}>Improve your Dutch skills with AI-powered exercises</Text>
+          <Text style={styles.title}>Progress Dashboard</Text>
+          <Text style={styles.subtitle}>Track your Dutch language learning journey</Text>
         </View>
 
-        {/* Practice Type Selection */}
-        <View style={styles.typeContainer}>
-          <Text style={styles.sectionTitle}>Practice Type</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.typeButtons}>
-            {PRACTICE_TYPES.map((type) => (
-              <TouchableOpacity
-                key={type.id}
-                style={[
-                  styles.typeButton,
-                  selectedType === type.id && styles.selectedTypeButton
-                ]}
-                onPress={() => setSelectedType(type.id)}
-                disabled={generating || loading}
-              >
-                <Text
-                  style={[
-                    styles.typeButtonText,
-                    selectedType === type.id && styles.selectedTypeButtonText
-                  ]}
-                >
-                  {type.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-          
-          <TouchableOpacity
-            style={[styles.generateButton, (generating || loading) && styles.disabledButton]}
-            onPress={generatePractice}
-            disabled={generating || loading}
-          >
-            {generating ? (
-              <ActivityIndicator color="white" size="small" />
-            ) : (
-              <Text style={styles.generateButtonText}>Generate New Practice</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-
-        {/* Practice Content */}
-        {practice ? (
-          <View style={styles.practiceCard}>
-            <View style={styles.practiceHeader}>
-              <View style={styles.practiceTypeContainer}>
-                <Text style={styles.practiceType}>{practice.type.charAt(0).toUpperCase() + practice.type.slice(1)}</Text>
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#4f86f7" />
+            <Text style={styles.loadingText}>Loading your progress...</Text>
+          </View>
+        ) : (
+          <>
+            {/* Overview Cards */}
+            <View style={styles.statsContainer}>
+              <View style={styles.statCard}>
+                <Text style={styles.statValue}>{stats.total}</Text>
+                <Text style={styles.statLabel}>Total Exercises</Text>
               </View>
-              <View style={styles.difficultyContainer}>
-                <Text style={styles.difficultyText}>Level: {practice.difficulty}/10</Text>
+              
+              <View style={styles.statCard}>
+                <Text style={styles.statValue}>{getAccuracyPercentage()}%</Text>
+                <Text style={styles.statLabel}>Accuracy</Text>
+              </View>
+              
+              <View style={styles.statCard}>
+                <Text style={styles.statValue}>{stats.streak}</Text>
+                <Text style={styles.statLabel}>Day Streak</Text>
               </View>
             </View>
 
-            <Text style={styles.practiceContent}>{practice.content}</Text>
-            
-            {practice.translation && (
-              <Text style={styles.practiceTranslation}>Translation: {practice.translation}</Text>
-            )}
+            {/* Practice Type Breakdown */}
+            <View style={styles.sectionContainer}>
+              <Text style={styles.sectionTitle}>Practice Breakdown</Text>
+              <View style={styles.breakdownContainer}>
+                {/* Visual representation of practice types */}
+                <View style={styles.breakdownChart}>
+                  <View 
+                    style={[
+                      styles.breakdownBar, 
+                      styles.vocabularyBar,
+                      { flex: stats.vocabulary / stats.total }
+                    ]} 
+                  />
+                  <View 
+                    style={[
+                      styles.breakdownBar, 
+                      styles.grammarBar,
+                      { flex: stats.grammar / stats.total }
+                    ]} 
+                  />
+                  <View 
+                    style={[
+                      styles.breakdownBar, 
+                      styles.conversationBar,
+                      { flex: stats.conversation / stats.total }
+                    ]} 
+                  />
+                </View>
+                
+                {/* Legend */}
+                <View style={styles.legendContainer}>
+                  <View style={styles.legendItem}>
+                    <View style={[styles.legendColorBox, styles.vocabularyBar]} />
+                    <Text style={styles.legendText}>Vocabulary ({stats.vocabulary})</Text>
+                  </View>
+                  <View style={styles.legendItem}>
+                    <View style={[styles.legendColorBox, styles.grammarBar]} />
+                    <Text style={styles.legendText}>Grammar ({stats.grammar})</Text>
+                  </View>
+                  <View style={styles.legendItem}>
+                    <View style={[styles.legendColorBox, styles.conversationBar]} />
+                    <Text style={styles.legendText}>Conversation ({stats.conversation})</Text>
+                  </View>
+                </View>
+              </View>
+            </View>
 
-            <View style={styles.categoryContainer}>
-              {practice.categories.map((category, index) => (
-                <View key={index} style={styles.categoryTag}>
-                  <Text style={styles.categoryText}>{category}</Text>
+            {/* Category Performance */}
+            <View style={styles.sectionContainer}>
+              <Text style={styles.sectionTitle}>Category Performance</Text>
+              {categoryPerformance.map((category, index) => {
+                const percentage = Math.round((category.correct / category.total) * 100);
+                return (
+                  <View key={index} style={styles.categoryItem}>
+                    <View style={styles.categoryHeader}>
+                      <Text style={styles.categoryName}>{category.category}</Text>
+                      <Text style={styles.categoryScore}>{percentage}%</Text>
+                    </View>
+                    <View style={styles.progressBarContainer}>
+                      <View 
+                        style={[
+                          styles.progressBar, 
+                          { width: `${percentage}%` },
+                          getPerformanceColor(percentage)
+                        ]} 
+                      />
+                    </View>
+                    <Text style={styles.progressText}>
+                      {category.correct} correct out of {category.total}
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
+
+            {/* Recent Activity */}
+            <View style={styles.sectionContainer}>
+              <Text style={styles.sectionTitle}>Recent Activity</Text>
+              {recentActivity.map((activity, index) => (
+                <View key={index} style={styles.activityCard}>
+                  <View style={styles.activityHeader}>
+                    <View style={[styles.activityTypeTag, getActivityTypeStyle(activity.type)]}>
+                      <Text style={styles.activityTypeText}>{activity.type}</Text>
+                    </View>
+                    <Text style={styles.activityDate}>{formatDate(activity.date)}</Text>
+                  </View>
+                  <Text style={styles.activityTopic}>{activity.topic}</Text>
+                  <View style={styles.activityScoreContainer}>
+                    <Text style={styles.activityScoreLabel}>Score:</Text>
+                    <Text style={[styles.activityScore, getScoreStyle(activity.score)]}>
+                      {activity.score}%
+                    </Text>
+                  </View>
                 </View>
               ))}
             </View>
 
-            <Text style={styles.answerLabel}>Your Answer:</Text>
-            <TextInput
-              style={styles.answerInput}
-              value={answer}
-              onChangeText={setAnswer}
-              placeholder="Type your answer in Dutch..."
-              multiline
-              maxLength={500}
-              editable={!submitted && !loading}
-            />
-
-            {!submitted ? (
-              <TouchableOpacity
-                style={[styles.submitButton, (loading || !answer.trim()) && styles.disabledButton]}
-                onPress={submitAnswer}
-                disabled={loading || !answer.trim()}
-              >
-                {loading ? (
-                  <ActivityIndicator color="white" size="small" />
-                ) : (
-                  <Text style={styles.submitButtonText}>Submit Answer</Text>
-                )}
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                style={styles.nextButton}
-                onPress={generatePractice}
-                disabled={generating}
-              >
-                {generating ? (
-                  <ActivityIndicator color="white" size="small" />
-                ) : (
-                  <Text style={styles.nextButtonText}>Next Practice</Text>
-                )}
-              </TouchableOpacity>
-            )}
-          </View>
-        ) : generating ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#4f86f7" />
-            <Text style={styles.loadingText}>Generating your practice...</Text>
-          </View>
-        ) : (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>Select a practice type and tap 'Generate'</Text>
-          </View>
-        )}
-
-        {/* Evaluation Feedback */}
-        {response && (
-          <View style={[
-            styles.feedbackContainer,
-            response.isCorrect ? styles.correctFeedback : styles.incorrectFeedback
-          ]}>
-            <Text style={styles.feedbackTitle}>
-              {response.isCorrect ? '🎉 Correct!' : '❌ Not quite right'}
-            </Text>
-            <Text style={styles.feedbackText}>{response.feedback}</Text>
-          </View>
+            {/* Practice Button */}
+            <TouchableOpacity 
+              style={styles.practiceButton}
+              onPress={() => router.push('/(tabs)/practice')}
+            >
+              <Text style={styles.practiceButtonText}>Start New Practice</Text>
+            </TouchableOpacity>
+          </>
         )}
       </ScrollView>
     </SafeAreaView>
   );
 }
+
+// Helper functions for styling
+const getPerformanceColor = (percentage: number) => {
+  if (percentage >= 80) return styles.goodPerformance;
+  if (percentage >= 60) return styles.averagePerformance;
+  return styles.needsImprovementPerformance;
+};
+
+const getActivityTypeStyle = (type: string) => {
+  switch (type) {
+    case 'vocabulary': return styles.vocabularyActivity;
+    case 'grammar': return styles.grammarActivity;
+    case 'conversation': return styles.conversationActivity;
+    default: return styles.vocabularyActivity;
+  }
+};
+
+const getScoreStyle = (score: number) => {
+  if (score >= 80) return styles.goodScore;
+  if (score >= 60) return styles.averageScore;
+  return styles.poorScore;
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -268,7 +305,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 20,
-    paddingBottom: 40,
   },
   header: {
     marginBottom: 25,
@@ -283,179 +319,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#6c757d',
   },
-  typeContainer: {
-    marginBottom: 25,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#212529',
-    marginBottom: 12,
-  },
-  typeButtons: {
-    paddingVertical: 5,
-  },
-  typeButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 20,
-    backgroundColor: '#e9ecef',
-    marginRight: 10,
-  },
-  selectedTypeButton: {
-    backgroundColor: '#4f86f7',
-  },
-  typeButtonText: {
-    fontSize: 16,
-    color: '#495057',
-  },
-  selectedTypeButtonText: {
-    color: 'white',
-    fontWeight: '500',
-  },
-  generateButton: {
-    backgroundColor: '#4f86f7',
-    borderRadius: 8,
-    paddingVertical: 12,
-    marginTop: 15,
-    alignItems: 'center',
-  },
-  generateButtonText: {
-    fontSize: 16,
-    color: 'white',
-    fontWeight: '600',
-  },
-  disabledButton: {
-    opacity: 0.7,
-  },
-  practiceCard: {
-    backgroundColor: 'white',
-    borderRadius: 10,
-    padding: 20,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  practiceHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 15,
-  },
-  practiceTypeContainer: {
-    backgroundColor: '#4f86f7',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 16,
-  },
-  practiceType: {
-    color: 'white',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  difficultyContainer: {
-    backgroundColor: '#e9ecef',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 16,
-  },
-  difficultyText: {
-    color: '#495057',
-    fontSize: 14,
-  },
-  practiceContent: {
-    fontSize: 18,
-    color: '#212529',
-    marginBottom: 10,
-    lineHeight: 26,
-  },
-  practiceTranslation: {
-    fontSize: 14,
-    color: '#6c757d',
-    marginBottom: 15,
-    fontStyle: 'italic',
-  },
-  categoryContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 20,
-  },
-  categoryTag: {
-    backgroundColor: '#e9ecef',
-    borderRadius: 16,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    marginRight: 8,
-    marginBottom: 8,
-  },
-  categoryText: {
-    fontSize: 12,
-    color: '#495057',
-  },
-  answerLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#343a40',
-    marginBottom: 10,
-  },
-  answerInput: {
-    backgroundColor: '#f8f9fa',
-    borderRadius: 8,
-    padding: 15,
-    fontSize: 16,
-    color: '#212529',
-    minHeight: 100,
-    textAlignVertical: 'top',
-    marginBottom: 15,
-  },
-  submitButton: {
-    backgroundColor: '#28a745',
-    borderRadius: 8,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  submitButtonText: {
-    fontSize: 16,
-    color: 'white',
-    fontWeight: '600',
-  },
-  nextButton: {
-    backgroundColor: '#4f86f7',
-    borderRadius: 8,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  nextButtonText: {
-    fontSize: 16,
-    color: 'white',
-    fontWeight: '600',
-  },
-  feedbackContainer: {
-    borderRadius: 10,
-    padding: 15,
-    marginBottom: 10,
-  },
-  correctFeedback: {
-    backgroundColor: '#d4edda',
-    borderColor: '#c3e6cb',
-    borderWidth: 1,
-  },
-  incorrectFeedback: {
-    backgroundColor: '#f8d7da',
-    borderColor: '#f5c6cb',
-    borderWidth: 1,
-  },
-  feedbackTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  feedbackText: {
-    fontSize: 16,
-    lineHeight: 24,
-  },
   loadingContainer: {
     padding: 40,
     alignItems: 'center',
@@ -466,21 +329,209 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#6c757d',
   },
-  emptyContainer: {
-    padding: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
+  statsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 25,
+  },
+  statCard: {
     backgroundColor: 'white',
-    borderRadius: 10,
+    borderRadius: 12,
+    padding: 15,
+    width: '31%',
+    alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowRadius: 3,
     elevation: 2,
   },
-  emptyText: {
-    fontSize: 16,
+  statValue: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#4f86f7',
+    marginBottom: 5,
+  },
+  statLabel: {
+    fontSize: 12,
     color: '#6c757d',
     textAlign: 'center',
   },
+  sectionContainer: {
+    marginBottom: 25,
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 15,
+  },
+  breakdownContainer: {
+    marginBottom: 10,
+  },
+  breakdownChart: {
+    height: 30,
+    flexDirection: 'row',
+    borderRadius: 15,
+    overflow: 'hidden',
+    marginBottom: 15,
+  },
+  breakdownBar: {
+    height: '100%',
+  },
+  vocabularyBar: {
+    backgroundColor: '#4f86f7',
+  },
+  grammarBar: {
+    backgroundColor: '#FF9500',
+  },
+  conversationBar: {
+    backgroundColor: '#4CD964',
+  },
+  legendContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 10,
+    marginBottom: 5,
+  },
+  legendColorBox: {
+    width: 12,
+    height: 12,
+    borderRadius: 3,
+    marginRight: 5,
+  },
+  legendText: {
+    fontSize: 12,
+    color: '#6c757d',
+  },
+  categoryItem: {
+    marginBottom: 15,
+  },
+  categoryHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 5,
+  },
+  categoryName: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#333',
+  },
+  categoryScore: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#4f86f7',
+  },
+  progressBarContainer: {
+    height: 8,
+    backgroundColor: '#e9ecef',
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginBottom: 5,
+  },
+  progressBar: {
+    height: '100%',
+  },
+  progressText: {
+    fontSize: 12,
+    color: '#6c757d',
+  },
+  goodPerformance: {
+    backgroundColor: '#4CD964',
+  },
+  averagePerformance: {
+    backgroundColor: '#FF9500',
+  },
+  needsImprovementPerformance: {
+    backgroundColor: '#FF3B30',
+  },
+  activityCard: {
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+    borderRadius: 8,
+    padding: 15,
+  },
+  activityHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  activityTypeTag: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  activityTypeText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: 'white',
+  },
+  vocabularyActivity: {
+    backgroundColor: '#4f86f7',
+  },
+  grammarActivity: {
+    backgroundColor: '#FF9500',
+  },
+  conversationActivity: {
+    backgroundColor: '#4CD964',
+  },
+  activityDate: {
+    fontSize: 12,
+    color: '#6c757d',
+  },
+  activityTopic: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#333',
+    marginBottom: 10,
+  },
+  activityScoreContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  activityScoreLabel: {
+    fontSize: 14,
+    color: '#6c757d',
+    marginRight: 5,
+  },
+  activityScore: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  goodScore: {
+    color: '#4CD964',
+  },
+  averageScore: {
+    color: '#FF9500',
+  },
+  poorScore: {
+    color: '#FF3B30',
+  },
+  practiceButton: {
+    backgroundColor: '#4f86f7',
+    borderRadius: 8,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  practiceButtonText: {
+    fontSize: 16,
+    color: 'white',
+    fontWeight: '600',
+  }
 });

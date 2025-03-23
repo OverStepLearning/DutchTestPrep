@@ -12,7 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/contexts/AuthContext';
 import axios from 'axios';
 import Config from '@/constants/Config';
-import * as SecureStore from 'expo-secure-store';
+import { storage } from '@/utils/storage';
 import { Ionicons } from '@expo/vector-icons';
 
 interface Practice {
@@ -87,7 +87,7 @@ export default function ProgressScreen() {
       setLoading(true);
       setError(null);
 
-      const token = await SecureStore.getItemAsync(Config.STORAGE_KEYS.AUTH_TOKEN);
+      const token = await storage.getItem(Config.STORAGE_KEYS.AUTH_TOKEN);
       
       const response = await axios.get(
         `${Config.API_URL}/api/practice/history/${user._id}?page=${page}&limit=10`,

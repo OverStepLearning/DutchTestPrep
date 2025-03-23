@@ -13,7 +13,7 @@ import { useRouter } from 'expo-router';
 import axios from 'axios';
 import { useAuth } from '@/contexts/AuthContext';
 import Config from '@/constants/Config';
-import * as SecureStore from 'expo-secure-store';
+import { storage } from '@/utils/storage';
 
 // Categories for Dutch language practice
 const CATEGORIES = [
@@ -141,7 +141,7 @@ export default function OnboardingScreen() {
     setLoading(true);
     
     try {
-      const authToken = await SecureStore.getItemAsync(Config.STORAGE_KEYS.AUTH_TOKEN);
+      const authToken = await storage.getItem(Config.STORAGE_KEYS.AUTH_TOKEN);
       
       if (!authToken) {
         Alert.alert('Error', 'Authentication token not found');

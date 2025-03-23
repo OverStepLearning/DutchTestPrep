@@ -4,17 +4,20 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from 'axios';
 import config from '@/constants/Config';
 import { useAuth } from '@/contexts/AuthContext';
-import * as SecureStore from 'expo-secure-store';
+import { storage } from '@/utils/storage';
 
 // Define types for practice content
 interface PracticeItem {
   _id: string;
-  content: string;
-  translation?: string;
+  content: string | string[];
+  translation?: string | string[];
   type: 'vocabulary' | 'grammar' | 'conversation' | 'reading' | 'listening';
   difficulty: number;
   complexity: number;
   categories: string[];
+  questionType?: string; // Type of question (mcq, spelling, fill-in-blank, etc.)
+  options?: string[]; // Options for multiple choice questions
+  motherLanguage?: string; // User's native language
 }
 
 // Main practice screen component
@@ -23,23 +26,28 @@ export default function PracticeScreen() {
   const [loading, setLoading] = useState(false);
   const [currentPractice, setCurrentPractice] = useState<PracticeItem | null>(null);
   const [userAnswer, setUserAnswer] = useState('');
-  const [feedback, setFeedback] = useState<{ isCorrect: boolean; feedback: string } | null>(null);
+  const [feedback, setFeedback] = useState<{ isCorrect: boolean; feedback: string | string[] } | null>(null);
   const [practiceType, setPracticeType] = useState<'vocabulary' | 'grammar' | 'conversation'>('vocabulary');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Function to fetch a new practice item
+  // Function to generate practice with additional error handling
   const generatePractice = async () => {
-    if (!user) {
-      Alert.alert('Error', 'You must be logged in to practice');
-      return;
-    }
-    
-    setLoading(true);
-    setFeedback(null);
-    setUserAnswer('');
-    
     try {
-      const token = await SecureStore.getItemAsync(config.STORAGE_KEYS.AUTH_TOKEN);
+      setErrorMessage(null);
       
+      if (!user) {
+        Alert.alert('Error', 'You must be logged in to practice');
+        return;
+      }
+      
+      setLoading(true);
+      setFeedback(null);
+      setUserAnswer('');
+      
+      const token = await storage.getItem(config.STORAGE_KEYS.AUTH_TOKEN);
+      console.log('Using token:', token ? 'Token exists' : 'No token found');
+      
+      console.log('Starting practice request with type:', practiceType);
       const response = await axios.post(`${config.API_URL}/api/practice/generate`, {
         userId: user._id,
         type: practiceType
@@ -49,9 +57,35 @@ export default function PracticeScreen() {
         }
       });
       
-      setCurrentPractice(response.data);
+      console.log('Practice API Response Status:', response.status);
+      console.log('Practice API Response Data:', JSON.stringify(response.data, null, 2));
+      
+      // Ensure we have valid data before setting it
+      if (response.data && response.data.data && typeof response.data.data === 'object') {
+        // Make a safe copy of the data with fallbacks
+        const practice: PracticeItem = {
+          _id: response.data.data._id || '',
+          content: response.data.data.content || '',
+          translation: response.data.data.translation || '',
+          type: response.data.data.type || 'vocabulary',
+          difficulty: response.data.data.difficulty || 1,
+          complexity: response.data.data.complexity || 1,
+          categories: Array.isArray(response.data.data.categories) ? response.data.data.categories : [],
+          questionType: response.data.data.questionType || '',
+          options: Array.isArray(response.data.data.options) ? response.data.data.options : []
+        };
+        
+        console.log('Setting current practice:', JSON.stringify(practice, null, 2));
+        setCurrentPractice(practice);
+      } else {
+        console.error('Invalid practice data structure:', response.data);
+        throw new Error('Invalid practice data received');
+      }
     } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
       console.error('Error generating practice:', error);
+      console.error('Error details:', errorMsg);
+      setErrorMessage(`Failed to generate practice: ${errorMsg}`);
       Alert.alert('Error', 'Failed to generate practice. Please try again.');
     } finally {
       setLoading(false);
@@ -60,31 +94,81 @@ export default function PracticeScreen() {
 
   // Function to submit user's answer
   const submitAnswer = async () => {
-    if (!currentPractice || !userAnswer.trim()) {
-      Alert.alert('Error', 'Please provide an answer');
-      return;
-    }
-    
-    setLoading(true);
-    
     try {
-      const token = await SecureStore.getItemAsync(config.STORAGE_KEYS.AUTH_TOKEN);
+      setErrorMessage(null);
+      
+      if (!currentPractice) {
+        console.error('No current practice available');
+        Alert.alert('Error', 'No practice question available');
+        return;
+      }
+      
+      if (!userAnswer || !userAnswer.trim()) {
+        console.error('No answer provided');
+        Alert.alert('Error', 'Please provide an answer');
+        return;
+      }
+      
+      console.log('Submitting answer:', userAnswer);
+      console.log('For practice ID:', currentPractice._id);
+      
+      setLoading(true);
+      
+      const token = await storage.getItem(config.STORAGE_KEYS.AUTH_TOKEN);
       
       const response = await axios.post(`${config.API_URL}/api/practice/submit`, {
         practiceId: currentPractice._id,
-        answer: userAnswer
+        userAnswer: userAnswer
       }, {
         headers: {
           Authorization: `Bearer ${token}`
         }
       });
       
+      console.log('Answer submission status:', response.status);
+      console.log('Answer API response:', JSON.stringify(response.data, null, 2));
+      
+      // Handle potential array or undefined values in feedback
+      let feedbackText: string | string[] = '';
+      let isCorrect = false;
+      
+      if (response.data && response.data.data) {
+        console.log('Response data structure:', Object.keys(response.data.data));
+        
+        if (response.data.data.evaluation) {
+          const evaluation = response.data.data.evaluation;
+          console.log('Evaluation data:', JSON.stringify(evaluation, null, 2));
+          
+          isCorrect = Boolean(evaluation.isCorrect);
+          
+          if (evaluation.feedback !== undefined) {
+            if (Array.isArray(evaluation.feedback)) {
+              feedbackText = evaluation.feedback;
+              console.log('Feedback is an array:', evaluation.feedback);
+            } else {
+              feedbackText = evaluation.feedback;
+              console.log('Feedback is a string:', evaluation.feedback);
+            }
+          } else {
+            console.log('No feedback provided in the evaluation');
+          }
+        } else {
+          console.log('No evaluation found in response data');
+        }
+      } else {
+        console.error('Invalid response data structure:', response.data);
+      }
+      
+      console.log('Setting feedback state:', { isCorrect, feedback: feedbackText });
       setFeedback({
-        isCorrect: response.data.isCorrect,
-        feedback: response.data.feedback
+        isCorrect,
+        feedback: feedbackText
       });
     } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
       console.error('Error submitting answer:', error);
+      console.error('Error details:', errorMsg);
+      setErrorMessage(`Failed to submit answer: ${errorMsg}`);
       Alert.alert('Error', 'Failed to submit answer. Please try again.');
     } finally {
       setLoading(false);
@@ -93,10 +177,28 @@ export default function PracticeScreen() {
 
   // Generate initial practice on component mount
   useEffect(() => {
+    console.log('PracticeScreen mounted, user:', user ? 'User exists' : 'No user');
     if (user) {
       generatePractice();
     }
   }, [user]);
+
+  // Helper function to safely display content that might be string or array
+  const displayContent = (content: string | string[] | undefined): string => {
+    if (!content) {
+      console.log('displayContent: content is empty');
+      return '';
+    }
+    if (typeof content === 'string') {
+      return content;
+    }
+    if (Array.isArray(content)) {
+      console.log('displayContent: content is array with length', content.length);
+      return content.join('\n');
+    }
+    console.log('displayContent: content is unexpected type:', typeof content);
+    return '';
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -106,7 +208,10 @@ export default function PracticeScreen() {
         {/* Practice type selector */}
         <View style={styles.typeSelector}>
           <TouchableOpacity
-            style={[styles.typeButton, practiceType === 'vocabulary' && styles.selectedType]}
+            style={[
+              styles.typeButton, 
+              practiceType === 'vocabulary' ? styles.selectedType : null
+            ]}
             onPress={() => {
               setPracticeType('vocabulary');
               setFeedback(null);
@@ -117,7 +222,10 @@ export default function PracticeScreen() {
           </TouchableOpacity>
           
           <TouchableOpacity
-            style={[styles.typeButton, practiceType === 'grammar' && styles.selectedType]}
+            style={[
+              styles.typeButton, 
+              practiceType === 'grammar' ? styles.selectedType : null
+            ]}
             onPress={() => {
               setPracticeType('grammar');
               setFeedback(null);
@@ -128,7 +236,10 @@ export default function PracticeScreen() {
           </TouchableOpacity>
           
           <TouchableOpacity
-            style={[styles.typeButton, practiceType === 'conversation' && styles.selectedType]}
+            style={[
+              styles.typeButton, 
+              practiceType === 'conversation' ? styles.selectedType : null
+            ]}
             onPress={() => {
               setPracticeType('conversation');
               setFeedback(null);
@@ -139,6 +250,13 @@ export default function PracticeScreen() {
           </TouchableOpacity>
         </View>
         
+        {/* Error message display */}
+        {errorMessage && (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{errorMessage}</Text>
+          </View>
+        )}
+        
         {/* Loading indicator */}
         {loading ? (
           <ActivityIndicator size="large" color="#4f86f7" style={styles.loader} />
@@ -147,40 +265,74 @@ export default function PracticeScreen() {
             {/* Practice content */}
             {currentPractice && (
               <View style={styles.practiceContainer}>
-                <Text style={styles.practiceText}>{currentPractice.content}</Text>
+                <Text style={styles.practiceText}>
+                  {displayContent(currentPractice.content)}
+                </Text>
                 
                 {/* Difficulty and complexity indicators */}
                 <View style={styles.difficultyContainer}>
-                  <Text style={styles.levelText}>Difficulty: {currentPractice.difficulty}/10</Text>
-                  <Text style={styles.levelText}>Complexity: {currentPractice.complexity}/10</Text>
+                  <Text style={styles.levelText}>Difficulty: {currentPractice.difficulty || 1}/10</Text>
+                  <Text style={styles.levelText}>Complexity: {currentPractice.complexity || 1}/10</Text>
                 </View>
                 
                 {/* Categories */}
                 <View style={styles.categoriesContainer}>
-                  {currentPractice.categories.map((category, index) => (
+                  {currentPractice.categories && currentPractice.categories.map((category, index) => (
                     <View key={index} style={styles.categoryTag}>
                       <Text style={styles.categoryText}>{category}</Text>
                     </View>
                   ))}
                 </View>
                 
-                {/* Answer input */}
-                <TextInput
-                  style={styles.answerInput}
-                  placeholder="Type your answer in Dutch..."
-                  value={userAnswer}
-                  onChangeText={setUserAnswer}
-                  multiline
-                  autoCorrect={false}
-                  editable={!feedback}
-                />
+                {/* Answer input - conditionally show based on question type */}
+                {currentPractice.questionType === 'mcq' && 
+                 Array.isArray(currentPractice.options) && 
+                 currentPractice.options.length > 0 ? (
+                  <View style={styles.mcqContainer}>
+                    <Text style={styles.mcqPrompt}>Choose the correct answer:</Text>
+                    {currentPractice.options.map((option, index) => {
+                      // Ensure option is a valid string
+                      const optionText = typeof option === 'string' ? option : '';
+                      const isSelected = userAnswer && optionText && userAnswer === optionText;
+                      
+                      return (
+                        <TouchableOpacity 
+                          key={index}
+                          style={[
+                            styles.mcqOption,
+                            isSelected ? styles.mcqOptionSelected : null
+                          ]}
+                          onPress={() => optionText && setUserAnswer(optionText)}
+                          disabled={!!feedback}
+                        >
+                          <Text style={[
+                            styles.mcqOptionText,
+                            isSelected ? styles.mcqOptionTextSelected : null
+                          ]}>
+                            {optionText}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                ) : (
+                  <TextInput
+                    style={styles.answerInput}
+                    placeholder="Type your answer in Dutch..."
+                    value={userAnswer || ''}
+                    onChangeText={setUserAnswer}
+                    multiline
+                    autoCorrect={false}
+                    editable={!feedback}
+                  />
+                )}
                 
                 {/* Submit button */}
                 {!feedback ? (
                   <TouchableOpacity 
                     style={styles.submitButton} 
                     onPress={submitAnswer}
-                    disabled={!userAnswer.trim()}
+                    disabled={!userAnswer || !(typeof userAnswer === 'string' && userAnswer.trim())}
                   >
                     <Text style={styles.buttonText}>Submit Answer</Text>
                   </TouchableOpacity>
@@ -192,7 +344,9 @@ export default function PracticeScreen() {
                     ]}>
                       {feedback.isCorrect ? 'Correct!' : 'Not quite right'}
                     </Text>
-                    <Text style={styles.feedbackText}>{feedback.feedback}</Text>
+                    <Text style={styles.feedbackText}>
+                      {displayContent(feedback.feedback)}
+                    </Text>
                     
                     {/* Next practice button */}
                     <TouchableOpacity 
@@ -203,10 +357,12 @@ export default function PracticeScreen() {
                     </TouchableOpacity>
                     
                     {/* Show translation if available */}
-                    {currentPractice.translation && (
+                    {currentPractice && currentPractice.translation && (
                       <View style={styles.translationContainer}>
                         <Text style={styles.translationLabel}>Translation:</Text>
-                        <Text style={styles.translationText}>{currentPractice.translation}</Text>
+                        <Text style={styles.translationText}>
+                          {displayContent(currentPractice.translation)}
+                        </Text>
                       </View>
                     )}
                   </View>
@@ -364,5 +520,47 @@ const styles = StyleSheet.create({
   translationText: {
     fontSize: 16,
     color: '#212529',
+  },
+  mcqContainer: {
+    marginTop: 15,
+    width: '100%',
+  },
+  mcqPrompt: {
+    fontSize: 16,
+    marginBottom: 10,
+    fontWeight: '500',
+    color: '#333',
+  },
+  mcqOption: {
+    padding: 15,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    marginBottom: 10,
+    backgroundColor: '#fff',
+  },
+  mcqOptionSelected: {
+    borderColor: '#4f86f7',
+    backgroundColor: '#e6f0ff',
+  },
+  mcqOptionText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  mcqOptionTextSelected: {
+    color: '#4f86f7',
+    fontWeight: '500',
+  },
+  errorContainer: {
+    backgroundColor: '#ffdddd',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: '#f44336',
+  },
+  errorText: {
+    color: '#d32f2f',
+    fontSize: 14,
   },
 }); 
