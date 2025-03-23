@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Alert } from 'react-native';
 import { useAuth } from '@/contexts/AuthContext';
+import { validateEmail, validatePassword, isNotEmpty } from '@/app/utils/validationUtils';
 
 interface RegisterInputs {
   name: string;
@@ -47,7 +48,7 @@ export function useRegister(): UseRegisterReturn {
     const { name, email, password, confirmPassword } = inputs;
     
     // Check for empty fields
-    if (!name.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
+    if (!isNotEmpty(name) || !isNotEmpty(email) || !isNotEmpty(password) || !isNotEmpty(confirmPassword)) {
       Alert.alert('Error', 'Please fill in all fields');
       return false;
     }
@@ -58,15 +59,14 @@ export function useRegister(): UseRegisterReturn {
       return false;
     }
 
-    // Simple email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    // Email validation
+    if (!validateEmail(email)) {
       Alert.alert('Error', 'Please enter a valid email address');
       return false;
     }
 
     // Check password strength
-    if (password.length < 6) {
+    if (!validatePassword(password)) {
       Alert.alert('Error', 'Password must be at least 6 characters long');
       return false;
     }

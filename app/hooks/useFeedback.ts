@@ -5,6 +5,7 @@ import { storage } from '@/utils/storage';
 import axios from 'axios';
 import config from '@/constants/Config';
 import { FeedbackItem } from '../types/feedback';
+import { isNotEmpty } from '@/app/utils/validationUtils';
 
 export function useFeedback() {
   const { user } = useAuth();
@@ -80,7 +81,7 @@ export function useFeedback() {
       return;
     }
     
-    if (!message.trim()) {
+    if (!isNotEmpty(message)) {
       Alert.alert('Error', 'Please enter your feedback message');
       return;
     }

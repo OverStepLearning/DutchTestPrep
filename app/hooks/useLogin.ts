@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import axios from 'axios';
 import Config from '@/constants/Config';
 import { storage } from '@/utils/storage';
+import { isNotEmpty } from '@/app/utils/validationUtils';
 
 // Define network profile types
 export type NetworkProfile = 'OFFICE' | 'HOME' | 'LOCALHOST' | 'PROD';
@@ -67,7 +68,7 @@ export function useLogin() {
 
   // Handle login button press
   const handleLogin = async () => {
-    if (!email.trim() || !password.trim()) {
+    if (!isNotEmpty(email) || !isNotEmpty(password)) {
       Alert.alert('Error', 'Please enter both email and password');
       return;
     }
