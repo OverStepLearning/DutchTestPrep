@@ -6,6 +6,7 @@ import authRoutes from './routes/authRoutes';
 import exampleRoute from './routes/exampleRoute';
 import practiceRoutes from './routes/practiceRoutes';
 import userRoutes from './routes/userRoutes';
+import feedbackRoutes from './routes/feedbackRoutes';
 import connectDB from './config/database';
 
 // Load environment variables
@@ -26,6 +27,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/examples', exampleRoute);
 app.use('/api/practice', practiceRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/feedback', feedbackRoutes);
 
 // Health check route
 app.get('/health', (req, res) => {
