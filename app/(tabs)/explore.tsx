@@ -188,10 +188,10 @@ export default function FeedbackScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <ThemedView style={styles.titleContainer}>
+      <ThemedView style={styles.titleContainer}>
           <Ionicons name="chatbubbles" size={28} color="#4f86f7" />
           <ThemedText type="title">Feedback</ThemedText>
-        </ThemedView>
+      </ThemedView>
         
         <ThemedText style={styles.subtitle}>
           Help us improve by sharing your thoughts, reporting bugs, or suggesting new features.
@@ -222,7 +222,7 @@ export default function FeedbackScreen() {
                   ]}
                 >
                   {cat.label}
-                </ThemedText>
+        </ThemedText>
               </TouchableOpacity>
             ))}
           </View>
@@ -252,7 +252,7 @@ export default function FeedbackScreen() {
           {/* Character Counter */}
           <ThemedText style={styles.charCounter}>
             {message.length}/2000
-          </ThemedText>
+        </ThemedText>
           
           {/* Submit Button */}
           <TouchableOpacity

@@ -36,6 +36,9 @@ export default function PracticeScreen() {
   const [difficultyTrend, setDifficultyTrend] = useState<'increasing' | 'decreasing' | 'stable'>('stable');
   const previousDifficultyRef = useRef<number | null>(null);
   const [difficultyChange, setDifficultyChange] = useState<string | null>(null);
+  const [feedbackQuestion, setFeedbackQuestion] = useState('');
+  const [feedbackAnswer, setFeedbackAnswer] = useState<string | null>(null);
+  const [askingQuestion, setAskingQuestion] = useState(false);
 
   // Function to generate practice with additional error handling
   const generatePractice = async (forceNew = false) => {
@@ -390,8 +393,66 @@ export default function PracticeScreen() {
     return '';
   };
 
-  // Function to handle next practice
+  // Function to handle asking a question about the feedback
+  const askFeedbackQuestion = async () => {
+    if (!feedbackQuestion.trim() || !currentPractice || !feedback) return;
+    
+    try {
+      setAskingQuestion(true);
+      setFeedbackAnswer(null);
+      
+      const token = await storage.getItem(config.STORAGE_KEYS.AUTH_TOKEN);
+      
+      console.log('Sending request to:', `${config.API_URL}/api/practice/question`);
+      console.log('Request data:', {
+        question: feedbackQuestion,
+        practiceId: currentPractice._id,
+        userAnswer,
+        feedback: feedback.feedback
+      });
+      
+      const response = await axios.post(
+        `${config.API_URL}/api/practice/question`,
+        {
+          question: feedbackQuestion,
+          practiceId: currentPractice._id,
+          userAnswer,
+          feedback: feedback.feedback
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+      
+      console.log('Full response data:', response.data);
+      
+      if (response.data && response.data.answer) {
+        setFeedbackAnswer(response.data.answer);
+      } else {
+        console.error('Unexpected response format:', response.data);
+        Alert.alert('Error', 'The response from the server was in an unexpected format.');
+      }
+    } catch (error: any) {
+      console.error('Error asking feedback question:', error);
+      // Log more detailed error information
+      if (error.response) {
+        console.error('Error response data:', error.response.data);
+        console.error('Error response status:', error.response.status);
+      }
+      Alert.alert('Error', 'Failed to get an answer. Please try again.');
+    } finally {
+      setAskingQuestion(false);
+    }
+  };
+
+  // Function to clear practice state including feedback questions
   const handleNextPractice = () => {
+    setFeedback(null);
+    setUserAnswer('');
+    setFeedbackQuestion('');
+    setFeedbackAnswer(null);
     generatePractice();
   };
 
@@ -611,6 +672,41 @@ export default function PracticeScreen() {
                         </Text>
                       </View>
                     )}
+                    
+                    {/* Feedback question section */}
+                    <View style={styles.feedbackQuestionContainer}>
+                      <Text style={styles.feedbackQuestionLabel}>
+                        Have questions about the feedback? Ask here:
+                      </Text>
+                      <TextInput
+                        style={styles.feedbackQuestionInput}
+                        placeholder="Type your question here..."
+                        value={feedbackQuestion}
+                        onChangeText={setFeedbackQuestion}
+                        multiline
+                      />
+                      <TouchableOpacity
+                        style={[
+                          styles.askButton,
+                          (!feedbackQuestion.trim() || askingQuestion) && styles.disabledButton
+                        ]}
+                        onPress={askFeedbackQuestion}
+                        disabled={!feedbackQuestion.trim() || askingQuestion}
+                      >
+                        {askingQuestion ? (
+                          <ActivityIndicator size="small" color="#fff" />
+                        ) : (
+                          <Text style={styles.buttonText}>Ask</Text>
+                        )}
+                      </TouchableOpacity>
+                      
+                      {feedbackAnswer && (
+                        <View style={styles.answerContainer}>
+                          <Text style={styles.answerLabel}>Answer:</Text>
+                          <Text style={styles.answerText}>{feedbackAnswer}</Text>
+                        </View>
+                      )}
+                    </View>
                   </View>
                 )}
               </View>
@@ -892,5 +988,59 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
     marginLeft: 8,
+  },
+  feedbackQuestionContainer: {
+    marginTop: 20,
+    backgroundColor: '#f0f8ff',
+    borderRadius: 12,
+    padding: 15,
+    borderWidth: 1,
+    borderColor: '#d1e3f6',
+  },
+  feedbackQuestionLabel: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#4a6da7',
+    marginBottom: 10,
+  },
+  feedbackQuestionInput: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#dee2e6',
+    borderRadius: 8,
+    padding: 10,
+    fontSize: 16,
+    minHeight: 80,
+    marginBottom: 10,
+  },
+  askButton: {
+    backgroundColor: '#4a6da7',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  disabledButton: {
+    backgroundColor: '#a0a0a0',
+  },
+  answerContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 15,
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: '#dee2e6',
+  },
+  answerLabel: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#4a6da7',
+    marginBottom: 5,
+  },
+  answerText: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: '#212529',
   },
 }); 

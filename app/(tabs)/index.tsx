@@ -152,8 +152,8 @@ export default function HomeScreen() {
               <View style={styles.statCard}>
                 <Text style={styles.statValue}>{stats.total}</Text>
                 <Text style={styles.statLabel}>Total Exercises</Text>
-              </View>
-              
+        </View>
+
               <View style={styles.statCard}>
                 <Text style={styles.statValue}>{getAccuracyPercentage()}%</Text>
                 <Text style={styles.statLabel}>Accuracy</Text>
@@ -263,12 +263,12 @@ export default function HomeScreen() {
             </View>
 
             {/* Practice Button */}
-            <TouchableOpacity 
+              <TouchableOpacity
               style={styles.practiceButton}
               onPress={() => router.push('/(tabs)/practice')}
             >
               <Text style={styles.practiceButtonText}>Start New Practice</Text>
-            </TouchableOpacity>
+              </TouchableOpacity>
           </>
         )}
       </ScrollView>
