@@ -50,6 +50,13 @@ export default function PracticeScreen() {
         return;
       }
       
+      // Clear all feedback-related state
+      setFeedback(null);
+      setUserAnswer('');
+      setFeedbackQuestion('');
+      setFeedbackAnswer(null);
+      setAskingQuestion(false);
+      
       // If we're not forcing new generation and we have questions in the queue, use the next one
       if (!forceNew && questionQueue.length > 0) {
         const nextQuestion = questionQueue[0];
@@ -57,8 +64,6 @@ export default function PracticeScreen() {
         
         setCurrentPractice(nextQuestion);
         setQuestionQueue(remainingQuestions);
-        setFeedback(null);
-        setUserAnswer('');
         
         // If we're running low on queued questions, generate more in the background
         if (remainingQuestions.length < 2 && !generatingBatch) {
@@ -70,8 +75,6 @@ export default function PracticeScreen() {
       
       // Otherwise, we need to fetch from the server
       setLoading(true);
-      setFeedback(null);
-      setUserAnswer('');
       
       const token = await storage.getItem(config.STORAGE_KEYS.AUTH_TOKEN);
       console.log('Using token:', token ? 'Token exists' : 'No token found');
@@ -449,10 +452,14 @@ export default function PracticeScreen() {
 
   // Function to clear practice state including feedback questions
   const handleNextPractice = () => {
+    // Clear all feedback-related state
     setFeedback(null);
     setUserAnswer('');
     setFeedbackQuestion('');
     setFeedbackAnswer(null);
+    setAskingQuestion(false);
+    
+    // Generate a new practice question
     generatePractice();
   };
 
@@ -474,6 +481,10 @@ export default function PracticeScreen() {
               onPress={() => {
                 setPracticeType(type as any);
                 setFeedback(null);
+                setUserAnswer('');
+                setFeedbackQuestion('');
+                setFeedbackAnswer(null);
+                setAskingQuestion(false);
                 generatePractice(true);
               }}
             >
