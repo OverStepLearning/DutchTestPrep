@@ -1,186 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  StyleSheet, 
-  Text, 
-  View, 
-  ScrollView, 
-  TouchableOpacity, 
-  ActivityIndicator,
-  Alert,
-  Image,
-  Modal,
-  FlatList
-} from 'react-native';
-import { useAuth } from '@/contexts/AuthContext';
-import axios from 'axios';
-import Config from '@/constants/Config';
+import React from 'react';
+import { StyleSheet, View, ScrollView, TouchableOpacity, ActivityIndicator, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { storage } from '@/utils/storage';
-
-interface UserProfile {
-  user: {
-    _id: string;
-    name: string;
-    email: string;
-    motherLanguage?: string;
-  };
-  progress: {
-    skillLevels: {
-      vocabulary: number;
-      grammar: number;
-      conversation: number;
-      reading: number;
-      listening: number;
-    };
-    completedPractices: number;
-    averageDifficulty: number;
-    lastActivity: Date;
-  };
-  preferences: {
-    preferredCategories: string[];
-    challengeAreas: string[];
-    learningReason: string;
-  };
-}
+import { useProfile } from '../hooks/useProfile';
+import { ProfileHeader } from '../components/profile/ProfileHeader';
+import { LanguageSelector } from '../components/profile/LanguageSelector';
+import { SkillsDisplay } from '../components/profile/SkillsDisplay';
+import { StatsSummary } from '../components/profile/StatsSummary';
+import { PreferencesDisplay } from '../components/profile/PreferencesDisplay';
 
 export default function ProfileScreen() {
-  const { user, logout } = useAuth();
-  const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [editingLanguage, setEditingLanguage] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState<string>('');
-  const [showLanguageModal, setShowLanguageModal] = useState(false);
-  
-  // Language mapping with native names
-  const languageOptions = [
-    { code: 'English', nativeName: 'English' },
-    { code: 'Spanish', nativeName: 'Español' },
-    { code: 'French', nativeName: 'Français' },
-    { code: 'German', nativeName: 'Deutsch' },
-    { code: 'Dutch', nativeName: 'Nederlands' },
-    { code: 'Italian', nativeName: 'Italiano' },
-    { code: 'Portuguese', nativeName: 'Português' },
-    { code: 'Russian', nativeName: 'Русский' },
-    { code: 'Chinese', nativeName: '简体中文' },
-    { code: 'Japanese', nativeName: '日本語' },
-    { code: 'Korean', nativeName: '한국어' },
-    { code: 'Arabic', nativeName: 'العربية' },
-    { code: 'Hindi', nativeName: 'हिन्दी' },
-    { code: 'Turkish', nativeName: 'Türkçe' },
-    { code: 'Thai', nativeName: 'ไทย' },
-    { code: 'Vietnamese', nativeName: 'Tiếng Việt' }
-  ];
-
-  // Helper to get native name from language code
-  const getNativeLanguageName = (code: string): string => {
-    const language = languageOptions.find(lang => lang.code === code);
-    return language ? language.nativeName : code;
-  };
-
-  // Fetch user profile data
-  const fetchUserProfile = async () => {
-    try {
-      setLoading(true);
-      
-      const token = await storage.getItem(Config.STORAGE_KEYS.AUTH_TOKEN);
-      const response = await axios.get(`${Config.API_URL}/api/user/profile`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      
-      if (response.data.success) {
-        setProfile(response.data.data);
-      } else {
-        setError('Failed to load profile');
-      }
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-      setError('Failed to load profile. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (user) {
-      fetchUserProfile();
-    }
-  }, [user]);
-
-  // Handle logout
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (error) {
-      console.error('Logout error:', error);
-      Alert.alert('Error', 'Failed to logout. Please try again.');
-    }
-  };
-
-  // Update mother language
-  const updateMotherLanguage = async () => {
-    try {
-      setLoading(true);
-      
-      const token = await storage.getItem(Config.STORAGE_KEYS.AUTH_TOKEN);
-      const response = await axios.put(
-        `${Config.API_URL}/api/auth/profile`, 
-        { motherLanguage: selectedLanguage },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      
-      if (response.data && response.data.user) {
-        // Update the profile state with the new mother language
-        setProfile(prev => {
-          if (!prev) return null;
-          return {
-            ...prev,
-            user: {
-              ...prev.user,
-              motherLanguage: selectedLanguage
-            }
-          };
-        });
-        Alert.alert('Success', 'Your mother language has been updated.');
-      } else {
-        Alert.alert('Error', 'Failed to update mother language.');
-      }
-    } catch (error) {
-      console.error('Error updating mother language:', error);
-      Alert.alert('Error', 'Failed to update mother language. Please try again.');
-    } finally {
-      setLoading(false);
-      setEditingLanguage(false);
-    }
-  };
-
-  // Set initial selected language when profile loads
-  useEffect(() => {
-    if (profile && profile.user.motherLanguage) {
-      setSelectedLanguage(profile.user.motherLanguage);
-    } else {
-      setSelectedLanguage('English'); // Default to English
-    }
-  }, [profile]);
-
-  // Render skill level bar
-  const renderSkillLevel = (label: string, level: number) => {
-    return (
-      <View style={styles.skillContainer}>
-        <Text style={styles.skillLabel}>{label}</Text>
-        <View style={styles.skillBarContainer}>
-          <View style={[styles.skillBar, { width: `${level * 10}%` }]} />
-        </View>
-        <Text style={styles.skillLevel}>{level}/10</Text>
-      </View>
-    );
-  };
+  const {
+    loading,
+    profile,
+    error,
+    selectedLanguage,
+    languageOptions,
+    fetchUserProfile,
+    updateMotherLanguage,
+    handleLogout
+  } = useProfile();
 
   if (loading) {
     return (
@@ -193,203 +31,54 @@ export default function ProfileScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Profile Header */}
-        <View style={styles.header}>
-          <View style={styles.avatarContainer}>
-            <Text style={styles.avatarText}>
-              {user?.name?.charAt(0)?.toUpperCase() || '?'}
-            </Text>
-          </View>
-          <Text style={styles.name}>{user?.name}</Text>
-          <Text style={styles.email}>{user?.email}</Text>
-        </View>
+        {profile ? (
+          <>
+            <ProfileHeader 
+              name={profile.user.name} 
+              email={profile.user.email} 
+            />
 
-        {error ? (
+            <LanguageSelector
+              currentLanguage={selectedLanguage}
+              languages={languageOptions}
+              onLanguageChange={updateMotherLanguage}
+            />
+
+            <SkillsDisplay 
+              skillLevels={profile.progress.skillLevels} 
+            />
+
+            <StatsSummary 
+              stats={{
+                completedPractices: profile.progress.completedPractices,
+                averageDifficulty: profile.progress.averageDifficulty,
+                lastActivity: profile.progress.lastActivity
+              }}
+            />
+
+            <PreferencesDisplay 
+              preferences={profile.preferences} 
+            />
+
+            <TouchableOpacity 
+              style={styles.logoutButton}
+              onPress={handleLogout}
+            >
+              <Text style={styles.logoutButtonText}>Logout</Text>
+            </TouchableOpacity>
+          </>
+        ) : (
           <View style={styles.errorContainer}>
             <Text style={styles.errorText}>{error}</Text>
             <TouchableOpacity
               style={styles.retryButton}
-              onPress={() => {
-                setLoading(true);
-                setError(null);
-                if (user) {
-                  fetchUserProfile();
-                }
-              }}
+              onPress={fetchUserProfile}
             >
               <Text style={styles.retryButtonText}>Retry</Text>
             </TouchableOpacity>
           </View>
-        ) : profile ? (
-          <>
-            {/* Mother Language Section */}
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Mother Language</Text>
-              <View style={styles.languageDisplay}>
-                <Text style={styles.languageValue}>
-                  {profile.user.motherLanguage ? 
-                    getNativeLanguageName(profile.user.motherLanguage) : 
-                    'English'}
-                </Text>
-                <TouchableOpacity 
-                  style={styles.editButton}
-                  onPress={() => setShowLanguageModal(true)}
-                >
-                  <Text style={styles.editButtonText}>Change</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* Progress Section */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Skill Levels</Text>
-              {profile.progress && (
-                <>
-                  {renderSkillLevel('Vocabulary', profile.progress.skillLevels?.vocabulary || 1)}
-                  {renderSkillLevel('Grammar', profile.progress.skillLevels?.grammar || 1)}
-                  {renderSkillLevel('Conversation', profile.progress.skillLevels?.conversation || 1)}
-                  {renderSkillLevel('Reading', profile.progress.skillLevels?.reading || 1)}
-                  {renderSkillLevel('Listening', profile.progress.skillLevels?.listening || 1)}
-                  
-                  <View style={styles.statsContainer}>
-                    <View style={styles.statItem}>
-                      <Text style={styles.statNumber}>{profile.progress.completedPractices || 0}</Text>
-                      <Text style={styles.statLabel}>Completed</Text>
-                    </View>
-                    <View style={styles.statItem}>
-                      <Text style={styles.statNumber}>{(profile.progress.averageDifficulty || 0).toFixed(1)}</Text>
-                      <Text style={styles.statLabel}>Avg. Difficulty</Text>
-                    </View>
-                  </View>
-                </>
-              )}
-            </View>
-
-            {/* Preferences Section */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Learning Preferences</Text>
-              
-              {profile.preferences && (
-                <>
-                  <Text style={styles.preferencesLabel}>Preferred Categories</Text>
-                  <View style={styles.tagsContainer}>
-                    {(profile.preferences.preferredCategories || []).map((category, index) => (
-                      <View key={index} style={styles.tag}>
-                        <Text style={styles.tagText}>{category}</Text>
-                      </View>
-                    ))}
-                    {(!profile.preferences.preferredCategories || profile.preferences.preferredCategories.length === 0) && (
-                      <Text style={styles.emptyStateText}>No preferred categories set</Text>
-                    )}
-                  </View>
-                  
-                  <Text style={styles.preferencesLabel}>Challenge Areas</Text>
-                  <View style={styles.tagsContainer}>
-                    {(profile.preferences.challengeAreas || []).map((challenge, index) => (
-                      <View key={index} style={styles.tag}>
-                        <Text style={styles.tagText}>{challenge}</Text>
-                      </View>
-                    ))}
-                    {(!profile.preferences.challengeAreas || profile.preferences.challengeAreas.length === 0) && (
-                      <Text style={styles.emptyStateText}>No challenge areas set</Text>
-                    )}
-                  </View>
-                  
-                  <Text style={styles.preferencesLabel}>Learning Reason</Text>
-                  <View style={styles.reasonContainer}>
-                    <Text style={styles.reasonText}>{profile.preferences.learningReason || "Not specified"}</Text>
-                  </View>
-                </>
-              )}
-            </View>
-          </>
-        ) : (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>Unable to load profile data</Text>
-            <TouchableOpacity
-              style={styles.retryButton}
-              onPress={() => {
-                setLoading(true);
-                if (user) {
-                  fetchUserProfile();
-                }
-              }}
-            >
-              <Text style={styles.retryButtonText}>Try Again</Text>
-            </TouchableOpacity>
-          </View>
         )}
-
-        {/* Account Actions */}
-        <View style={styles.actionsContainer}>
-          <TouchableOpacity style={styles.actionButton} onPress={handleLogout}>
-            <Text style={styles.actionButtonText}>Logout</Text>
-          </TouchableOpacity>
-        </View>
       </ScrollView>
-
-      {/* Language Modal */}
-      <Modal
-        visible={showLanguageModal}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setShowLanguageModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Select Your Native Language</Text>
-            
-            <FlatList
-              data={languageOptions}
-              keyExtractor={(item) => item.code}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={[
-                    styles.languageOption,
-                    selectedLanguage === item.code && styles.languageOptionSelected
-                  ]}
-                  onPress={() => {
-                    setSelectedLanguage(item.code);
-                    setShowLanguageModal(false);
-                  }}
-                >
-                  <Text style={[
-                    styles.languageOptionText,
-                    selectedLanguage === item.code && styles.languageOptionTextSelected
-                  ]}>
-                    {item.nativeName} {item.code !== item.nativeName && `(${item.code})`}
-                  </Text>
-                </TouchableOpacity>
-              )}
-            />
-            
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.cancelButton]}
-                onPress={() => {
-                  setShowLanguageModal(false);
-                  // Reset to original value if canceled
-                  if (profile && profile.user.motherLanguage) {
-                    setSelectedLanguage(profile.user.motherLanguage);
-                  }
-                }}
-              >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                style={[styles.modalButton, styles.saveButton]}
-                onPress={() => {
-                  setShowLanguageModal(false);
-                  updateMotherLanguage();
-                }}
-              >
-                <Text style={styles.saveButtonText}>Save</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 }
@@ -400,278 +89,45 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8f9fa',
   },
   scrollContent: {
-    padding: 20,
-    paddingBottom: 40,
+    padding: 16,
+    paddingBottom: 32,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  header: {
-    alignItems: 'center',
-    marginBottom: 30,
-    paddingTop: 10,
-  },
-  avatarContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: '#4f86f7',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 15,
-  },
-  avatarText: {
-    fontSize: 40,
-    fontWeight: 'bold',
-    color: 'white',
-  },
-  name: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 5,
-  },
-  email: {
-    fontSize: 16,
-    color: '#6c757d',
-  },
   errorContainer: {
     padding: 20,
-    backgroundColor: '#f8d7da',
-    borderRadius: 8,
-    marginBottom: 20,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   errorText: {
-    color: '#721c24',
-    marginBottom: 10,
+    fontSize: 16,
+    color: '#d32f2f',
+    textAlign: 'center',
+    marginBottom: 16,
   },
   retryButton: {
-    backgroundColor: '#dc3545',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 4,
+    backgroundColor: '#4f86f7',
+    paddingVertical: 10,
+    paddingHorizontal: 24,
+    borderRadius: 8,
   },
   retryButtonText: {
     color: 'white',
     fontWeight: '600',
   },
-  section: {
-    backgroundColor: 'white',
-    borderRadius: 10,
-    padding: 20,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    color: '#212529',
-  },
-  skillContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  skillLabel: {
-    width: 100,
-    fontSize: 14,
-    color: '#495057',
-  },
-  skillBarContainer: {
-    flex: 1,
-    height: 8,
-    backgroundColor: '#e9ecef',
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  skillBar: {
-    height: '100%',
-    backgroundColor: '#4f86f7',
-  },
-  skillLevel: {
-    width: 40,
-    fontSize: 14,
-    color: '#495057',
-    textAlign: 'right',
-    marginLeft: 10,
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginTop: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#e9ecef',
-    paddingTop: 20,
-  },
-  statItem: {
-    alignItems: 'center',
-  },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#4f86f7',
-  },
-  statLabel: {
-    fontSize: 14,
-    color: '#6c757d',
-    marginTop: 5,
-  },
-  preferencesLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#343a40',
-    marginBottom: 8,
-    marginTop: 15,
-  },
-  tagsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 10,
-  },
-  tag: {
-    backgroundColor: '#e9ecef',
-    borderRadius: 16,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    marginRight: 8,
-    marginBottom: 8,
-  },
-  tagText: {
-    fontSize: 14,
-    color: '#495057',
-  },
-  reasonContainer: {
-    backgroundColor: '#e9ecef',
-    borderRadius: 8,
-    padding: 12,
-  },
-  reasonText: {
-    fontSize: 14,
-    color: '#495057',
-  },
-  actionsContainer: {
-    marginTop: 20,
-  },
-  actionButton: {
-    backgroundColor: '#dc3545',
-    borderRadius: 8,
+  logoutButton: {
+    backgroundColor: '#f44336',
     paddingVertical: 14,
-    alignItems: 'center',
-  },
-  actionButtonText: {
-    fontSize: 16,
-    color: 'white',
-    fontWeight: '600',
-  },
-  emptyStateText: {
-    fontSize: 14,
-    fontStyle: 'italic',
-    color: '#6c757d',
-    padding: 8,
-  },
-  infoRow: {
-    marginVertical: 10,
-  },
-  infoLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#343a40',
-    marginBottom: 8,
-  },
-  languageDisplay: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    padding: 12,
     borderRadius: 8,
-    marginTop: 5,
-  },
-  languageValue: {
-    fontSize: 16,
-    color: '#333',
-  },
-  editButton: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 6,
-  },
-  editButtonText: {
-    color: '#4f86f7',
-    fontWeight: '600',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    marginTop: 16,
   },
-  modalContent: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    width: '100%',
-    maxWidth: 400,
-    padding: 20,
-    maxHeight: '80%',
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 15,
-    textAlign: 'center',
-  },
-  languageOption: {
-    paddingVertical: 12,
-    paddingHorizontal: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  languageOptionSelected: {
-    backgroundColor: '#e6f0ff',
-  },
-  languageOptionText: {
-    fontSize: 16,
-    color: '#333',
-  },
-  languageOptionTextSelected: {
-    color: '#4f86f7',
-    fontWeight: 'bold',
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 20,
-  },
-  modalButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    minWidth: 100,
-    alignItems: 'center',
-  },
-  cancelButton: {
-    backgroundColor: '#f1f1f1',
-  },
-  saveButton: {
-    backgroundColor: '#4f86f7',
-  },
-  cancelButtonText: {
-    color: '#333',
-    fontWeight: '600',
-  },
-  saveButtonText: {
+  logoutButtonText: {
     color: 'white',
+    fontSize: 16,
     fontWeight: '600',
   },
 }); 
