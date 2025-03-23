@@ -7,7 +7,9 @@ import {
   TouchableOpacity, 
   ActivityIndicator,
   Alert,
-  Image
+  Image,
+  Modal,
+  FlatList
 } from 'react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import axios from 'axios';
@@ -48,12 +50,33 @@ export default function ProfileScreen() {
   const [error, setError] = useState<string | null>(null);
   const [editingLanguage, setEditingLanguage] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState<string>('');
+  const [showLanguageModal, setShowLanguageModal] = useState(false);
   
-  // Available languages for selection
-  const availableLanguages = [
-    'English', 'Spanish', 'French', 'German', 'Dutch',
-    'Italian', 'Portuguese', 'Russian', 'Chinese', 'Japanese'
+  // Language mapping with native names
+  const languageOptions = [
+    { code: 'English', nativeName: 'English' },
+    { code: 'Spanish', nativeName: 'Español' },
+    { code: 'French', nativeName: 'Français' },
+    { code: 'German', nativeName: 'Deutsch' },
+    { code: 'Dutch', nativeName: 'Nederlands' },
+    { code: 'Italian', nativeName: 'Italiano' },
+    { code: 'Portuguese', nativeName: 'Português' },
+    { code: 'Russian', nativeName: 'Русский' },
+    { code: 'Chinese', nativeName: '简体中文' },
+    { code: 'Japanese', nativeName: '日本語' },
+    { code: 'Korean', nativeName: '한국어' },
+    { code: 'Arabic', nativeName: 'العربية' },
+    { code: 'Hindi', nativeName: 'हिन्दी' },
+    { code: 'Turkish', nativeName: 'Türkçe' },
+    { code: 'Thai', nativeName: 'ไทย' },
+    { code: 'Vietnamese', nativeName: 'Tiếng Việt' }
   ];
+
+  // Helper to get native name from language code
+  const getNativeLanguageName = (code: string): string => {
+    const language = languageOptions.find(lang => lang.code === code);
+    return language ? language.nativeName : code;
+  };
 
   // Fetch user profile data
   const fetchUserProfile = async () => {
@@ -200,74 +223,20 @@ export default function ProfileScreen() {
         ) : profile ? (
           <>
             {/* Mother Language Section */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Language Settings</Text>
-              
-              <View style={styles.preferenceRow}>
-                <Text style={styles.preferencesLabel}>Mother Language</Text>
-                {editingLanguage ? (
-                  <View style={styles.languageSelector}>
-                    <ScrollView 
-                      horizontal 
-                      showsHorizontalScrollIndicator={false}
-                      contentContainerStyle={styles.languageSelectorContent}
-                    >
-                      {availableLanguages.map((lang) => (
-                        <TouchableOpacity
-                          key={lang}
-                          style={[
-                            styles.languageOption,
-                            selectedLanguage === lang && styles.languageOptionSelected
-                          ]}
-                          onPress={() => setSelectedLanguage(lang)}
-                        >
-                          <Text 
-                            style={[
-                              styles.languageOptionText,
-                              selectedLanguage === lang && styles.languageOptionTextSelected
-                            ]}
-                          >
-                            {lang}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
-                    </ScrollView>
-                    
-                    <View style={styles.languageActions}>
-                      <TouchableOpacity 
-                        style={[styles.languageButton, styles.languageButtonCancel]} 
-                        onPress={() => {
-                          setEditingLanguage(false);
-                          // Reset to original value from profile
-                          if (profile && profile.user.motherLanguage) {
-                            setSelectedLanguage(profile.user.motherLanguage);
-                          }
-                        }}
-                      >
-                        <Text style={styles.languageButtonTextCancel}>Cancel</Text>
-                      </TouchableOpacity>
-                      
-                      <TouchableOpacity 
-                        style={[styles.languageButton, styles.languageButtonSave]} 
-                        onPress={updateMotherLanguage}
-                      >
-                        <Text style={styles.languageButtonTextSave}>Save</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                ) : (
-                  <View style={styles.languageDisplay}>
-                    <Text style={styles.languageValue}>
-                      {profile.user.motherLanguage || 'English'}
-                    </Text>
-                    <TouchableOpacity 
-                      style={styles.editButton}
-                      onPress={() => setEditingLanguage(true)}
-                    >
-                      <Text style={styles.editButtonText}>Change</Text>
-                    </TouchableOpacity>
-                  </View>
-                )}
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Mother Language</Text>
+              <View style={styles.languageDisplay}>
+                <Text style={styles.languageValue}>
+                  {profile.user.motherLanguage ? 
+                    getNativeLanguageName(profile.user.motherLanguage) : 
+                    'English'}
+                </Text>
+                <TouchableOpacity 
+                  style={styles.editButton}
+                  onPress={() => setShowLanguageModal(true)}
+                >
+                  <Text style={styles.editButtonText}>Change</Text>
+                </TouchableOpacity>
               </View>
             </View>
 
@@ -358,6 +327,69 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* Language Modal */}
+      <Modal
+        visible={showLanguageModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowLanguageModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Select Your Native Language</Text>
+            
+            <FlatList
+              data={languageOptions}
+              keyExtractor={(item) => item.code}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[
+                    styles.languageOption,
+                    selectedLanguage === item.code && styles.languageOptionSelected
+                  ]}
+                  onPress={() => {
+                    setSelectedLanguage(item.code);
+                    setShowLanguageModal(false);
+                  }}
+                >
+                  <Text style={[
+                    styles.languageOptionText,
+                    selectedLanguage === item.code && styles.languageOptionTextSelected
+                  ]}>
+                    {item.nativeName} {item.code !== item.nativeName && `(${item.code})`}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            />
+            
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={() => {
+                  setShowLanguageModal(false);
+                  // Reset to original value if canceled
+                  if (profile && profile.user.motherLanguage) {
+                    setSelectedLanguage(profile.user.motherLanguage);
+                  }
+                }}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[styles.modalButton, styles.saveButton]}
+                onPress={() => {
+                  setShowLanguageModal(false);
+                  updateMotherLanguage();
+                }}
+              >
+                <Text style={styles.saveButtonText}>Save</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -545,8 +577,14 @@ const styles = StyleSheet.create({
     color: '#6c757d',
     padding: 8,
   },
-  preferenceRow: {
+  infoRow: {
     marginVertical: 10,
+  },
+  infoLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#343a40',
+    marginBottom: 8,
   },
   languageDisplay: {
     flexDirection: 'row',
@@ -571,52 +609,69 @@ const styles = StyleSheet.create({
     color: '#4f86f7',
     fontWeight: '600',
   },
-  languageSelector: {
-    marginTop: 10,
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
   },
-  languageSelectorContent: {
-    paddingVertical: 10,
+  modalContent: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    width: '100%',
+    maxWidth: 400,
+    padding: 20,
+    maxHeight: '80%',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 15,
+    textAlign: 'center',
   },
   languageOption: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 20,
-    marginRight: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
   },
   languageOptionSelected: {
-    backgroundColor: '#4f86f7',
+    backgroundColor: '#e6f0ff',
   },
   languageOptionText: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#333',
   },
   languageOptionTextSelected: {
-    color: '#fff',
-    fontWeight: '600',
+    color: '#4f86f7',
+    fontWeight: 'bold',
   },
-  languageActions: {
+  modalButtons: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginTop: 15,
+    justifyContent: 'space-between',
+    marginTop: 20,
   },
-  languageButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 6,
-    marginLeft: 10,
+  modalButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    minWidth: 100,
+    alignItems: 'center',
   },
-  languageButtonCancel: {
-    backgroundColor: '#f0f0f0',
+  cancelButton: {
+    backgroundColor: '#f1f1f1',
   },
-  languageButtonSave: {
+  saveButton: {
     backgroundColor: '#4f86f7',
   },
-  languageButtonTextCancel: {
+  cancelButtonText: {
     color: '#333',
+    fontWeight: '600',
   },
-  languageButtonTextSave: {
-    color: '#fff',
+  saveButtonText: {
+    color: 'white',
     fontWeight: '600',
   },
 }); 
