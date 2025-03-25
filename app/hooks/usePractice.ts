@@ -82,7 +82,7 @@ export function usePractice() {
           difficulty: response.data.data.difficulty || 1,
           complexity: response.data.data.complexity || 1,
           categories: Array.isArray(response.data.data.categories) ? response.data.data.categories : [],
-          questionType: response.data.data.questionType || '',
+          questionType: response.data.data.questionType === 'multiple-choice' ? 'mcq' : response.data.data.questionType || '',
           options: Array.isArray(response.data.data.options) ? response.data.data.options : []
         };
         
@@ -350,13 +350,6 @@ export function usePractice() {
       previousDifficultyRef.current = currentPractice.difficulty;
     }
   }, [currentPractice]);
-
-  // Load initial practice when component mounts
-  useEffect(() => {
-    if (user) {
-      generatePractice(true);
-    }
-  }, [user]);
 
   return {
     loading,

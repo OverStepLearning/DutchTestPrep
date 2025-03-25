@@ -18,9 +18,12 @@ export const AnswerInput: React.FC<AnswerInputProps> = ({
   onSubmit,
   disabled
 }) => {
-  if (practice.questionType === 'mcq' && 
+  // Check for both 'mcq' and 'multiple-choice' question types
+  const isMultipleChoice = (practice.questionType === 'mcq' || practice.questionType === 'multiple-choice') && 
       Array.isArray(practice.options) && 
-      practice.options.length > 0) {
+      practice.options.length > 0;
+      
+  if (isMultipleChoice && practice.options) {
     return (
       <View style={practiceStyles.mcqContainer}>
         <Text style={practiceStyles.mcqPrompt}>Choose the correct answer:</Text>
@@ -48,6 +51,18 @@ export const AnswerInput: React.FC<AnswerInputProps> = ({
             </TouchableOpacity>
           );
         })}
+        
+        {/* Add submit button for multiple choice questions */}
+        <TouchableOpacity 
+          style={[
+            practiceStyles.submitButton,
+            { marginTop: 20 }
+          ]} 
+          onPress={onSubmit}
+          disabled={!userAnswer || disabled}
+        >
+          <Text style={practiceStyles.buttonText}>Submit Answer</Text>
+        </TouchableOpacity>
       </View>
     );
   }
