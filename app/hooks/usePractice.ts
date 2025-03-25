@@ -7,6 +7,15 @@ import config from '../../constants/Config';
 import { PracticeItem, FeedbackResponse, DifficultyDirection, DifficultyTrend } from '../types/practice';
 import { CATEGORIES, CHALLENGE_AREAS } from '../types/onboarding';
 
+// Define a type for user preferences
+interface UserPreferences {
+  preferredCategories?: string[];
+  challengeAreas?: string[];
+  difficulty?: number;
+  complexity?: number;
+  motherLanguage?: string;
+}
+
 export function usePractice() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -155,14 +164,22 @@ export function usePractice() {
       
       const token = await storage.getItem(config.STORAGE_KEYS.AUTH_TOKEN);
       
-      // Fetch the user's preferences
-      const userPreferencesResponse = await axios.get(`${config.API_URL}/api/users/preferences`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+      // Initialize default preferences
+      let userPreferences: UserPreferences = {};
       
-      const userPreferences = userPreferencesResponse.data?.data || {};
+      // Try to fetch the user's preferences, but continue if endpoint isn't available
+      try {
+        const userPreferencesResponse = await axios.get(`${config.API_URL}/api/users/preferences`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        
+        userPreferences = userPreferencesResponse.data?.data || {};
+      } catch (prefError) {
+        console.log('Could not fetch user preferences, using defaults instead');
+        // Continue with default preferences if API endpoint is not available
+      }
       
       // Randomize the parameters
       const randomQuestionType = getRandomQuestionType();
@@ -222,14 +239,22 @@ export function usePractice() {
       
       const token = await storage.getItem(config.STORAGE_KEYS.AUTH_TOKEN);
       
-      // Fetch the user's preferences
-      const userPreferencesResponse = await axios.get(`${config.API_URL}/api/users/preferences`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+      // Initialize default preferences
+      let userPreferences: UserPreferences = {};
       
-      const userPreferences = userPreferencesResponse.data?.data || {};
+      // Try to fetch the user's preferences, but continue if endpoint isn't available
+      try {
+        const userPreferencesResponse = await axios.get(`${config.API_URL}/api/users/preferences`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        
+        userPreferences = userPreferencesResponse.data?.data || {};
+      } catch (prefError) {
+        console.log('Could not fetch user preferences, using defaults instead');
+        // Continue with default preferences if API endpoint is not available
+      }
       
       // Randomize the parameters for batch generation
       const randomQuestionType = getRandomQuestionType();
