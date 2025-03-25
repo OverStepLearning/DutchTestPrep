@@ -10,6 +10,8 @@ export interface IPractice extends Document {
   userAnswer?: string;
   isCorrect?: boolean;
   categories: string[]; // e.g., "food", "travel", "work"
+  questionType?: string; // 'open-ended', 'multiple-choice', or 'fill-in-blank'
+  options?: string[]; // For multiple-choice questions
   createdAt: Date;
   completedAt?: Date;
 }
@@ -28,6 +30,12 @@ const PracticeSchema: Schema = new Schema({
   userAnswer: { type: String },
   isCorrect: { type: Boolean },
   categories: [{ type: String }],
+  questionType: { 
+    type: String,
+    enum: ['open-ended', 'multiple-choice', 'fill-in-blank'],
+    default: 'open-ended'
+  },
+  options: [{ type: String }], // For multiple-choice questions
   createdAt: { type: Date, default: Date.now },
   completedAt: { type: Date }
 });

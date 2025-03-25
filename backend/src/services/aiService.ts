@@ -15,6 +15,7 @@ interface PracticeGenerationParams {
   action?: string;
   content?: string;
   userAnswer?: string;
+  questionType?: string;
 }
 
 interface PracticeContent {
@@ -23,6 +24,8 @@ interface PracticeContent {
   categories: string[];
   isCorrect?: boolean;
   feedback?: string;
+  options?: string[]; // For multiple choice questions
+  questionType?: string;
 }
 
 // Initialize OpenAI configuration
@@ -67,6 +70,7 @@ export const generateAIPractice = async (params: PracticeGenerationParams): Prom
       const difficultyLevel = params.difficulty || 1;
       const complexityLevel = params.complexity || 1;
       const practiceType = params.type || 'vocabulary';
+      const questionType = params.questionType || 'open-ended';
       
       // Build categories string
       const categoriesStr = params.preferredCategories && params.preferredCategories.length > 0 
@@ -78,10 +82,34 @@ export const generateAIPractice = async (params: PracticeGenerationParams): Prom
         ? `with extra attention to these challenging areas: ${params.challengeAreas.join(', ')}` 
         : '';
 
+      // Additional instructions for question type
+      let questionTypeInstructions = '';
+      let responseFormatInstructions = '';
+      
+      if (questionType === 'multiple-choice') {
+        questionTypeInstructions = `
+        Create a multiple-choice question with 4 options, where only one is correct.
+        The options should be provided in the "options" field of your response.
+        The first option should be the correct answer.
+        `;
+        
+        responseFormatInstructions = `
+        For multiple-choice questions, include:
+        "options": ["correct answer", "wrong option 1", "wrong option 2", "wrong option 3"]
+        `;
+      } else if (questionType === 'fill-in-blank') {
+        questionTypeInstructions = `
+        Create a fill-in-the-blank question with one or more blanks that the user needs to complete.
+        Mark the blanks with underscores or a similar notation in the content.
+        `;
+      }
+
       prompt = `
         You are a Dutch language teacher creating practice exercises.
         
         Create a ${practiceType} practice at difficulty level ${difficultyLevel}/10 and complexity level ${complexityLevel}/10 for a Dutch language learner.
+        The question type should be: ${questionType}.
+        ${questionTypeInstructions}
         
         ${categoriesStr}
         ${challengeAreasStr}
@@ -99,7 +127,9 @@ export const generateAIPractice = async (params: PracticeGenerationParams): Prom
         {
           "content": "the practice content in Dutch",
           "translation": "English translation of the content if applicable",
-          "categories": ["category1", "category2"] // 2-3 relevant categories
+          "categories": ["category1", "category2"], // 2-3 relevant categories
+          "questionType": "${questionType}" // Include this field with the question type
+          ${responseFormatInstructions}
         }
       `;
     }
@@ -129,6 +159,23 @@ export const generateAIPractice = async (params: PracticeGenerationParams): Prom
     const aiResponse = response.data.choices[0].message.content;
     try {
       const parsedResponse = JSON.parse(aiResponse);
+      
+      // If this is a multiple-choice question, shuffle the options
+      if (params.questionType === 'multiple-choice' && parsedResponse.options && Array.isArray(parsedResponse.options) && parsedResponse.options.length > 0) {
+        const correctAnswer = parsedResponse.options[0];
+        const shuffledOptions = [...parsedResponse.options];
+        
+        // Fisher-Yates shuffle algorithm
+        for (let i = shuffledOptions.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffledOptions[i], shuffledOptions[j]] = [shuffledOptions[j], shuffledOptions[i]];
+        }
+        
+        parsedResponse.options = shuffledOptions;
+        // Store the correct answer index
+        parsedResponse.correctAnswerIndex = shuffledOptions.indexOf(correctAnswer);
+      }
+      
       return parsedResponse;
     } catch (parseError) {
       console.error('Error parsing AI response:', parseError);
@@ -145,13 +192,15 @@ export const generateAIPractice = async (params: PracticeGenerationParams): Prom
         isCorrect: false,
         feedback: 'Sorry, we could not evaluate your answer at this time.',
         content: '',
-        categories: []
+        categories: [],
+        questionType: params.questionType || 'open-ended'
       };
     } else {
       return {
         content: 'Hallo, hoe gaat het met je?',
         translation: 'Hello, how are you?',
-        categories: ['greetings', 'basic conversation']
+        categories: ['greetings', 'basic conversation'],
+        questionType: params.questionType || 'open-ended'
       };
     }
   }

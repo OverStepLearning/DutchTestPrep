@@ -6,26 +6,44 @@ import { generateAIPractice } from '../services/aiService';
 // Generate a new practice item for user based on their level
 export const generatePractice = async (req: Request, res: Response) => {
   try {
-    const { userId, type } = req.body;
+    const { 
+      userId, 
+      type, 
+      difficulty: requestedDifficulty, 
+      complexity: requestedComplexity,
+      preferredCategories: requestedCategories,
+      challengeAreas: requestedChallengeAreas,
+      questionType: requestedQuestionType,
+      motherLanguage
+    } = req.body;
     
-    // Get user progress to determine appropriate difficulty
+    // Get user progress to determine appropriate difficulty if not provided
     const userProgress = await UserProgress.findOne({ userId });
     
     if (!userProgress) {
       return res.status(404).json({ message: 'User progress not found' });
     }
     
-    // Determine difficulty and complexity based on user's skill level
-    const difficulty = userProgress.skillLevels[type as keyof typeof userProgress.skillLevels];
-    const complexity = Math.max(1, Math.min(difficulty - 1, 10)); // Complexity is slightly lower than difficulty
+    // Use provided parameters or fall back to user's progress
+    const practiceType = type || 'vocabulary';
+    const difficulty = requestedDifficulty || userProgress.skillLevels[practiceType as keyof typeof userProgress.skillLevels] || 1;
+    const complexity = requestedComplexity || Math.max(1, Math.min(difficulty - 1, 10)); // Complexity is slightly lower than difficulty
+    const preferredCategories = requestedCategories || userProgress.preferredCategories;
+    const challengeAreas = requestedChallengeAreas || userProgress.challengeAreas;
+    
+    // Extract question type if provided as an array
+    let questionType = undefined;
+    if (requestedQuestionType && Array.isArray(requestedQuestionType) && requestedQuestionType.length > 0) {
+      questionType = requestedQuestionType[0]; // Use the first item in the array
+    }
     
     // Generate practice content using AI
     const practiceContent = await generateAIPractice({
-      type,
+      type: practiceType,
       difficulty,
       complexity,
-      preferredCategories: userProgress.preferredCategories,
-      challengeAreas: userProgress.challengeAreas
+      preferredCategories,
+      challengeAreas
     });
     
     // Create new practice item
@@ -33,18 +51,26 @@ export const generatePractice = async (req: Request, res: Response) => {
       userId,
       content: practiceContent.content,
       translation: practiceContent.translation,
-      type,
+      type: practiceType,
       difficulty,
       complexity,
-      categories: practiceContent.categories
+      categories: practiceContent.categories,
+      questionType: questionType || 'open-ended', // Default to open-ended if not specified
+      options: practiceContent.options || [] // Store any options for multiple-choice
     });
     
     await practice.save();
     
-    return res.status(201).json(practice);
+    return res.status(201).json({
+      success: true,
+      data: practice
+    });
   } catch (error) {
     console.error('Error generating practice:', error);
-    return res.status(500).json({ message: 'Failed to generate practice' });
+    return res.status(500).json({ 
+      success: false,
+      message: 'Failed to generate practice' 
+    });
   }
 };
 

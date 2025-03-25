@@ -5,6 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { storage } from '../../utils/storage';
 import config from '../../constants/Config';
 import { PracticeItem, FeedbackResponse, DifficultyDirection, DifficultyTrend } from '../types/practice';
+import { CATEGORIES, CHALLENGE_AREAS } from '../types/onboarding';
 
 export function usePractice() {
   const { user } = useAuth();
@@ -22,6 +23,99 @@ export function usePractice() {
   const [feedbackQuestion, setFeedbackQuestion] = useState('');
   const [feedbackAnswer, setFeedbackAnswer] = useState<string | null>(null);
   const [askingQuestion, setAskingQuestion] = useState(false);
+
+  // Helper function to get a random item from an array
+  const getRandomItem = <T,>(array: T[]): T => {
+    return array[Math.floor(Math.random() * array.length)];
+  };
+
+  // Function to get random question type
+  const getRandomQuestionType = (): string => {
+    const questionTypes = ["open-ended", "multiple-choice", "fill-in-blank"];
+    return getRandomItem(questionTypes);
+  };
+
+  // Function to get random practice type
+  const getRandomPracticeType = (): string => {
+    const practiceTypes = ['Vocabulary', 'Grammar', 'Sentence structure'];
+    return getRandomItem(practiceTypes);
+  };
+
+  // Function to randomize preferred categories
+  const getRandomizedCategories = (userPreferredCategories: string[] = []): string[] => {
+    // If user has no preferred categories, return 1-2 random categories
+    if (!userPreferredCategories || userPreferredCategories.length === 0) {
+      const numCategories = Math.random() > 0.5 ? 1 : 2;
+      const result: string[] = [];
+      
+      for (let i = 0; i < numCategories; i++) {
+        const randomCategory = getRandomItem(CATEGORIES);
+        if (!result.includes(randomCategory)) {
+          result.push(randomCategory);
+        }
+      }
+      
+      return result;
+    }
+    
+    // If user has preferences, select one random preference and combine with 1-2 other categories
+    const selectedUserCategory = getRandomItem(userPreferredCategories);
+    const result: string[] = [selectedUserCategory];
+    
+    // Get other categories that aren't in user's preferences
+    const otherCategories = CATEGORIES.filter(cat => !userPreferredCategories.includes(cat));
+    
+    // Add 0-2 random additional categories
+    const numAdditionalCategories = Math.floor(Math.random() * 3); // 0, 1, or 2
+    
+    for (let i = 0; i < numAdditionalCategories; i++) {
+      if (otherCategories.length > 0) {
+        const randomIndex = Math.floor(Math.random() * otherCategories.length);
+        const randomCategory = otherCategories.splice(randomIndex, 1)[0];
+        result.push(randomCategory);
+      }
+    }
+    
+    return result;
+  };
+
+  // Function to randomize challenge areas
+  const getRandomizedChallengeAreas = (userChallengeAreas: string[] = []): string[] => {
+    // Similar logic to categories
+    if (!userChallengeAreas || userChallengeAreas.length === 0) {
+      const numAreas = Math.random() > 0.5 ? 1 : 2;
+      const result: string[] = [];
+      
+      for (let i = 0; i < numAreas; i++) {
+        const randomArea = getRandomItem(CHALLENGE_AREAS);
+        if (!result.includes(randomArea)) {
+          result.push(randomArea);
+        }
+      }
+      
+      return result;
+    }
+    
+    // If user has challenge areas, select one random area and combine with other areas
+    const selectedUserArea = getRandomItem(userChallengeAreas);
+    const result: string[] = [selectedUserArea];
+    
+    // Get other areas that aren't in user's challenge areas
+    const otherAreas = CHALLENGE_AREAS.filter(area => !userChallengeAreas.includes(area));
+    
+    // Add 0-2 random additional areas
+    const numAdditionalAreas = Math.floor(Math.random() * 3); // 0, 1, or 2
+    
+    for (let i = 0; i < numAdditionalAreas; i++) {
+      if (otherAreas.length > 0) {
+        const randomIndex = Math.floor(Math.random() * otherAreas.length);
+        const randomArea = otherAreas.splice(randomIndex, 1)[0];
+        result.push(randomArea);
+      }
+    }
+    
+    return result;
+  };
 
   // Function to generate practice with additional error handling
   const generatePractice = async (forceNew = false) => {
@@ -61,10 +155,30 @@ export function usePractice() {
       
       const token = await storage.getItem(config.STORAGE_KEYS.AUTH_TOKEN);
       
+      // Fetch the user's preferences
+      const userPreferencesResponse = await axios.get(`${config.API_URL}/api/users/preferences`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      
+      const userPreferences = userPreferencesResponse.data?.data || {};
+      
+      // Randomize the parameters
+      const randomQuestionType = getRandomQuestionType();
+      const randomPracticeType = getRandomPracticeType();
+      const randomCategories = getRandomizedCategories(userPreferences.preferredCategories || []);
+      const randomChallengeAreas = getRandomizedChallengeAreas(userPreferences.challengeAreas || []);
+      
       const response = await axios.post(`${config.API_URL}/api/practice/generate`, {
         userId: user._id,
-        random: true, // Request random questions instead of specific type
-        batchSize: 5 // Request 5 questions at once
+        type: randomPracticeType,
+        difficulty: userPreferences.difficulty || 1,
+        complexity: userPreferences.complexity || 1,
+        preferredCategories: randomCategories,
+        challengeAreas: randomChallengeAreas,
+        questionType: [randomQuestionType], // Send as array since backend expects string[]
+        motherLanguage: userPreferences.motherLanguage || 'English'
       }, {
         headers: {
           Authorization: `Bearer ${token}`
@@ -108,9 +222,30 @@ export function usePractice() {
       
       const token = await storage.getItem(config.STORAGE_KEYS.AUTH_TOKEN);
       
+      // Fetch the user's preferences
+      const userPreferencesResponse = await axios.get(`${config.API_URL}/api/users/preferences`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      
+      const userPreferences = userPreferencesResponse.data?.data || {};
+      
+      // Randomize the parameters for batch generation
+      const randomQuestionType = getRandomQuestionType();
+      const randomPracticeType = getRandomPracticeType();
+      const randomCategories = getRandomizedCategories(userPreferences.preferredCategories || []);
+      const randomChallengeAreas = getRandomizedChallengeAreas(userPreferences.challengeAreas || []);
+      
       const response = await axios.post(`${config.API_URL}/api/practice/generate`, {
         userId: user._id,
-        random: true, // Request random questions instead of specific type
+        type: randomPracticeType,
+        difficulty: userPreferences.difficulty || 1,
+        complexity: userPreferences.complexity || 1,
+        preferredCategories: randomCategories,
+        challengeAreas: randomChallengeAreas,
+        questionType: [randomQuestionType], // Send as array since backend expects string[]
+        motherLanguage: userPreferences.motherLanguage || 'English',
         batchSize: 5 // Request 5 questions at once
       }, {
         headers: {
