@@ -60,24 +60,16 @@ const Practice = () => {
   const difficulty = currentPractice.difficulty || 1;
   const complexity = currentPractice.complexity || 1;
   
-  // Determine if we should show adjustment mode styling
+  // Check if adjustment mode is active
   const isInAdjustmentMode = adjustmentMode?.isInAdjustmentMode || false;
 
   return (
     <View style={practiceStyles.container}>
       {/* Content will be your practice exercise display */}
       <View style={[
-        practiceStyles.practiceContainer, 
+        practiceStyles.practiceContainer,
         isInAdjustmentMode && styles.adjustmentModeContainer
       ]}>
-        {isInAdjustmentMode && (
-          <View style={styles.adjustmentModeIndicator}>
-            <Text style={styles.adjustmentModeText}>
-              Adjustment Mode ({adjustmentMode?.adjustmentPracticesRemaining || 0} remaining)
-            </Text>
-          </View>
-        )}
-        
         <Text style={practiceStyles.practiceText}>{currentPractice.content}</Text>
         
         {/* Difficulty adjuster */}
@@ -120,25 +112,11 @@ const Practice = () => {
   );
 };
 
-// Local styles for adjustment mode
 const styles = StyleSheet.create({
   adjustmentModeContainer: {
     backgroundColor: '#FFF3E0', // Light orange background
-    borderWidth: 2,
     borderColor: '#FFB74D', // Darker orange border
-  },
-  adjustmentModeIndicator: {
-    backgroundColor: '#FF9800', // Orange background
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    alignSelf: 'flex-start',
-    marginBottom: 12,
-  },
-  adjustmentModeText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 14,
+    borderWidth: 2,
   }
 });
 
