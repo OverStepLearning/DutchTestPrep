@@ -4,8 +4,8 @@ export interface PracticeItem {
   content: string | string[];
   translation?: string | string[];
   practiceType?: string; // 'Vocabulary', 'Grammar', 'Sentence structure', etc.
-  difficulty: string; // 'easy', 'medium', 'hard'
-  complexity: string; // 'low', 'medium', 'high'
+  difficulty: number; // 1-10 scale as a number
+  complexity: number; // 1-10 scale as a number
   categories: string[];
   challengeAreas?: string[]; // Specific areas of challenge for the user
   questionType?: string; // Type of question (mcq, multiple-choice, open-ended, etc.)
@@ -21,6 +21,20 @@ export interface PracticeItem {
 export interface FeedbackResponse {
   isCorrect: boolean;
   feedback: string | string[];
+}
+
+export interface DifficultyChangeInfo {
+  oldDifficulty: number;
+  oldComplexity: number;
+  newDifficulty: number;
+  newComplexity: number;
+  change: number;
+  exitedAdjustmentMode?: boolean;
+}
+
+export interface AdjustmentModeInfo {
+  isInAdjustmentMode: boolean;
+  adjustmentPracticesRemaining: number;
 }
 
 export type DifficultyTrend = 'increasing' | 'decreasing' | 'stable';

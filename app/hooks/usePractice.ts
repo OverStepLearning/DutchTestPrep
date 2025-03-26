@@ -13,32 +13,6 @@ import {
   AdjustmentModeInfo
 } from '../types/practice';
 
-// Add this hook to manage alert modals
-export function useAlertState() {
-  const [showAlert, setShowAlert] = useState(false);
-  const [alertConfig, setAlertConfig] = useState({
-    title: '',
-    message: '',
-    buttons: [{ text: 'OK', onPress: () => {}, style: 'default' as const }]
-  });
-
-  const showAlertModal = (title: string, message: string, buttons: any[] = [{ text: 'OK', onPress: () => {}, style: 'default' as const }]) => {
-    setAlertConfig({ title, message, buttons });
-    setShowAlert(true);
-  };
-
-  const hideAlertModal = () => {
-    setShowAlert(false);
-  };
-
-  return {
-    showAlert,
-    alertConfig,
-    showAlertModal,
-    hideAlertModal
-  };
-}
-
 export function usePractice() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -60,9 +34,6 @@ export function usePractice() {
     isInAdjustmentMode: false,
     adjustmentPracticesRemaining: 0
   });
-  
-  // Add alert state for custom modals
-  const { showAlert, alertConfig, showAlertModal, hideAlertModal } = useAlertState();
 
   // Helper function to ensure practice item is formatted correctly
   const mapPracticeItem = (item: any): PracticeItem => {
@@ -220,30 +191,26 @@ export function usePractice() {
   const showAdjustmentDialog = () => {
     // Don't allow adjustment when already in adjustment mode
     if (adjustmentMode.isInAdjustmentMode) {
-      // Use our custom alert instead
-      showAlertModal(
+      Alert.alert(
         'Adjustment in Progress',
         'You are currently in adjustment mode. Complete the remaining practice exercises to finish calibrating your difficulty level.',
-        [{ text: 'OK', onPress: () => {}, style: 'default' }]
+        [{ text: 'OK' }]
       );
       return;
     }
-    
+    enterAdjustmentMode();
     // Show confirmation before entering adjustment mode
-    // Use our custom alert instead
-    showAlertModal(
+    Alert.alert(
       'Enter Adjustment Mode',
       'Would you like to enter difficulty adjustment mode? This will calibrate the difficulty level to better match your skills.',
       [
         {
           text: 'Yes, Enter Adjustment Mode',
           onPress: () => enterAdjustmentMode(),
-          style: 'default'
         },
         {
           text: 'Cancel',
-          onPress: () => {},
-          style: 'cancel'
+          style: 'cancel',
         }
       ]
     );
@@ -255,10 +222,7 @@ export function usePractice() {
       setAdjusting(true);
       
       if (!user) {
-        // Use our custom alert
-        showAlertModal('Error', 'You must be logged in to adjust difficulty', [
-          { text: 'OK', onPress: () => {}, style: 'default' }
-        ]);
+        Alert.alert('Error', 'You must be logged in to adjust difficulty');
         setAdjusting(false);
         return;
       }
@@ -284,8 +248,8 @@ export function usePractice() {
         console.log('Failed to update server with adjustment mode:', error);
       });
       
-      // Show confirmation with our custom alert
-      showAlertModal(
+      // Show confirmation
+      Alert.alert(
         'Adjustment Mode Activated',
         `You have entered adjustment mode. The next ${ADJUSTMENT_PRACTICES_COUNT} questions will help calibrate your difficulty level.`,
         [{ 
@@ -293,16 +257,12 @@ export function usePractice() {
           onPress: () => {
             // Force a new practice generation for adjustment
             generatePractice(true);
-          },
-          style: 'default'
+          }
         }]
       );
     } catch (error) {
       console.error('Error entering adjustment mode:', error);
-      // Use our custom alert
-      showAlertModal('Error', 'Failed to enter adjustment mode. Please try again.', [
-        { text: 'OK', onPress: () => {}, style: 'default' }
-      ]);
+      Alert.alert('Error', 'Failed to enter adjustment mode. Please try again.');
     } finally {
       setAdjusting(false);
     }
@@ -350,16 +310,12 @@ export function usePractice() {
       setErrorMessage(null);
       
       if (!currentPractice) {
-        showAlertModal('Error', 'No practice question available', [
-          { text: 'OK', onPress: () => {}, style: 'default' }
-        ]);
+        Alert.alert('Error', 'No practice question available');
         return;
       }
       
       if (!userAnswer || !userAnswer.trim()) {
-        showAlertModal('Error', 'Please provide an answer', [
-          { text: 'OK', onPress: () => {}, style: 'default' }
-        ]);
+        Alert.alert('Error', 'Please provide an answer');
         return;
       }
       
@@ -422,10 +378,10 @@ export function usePractice() {
           // If exited adjustment mode, show a message
           if (info.exitedAdjustmentMode) {
             setTimeout(() => {
-              showAlertModal(
+              Alert.alert(
                 'Adjustment Complete',
                 'Your difficulty level has been adjusted and fine-tuned based on your performance.',
-                [{ text: 'OK', onPress: () => {}, style: 'default' }]
+                [{ text: 'OK' }]
               );
             }, 500);
           }
@@ -470,9 +426,7 @@ export function usePractice() {
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Unknown error';
       setErrorMessage(`Failed to submit answer: ${errorMsg}`);
-      showAlertModal('Error', 'Failed to submit answer. Please try again.', [
-        { text: 'OK', onPress: () => {}, style: 'default' }
-      ]);
+      Alert.alert('Error', 'Failed to submit answer. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -517,10 +471,6 @@ export function usePractice() {
     feedbackQuestion,
     feedbackAnswer,
     adjustmentMode,
-    // Add alert state properties
-    showAlert,
-    alertConfig,
-    hideAlertModal,
     
     setUserAnswer,
     setFeedbackQuestion,
