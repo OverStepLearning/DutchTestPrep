@@ -189,6 +189,7 @@ export function usePractice() {
 
   // Function to show the difficulty adjustment dialog
   const showAdjustmentDialog = () => {
+    // Don't allow adjustment when already in adjustment mode
     if (adjustmentMode.isInAdjustmentMode) {
       Alert.alert(
         'Adjustment in Progress',
@@ -198,27 +199,22 @@ export function usePractice() {
       return;
     }
     
-    setAdjusting(true);
+    // Confirmation popup without setting loading state yet
     Alert.alert(
       'Adjust Difficulty',
       'Would you like to make the exercises easier or harder?',
       [
         {
           text: 'Easier',
-          onPress: () => {
-            adjustDifficulty('down');
-          },
+          onPress: () => adjustDifficulty('down'),
         },
         {
           text: 'Harder',
-          onPress: () => {
-            adjustDifficulty('up');
-          }
+          onPress: () => adjustDifficulty('up')
         },
         {
           text: 'Cancel',
-          onPress: () => setAdjusting(false),
-          style: 'cancel'
+          style: 'cancel',
         }
       ]
     );
@@ -227,6 +223,7 @@ export function usePractice() {
   // Function to adjust difficulty level
   const adjustDifficulty = async (direction: DifficultyDirection) => {
     try {
+      // Only set adjusting state when we're actually making the API call
       setAdjusting(true);
       setErrorMessage(null);
       
@@ -270,16 +267,21 @@ export function usePractice() {
         Alert.alert(
           'Difficulty Adjusted',
           `Your difficulty level has changed from ${difficultyChangeInfo.oldDifficulty.toFixed(2)} to ${difficultyChangeInfo.newDifficulty.toFixed(2)}.\n\nChange: ${sign}${change}\n\nYou have entered adjustment mode. The next ${response.data.data.adjustmentPracticesRemaining} questions will help fine-tune your difficulty level.`,
-          [{ text: 'OK' }]
+          [{ 
+            text: 'OK',
+            onPress: () => {
+              // Force a new practice generation with the updated difficulty
+              generatePractice(true);
+            }
+          }]
         );
-        
-        // Force a new practice generation with the updated difficulty
-        generatePractice(true);
         
         // Clear the change message after some time
         setTimeout(() => {
           setDifficultyChange(null);
         }, 15000);
+      } else {
+        Alert.alert('Error', 'Failed to adjust difficulty. Please try again.');
       }
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Unknown error';
@@ -378,16 +380,20 @@ export function usePractice() {
             setDifficultyTrend('stable');
           }
           
-          // Format and display the difficulty change
+          // Format and display the difficulty change with appropriate sign
           const changeStr = info.change.toFixed(2);
           const sign = info.change >= 0 ? '+' : '';
           setDifficultyChange(`${sign}${changeStr}`);
           
-          // Format and display the complexity change if available
+          // Format and display the complexity change with appropriate sign
           if (info.complexityChange !== undefined) {
             const complexityStr = info.complexityChange.toFixed(2);
             const complexitySign = info.complexityChange >= 0 ? '+' : '';
             setComplexityChange(`${complexitySign}${complexityStr}`);
+            console.log(`Setting complexity change: ${complexitySign}${complexityStr}`);
+          } else {
+            // Reset complexity change if not provided
+            setComplexityChange(null);
           }
           
           // Store for future comparison
@@ -403,6 +409,10 @@ export function usePractice() {
               );
             }, 500);
           }
+        } else {
+          // Reset changes if not provided
+          setDifficultyChange(null);
+          setComplexityChange(null);
         }
         
         // Store the next practice item in the queue if available
