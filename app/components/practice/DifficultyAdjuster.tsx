@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { practiceStyles } from './styles';
@@ -25,14 +25,19 @@ export const DifficultyAdjuster: React.FC<DifficultyAdjusterProps> = ({
   adjustmentMode = { isInAdjustmentMode: false, adjustmentPracticesRemaining: 0 },
   onAdjustDifficulty
 }) => {
+  // Debug logging for props
+  useEffect(() => {
+    console.log('DifficultyAdjuster - adjustmentMode changed:', JSON.stringify(adjustmentMode));
+  }, [adjustmentMode]);
+
   const formattedDifficulty = difficultyValue ? difficultyValue.toFixed(2) : '1.00';
   const formattedComplexity = complexityValue ? complexityValue.toFixed(2) : '1.00';
-  
+  const adjStr = adjustmentMode ? 'Adjustment Mode' : 'Normal Mode';
   const safeAdjustmentMode = adjustmentMode || { isInAdjustmentMode: false, adjustmentPracticesRemaining: 0 };
-  
+  const adjustmentModeStr = adjustmentMode.isInAdjustmentMode ? 'Adjustment Mode' : 'Normal Mode';
   const hasChanges = difficultyChange !== null || complexityChange !== null;
   const showTrend = hasChanges && difficultyTrend !== 'stable';
-  
+  console.log('DifficultyAdjuster render - adjustmentMode:', JSON.stringify(safeAdjustmentMode));
   return (
     <View style={[
       practiceStyles.difficultyAdjustContainer, 
@@ -54,7 +59,7 @@ export const DifficultyAdjuster: React.FC<DifficultyAdjusterProps> = ({
     
       <View style={practiceStyles.difficultyHeader}>
         <Text style={practiceStyles.difficultyText}>
-          Current Difficulty: {formattedDifficulty}/10
+          Current {adjustmentModeStr} Difficulty: {formattedDifficulty}/10
         </Text>
         
         {hasChanges && (

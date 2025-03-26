@@ -19,9 +19,11 @@ export default function PracticeScreen() {
     adjusting,
     difficultyTrend,
     difficultyChange,
+    complexityChange,
     feedbackQuestion,
     feedbackAnswer,
     askingQuestion,
+    adjustmentMode,
     
     setUserAnswer,
     setFeedbackQuestion,
@@ -32,6 +34,11 @@ export default function PracticeScreen() {
     showAdjustmentDialog,
     askFollowUpQuestion
   } = usePractice();
+
+  // Log state for debugging
+  useEffect(() => {
+    console.log('PracticeScreen - adjustmentMode:', adjustmentMode);
+  }, [adjustmentMode]);
 
   // Generate initial practice on mount if not already loaded
   useEffect(() => {
@@ -52,8 +59,11 @@ export default function PracticeScreen() {
           <DifficultyAdjuster 
             difficultyTrend={difficultyTrend}
             difficultyValue={currentPractice.difficulty}
+            complexityValue={currentPractice.complexity || 1}
             difficultyChange={difficultyChange}
+            complexityChange={complexityChange}
             adjusting={adjusting}
+            adjustmentMode={adjustmentMode}
             onAdjustDifficulty={showAdjustmentDialog}
           />
         )}

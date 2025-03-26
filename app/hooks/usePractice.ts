@@ -190,14 +190,15 @@ export function usePractice() {
   // Function to show adjustment mode information and enter adjustment mode
   const showAdjustmentDialog = () => {
     // Don't allow adjustment when already in adjustment mode
-    if (adjustmentMode.isInAdjustmentMode) {
-      Alert.alert(
-        'Adjustment in Progress',
-        'You are currently in adjustment mode. Complete the remaining practice exercises to finish calibrating your difficulty level.',
-        [{ text: 'OK' }]
-      );
-      return;
-    }
+    // if (adjustmentMode.isInAdjustmentMode) {
+    //   Alert.alert(
+    //     'Adjustment in Progress',
+    //     'You are currently in adjustment mode. Complete the remaining practice exercises to finish calibrating your difficulty level.',
+    //     [{ text: 'OK' }]
+    //   );
+    //   console.log('Adjustment Mode Already Active', adjustmentMode.isInAdjustmentMode);
+    //   return;
+    // }
     enterAdjustmentMode();
     // Show confirmation before entering adjustment mode
     Alert.alert(
@@ -230,23 +231,33 @@ export function usePractice() {
       // Default number of adjustment practices
       const ADJUSTMENT_PRACTICES_COUNT = 5;
       
-      // Set adjustment mode locally
-      setAdjustmentMode({
+      console.log('Before setting adjustmentMode:', adjustmentMode);
+      
+      // Update the state with a new object (important for React reactivity)
+      const newAdjustmentMode = {
         isInAdjustmentMode: true,
         adjustmentPracticesRemaining: ADJUSTMENT_PRACTICES_COUNT
-      });
+      };
+      
+      setAdjustmentMode(newAdjustmentMode);
+      
+      console.log('After setting adjustmentMode:', newAdjustmentMode);
       
       // Update user progress on the server to enter adjustment mode
       const token = await storage.getItem(config.STORAGE_KEYS.AUTH_TOKEN);
       
-      await axios.post(`${config.API_URL}/api/practice/enter-adjustment-mode`, {}, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      }).catch(error => {
+      try {
+        const response = await axios.post(`${config.API_URL}/api/practice/enter-adjustment-mode`, {}, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        
+        console.log('Server response for adjustment mode:', response.data);
+      } catch (apiError) {
         // Even if the API call fails, we'll continue with local adjustment mode
-        console.log('Failed to update server with adjustment mode:', error);
-      });
+        console.log('Failed to update server with adjustment mode:', apiError);
+      }
       
       // Show confirmation
       Alert.alert(
