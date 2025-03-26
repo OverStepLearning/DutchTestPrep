@@ -4,7 +4,14 @@ import { Alert } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
 import { storage } from '../../utils/storage';
 import config from '../../constants/Config';
-import { PracticeItem, FeedbackResponse, DifficultyDirection, DifficultyTrend } from '../types/practice';
+import { 
+  PracticeItem, 
+  FeedbackResponse, 
+  DifficultyDirection, 
+  DifficultyTrend,
+  DifficultyChangeInfo,
+  AdjustmentModeInfo
+} from '../types/practice';
 
 export function usePractice() {
   const { user } = useAuth();
@@ -22,6 +29,10 @@ export function usePractice() {
   const [feedbackQuestion, setFeedbackQuestion] = useState('');
   const [feedbackAnswer, setFeedbackAnswer] = useState<string | null>(null);
   const [askingQuestion, setAskingQuestion] = useState(false);
+  const [adjustmentMode, setAdjustmentMode] = useState<AdjustmentModeInfo>({
+    isInAdjustmentMode: false,
+    adjustmentPracticesRemaining: 0
+  });
 
   // Helper function to ensure practice item is formatted correctly
   const mapPracticeItem = (item: any): PracticeItem => {
@@ -32,8 +43,8 @@ export function usePractice() {
       _id: item._id || '',
       content: item.content || '',
       translation: item.translation || '',
-      difficulty: item.difficulty || 'medium',
-      complexity: item.complexity || 'medium',
+      difficulty: typeof item.difficulty === 'number' ? item.difficulty : 1,
+      complexity: typeof item.complexity === 'number' ? item.complexity : 1,
       categories: Array.isArray(item.categories) ? item.categories : [],
       challengeAreas: Array.isArray(item.challengeAreas) ? item.challengeAreas : [],
       questionType: item.questionType === 'multiple-choice' ? 'mcq' : item.questionType || 'open-ended',
@@ -89,7 +100,7 @@ export function usePractice() {
       // The backend handles all randomization with a single API call
       const response = await axios.post(`${config.API_URL}/api/practice/generate`, {
         userId: user._id,
-        batchSize: 3 // Request multiple items
+        batchSize: adjustmentMode.isInAdjustmentMode ? 1 : 3 // Only request 1 item in adjustment mode
       }, {
         headers: {
           Authorization: `Bearer ${token}`
@@ -102,8 +113,17 @@ export function usePractice() {
         const practice = mapPracticeItem(response.data.data);
         setCurrentPractice(practice);
         
-        // Add batch items to the queue if available
-        if (response.data?.batchItems && Array.isArray(response.data.batchItems) && response.data.batchItems.length > 1) {
+        // Update adjustment mode state
+        if (response.data.adjustmentMode !== undefined) {
+          setAdjustmentMode({
+            isInAdjustmentMode: !!response.data.adjustmentMode,
+            adjustmentPracticesRemaining: response.data.adjustmentPracticesRemaining || 0
+          });
+        }
+        
+        // Add batch items to the queue if available and not in adjustment mode
+        if (!response.data.adjustmentMode && response.data?.batchItems && 
+            Array.isArray(response.data.batchItems) && response.data.batchItems.length > 1) {
           const batchItems = response.data.batchItems.slice(1).map(mapPracticeItem);
           setQuestionQueue(batchItems);
         }
@@ -121,7 +141,7 @@ export function usePractice() {
 
   // Function to generate a batch of practice questions in the background
   const generatePracticeBatch = async () => {
-    if (!user || generatingBatch) return;
+    if (!user || generatingBatch || adjustmentMode.isInAdjustmentMode) return;
     
     try {
       setGeneratingBatch(true);
@@ -220,24 +240,26 @@ export function usePractice() {
       });
       
       if (response.data?.success) {
-        const newLevel = response.data.data.level;
-        // Save the old difficulty for comparison
-        const oldDifficulty = currentPractice?.difficulty ? currentPractice.difficulty.toFixed(2) : '1.00';
+        const difficultyChangeInfo: DifficultyChangeInfo = response.data.data;
+        
+        // Update adjustment mode status
+        setAdjustmentMode({
+          isInAdjustmentMode: !!response.data.data.adjustmentMode,
+          adjustmentPracticesRemaining: response.data.data.adjustmentPracticesRemaining || 0
+        });
         
         // Update difficulty trend immediately for visual feedback
         setDifficultyTrend(direction === 'up' ? 'increasing' : 'decreasing');
         
-        // Calculate and display the change
-        const oldValue = parseFloat(oldDifficulty);
-        const newValue = parseFloat(newLevel.toFixed(2));
-        const change = (newValue - oldValue).toFixed(2);
+        // Format and display the change
+        const change = difficultyChangeInfo.change.toFixed(2);
         const sign = change.startsWith('-') ? '' : '+';
         setDifficultyChange(`${sign}${change}`);
         
         // Show alert with more detailed information
         Alert.alert(
           'Difficulty Adjusted',
-          `Your difficulty level has changed from ${oldDifficulty} to ${newLevel.toFixed(2)}.\n\nChange: ${sign}${change}\n\nNew questions will reflect this change.`,
+          `Your difficulty level has changed from ${difficultyChangeInfo.oldDifficulty.toFixed(2)} to ${difficultyChangeInfo.newDifficulty.toFixed(2)}.\n\nChange: ${sign}${change}\n\nYou have entered adjustment mode. The next ${response.data.data.adjustmentPracticesRemaining} questions will help fine-tune your difficulty level.`,
           [{ text: 'OK' }]
         );
         
@@ -269,17 +291,19 @@ export function usePractice() {
       
       const token = await storage.getItem(config.STORAGE_KEYS.AUTH_TOKEN);
       
-      const response = await axios.post(`${config.API_URL}/api/practice/ask-question`, {
+      const response = await axios.post(`${config.API_URL}/api/practice/question`, {
         practiceId: currentPractice?._id,
-        question: feedbackQuestion
+        question: feedbackQuestion,
+        userAnswer: currentPractice?.userAnswer || userAnswer,
+        feedback: feedback?.feedback
       }, {
         headers: {
           Authorization: `Bearer ${token}`
         }
       });
       
-      if (response.data?.success) {
-        setFeedbackAnswer(response.data.data.answer);
+      if (response.data?.answer) {
+        setFeedbackAnswer(response.data.answer);
       } else {
         throw new Error('Failed to get an answer');
       }
@@ -324,6 +348,47 @@ export function usePractice() {
       let isCorrect = false;
       
       if (response.data?.success && response.data?.data) {
+        // Update adjustment mode status
+        if (response.data.data.adjustmentMode !== undefined) {
+          setAdjustmentMode({
+            isInAdjustmentMode: !!response.data.data.adjustmentMode,
+            adjustmentPracticesRemaining: response.data.data.adjustmentPracticesRemaining || 0
+          });
+        }
+        
+        // Handle difficulty change info
+        if (response.data.data.difficultyChange) {
+          const info: DifficultyChangeInfo = response.data.data.difficultyChange;
+          
+          // Update difficulty trend
+          if (info.change > 0) {
+            setDifficultyTrend('increasing');
+          } else if (info.change < 0) {
+            setDifficultyTrend('decreasing');
+          } else {
+            setDifficultyTrend('stable');
+          }
+          
+          // Format and display the change
+          const changeStr = info.change.toFixed(2);
+          const sign = info.change >= 0 ? '+' : '';
+          setDifficultyChange(`${sign}${changeStr}`);
+          
+          // Store for future comparison
+          previousDifficultyRef.current = info.newDifficulty;
+          
+          // If exited adjustment mode, show a message
+          if (info.exitedAdjustmentMode) {
+            setTimeout(() => {
+              Alert.alert(
+                'Adjustment Complete',
+                'Your difficulty level has been adjusted and fine-tuned based on your performance.',
+                [{ text: 'OK' }]
+              );
+            }, 500);
+          }
+        }
+        
         // Store the next practice item in the queue if available
         if (response.data.data.nextPractice) {
           setQuestionQueue(prevQueue => [...prevQueue, response.data.data.nextPractice]);
@@ -348,6 +413,13 @@ export function usePractice() {
         isCorrect,
         feedback: feedbackText
       });
+      
+      // Clear the change message after some time
+      if (difficultyChange) {
+        setTimeout(() => {
+          setDifficultyChange(null);
+        }, 15000);
+      }
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Unknown error';
       setErrorMessage(`Failed to submit answer: ${errorMsg}`);
@@ -357,18 +429,26 @@ export function usePractice() {
     }
   };
 
+  // Initialize when component mounts
+  useEffect(() => {
+    if (user && !currentPractice && !loading) {
+      generatePractice();
+    }
+  }, [user]);
+
   // Update difficulty trend when current practice changes
   useEffect(() => {
-    if (currentPractice && currentPractice.difficulty) {
-      if (previousDifficultyRef.current !== null) {
-        if (currentPractice.difficulty > previousDifficultyRef.current) {
-          setDifficultyTrend('increasing');
-        } else if (currentPractice.difficulty < previousDifficultyRef.current) {
-          setDifficultyTrend('decreasing');
-        } else {
-          setDifficultyTrend('stable');
-        }
+    if (currentPractice && currentPractice.difficulty && previousDifficultyRef.current !== null) {
+      if (currentPractice.difficulty > previousDifficultyRef.current) {
+        setDifficultyTrend('increasing');
+      } else if (currentPractice.difficulty < previousDifficultyRef.current) {
+        setDifficultyTrend('decreasing');
+      } else {
+        setDifficultyTrend('stable');
       }
+    }
+    
+    if (currentPractice?.difficulty) {
       previousDifficultyRef.current = currentPractice.difficulty;
     }
   }, [currentPractice]);
@@ -386,6 +466,7 @@ export function usePractice() {
     askingQuestion,
     feedbackQuestion,
     feedbackAnswer,
+    adjustmentMode,
     
     setUserAnswer,
     setFeedbackQuestion,

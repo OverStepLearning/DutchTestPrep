@@ -13,8 +13,13 @@ export interface UserProfile {
       reading: number;
       listening: number;
     };
+    currentDifficulty: number;
+    currentComplexity: number;
+    isInAdjustmentMode?: boolean;
+    adjustmentPracticesRemaining?: number;
     completedPractices: number;
     averageDifficulty: number;
+    averageComplexity?: number;
     lastActivity: Date;
   };
   preferences: {

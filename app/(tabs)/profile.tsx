@@ -4,9 +4,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useProfile } from '../hooks/useProfile';
 import { ProfileHeader } from '../components/profile/ProfileHeader';
 import { LanguageSelector } from '../components/profile/LanguageSelector';
-import { SkillsDisplay } from '../components/profile/SkillsDisplay';
 import { StatsSummary } from '../components/profile/StatsSummary';
 import { PreferencesDisplay } from '../components/profile/PreferencesDisplay';
+import { DifficultyDisplay } from '../components/profile/DifficultyDisplay';
 
 export default function ProfileScreen() {
   const {
@@ -45,8 +45,10 @@ export default function ProfileScreen() {
               onLanguageChange={updateMotherLanguage}
             />
 
-            <SkillsDisplay 
-              skillLevels={profile.progress.skillLevels} 
+            <DifficultyDisplay 
+              currentDifficulty={profile.progress.currentDifficulty || 1}
+              currentComplexity={profile.progress.currentComplexity || 1}
+              averageDifficulty={profile.progress.averageDifficulty}
             />
 
             <StatsSummary 
