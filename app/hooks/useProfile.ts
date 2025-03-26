@@ -106,6 +106,42 @@ export function useProfile() {
     }
   };
 
+  // Update user preferences
+  const updatePreferences = async (updatedPreferences: UserProfile['preferences']) => {
+    try {
+      setLoading(true);
+      
+      const token = await storage.getItem(Config.STORAGE_KEYS.AUTH_TOKEN);
+      const response = await axios.put(
+        `${Config.API_URL}/api/user/preferences`, 
+        updatedPreferences,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      
+      if (response.data && response.data.success) {
+        // Update the profile state with the new preferences
+        setProfile(prev => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            preferences: updatedPreferences
+          };
+        });
+      } else {
+        Alert.alert('Error', 'Failed to update preferences.');
+      }
+    } catch (error) {
+      console.error('Error updating preferences:', error);
+      Alert.alert('Error', 'Failed to update preferences. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Handle logout
   const handleLogout = async () => {
     try {
@@ -131,6 +167,7 @@ export function useProfile() {
     languageOptions: LANGUAGE_OPTIONS,
     fetchUserProfile,
     updateMotherLanguage,
+    updatePreferences,
     handleLogout
   };
 } 

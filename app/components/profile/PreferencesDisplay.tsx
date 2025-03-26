@@ -1,12 +1,29 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Modal } from 'react-native';
 import { UserProfile } from '../../types/profile';
+import { EditPreferences } from './EditPreferences';
+import { Ionicons } from '@expo/vector-icons';
 
 interface PreferencesDisplayProps {
   preferences: UserProfile['preferences'];
+  onPreferencesUpdate: (updatedPreferences: UserProfile['preferences']) => void;
 }
 
-export const PreferencesDisplay: React.FC<PreferencesDisplayProps> = ({ preferences }) => {
+export const PreferencesDisplay: React.FC<PreferencesDisplayProps> = ({ 
+  preferences,
+  onPreferencesUpdate
+}) => {
+  const [isEditing, setIsEditing] = useState(false);
+
+  const handleUpdate = (updatedPreferences: UserProfile['preferences']) => {
+    onPreferencesUpdate(updatedPreferences);
+    setIsEditing(false);
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+  };
+
   const renderTagList = (title: string, items: string[]) => {
     if (!items || items.length === 0) {
       return (
@@ -33,7 +50,16 @@ export const PreferencesDisplay: React.FC<PreferencesDisplayProps> = ({ preferen
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Learning Preferences</Text>
+      <View style={styles.header}>
+        <Text style={styles.title}>Learning Preferences</Text>
+        <TouchableOpacity 
+          style={styles.editButton} 
+          onPress={() => setIsEditing(true)}
+        >
+          <Ionicons name="pencil" size={18} color="#4f86f7" />
+          <Text style={styles.editText}>Edit</Text>
+        </TouchableOpacity>
+      </View>
 
       {renderTagList('Preferred Categories', preferences?.preferredCategories || [])}
       {renderTagList('Challenge Areas', preferences?.challengeAreas || [])}
@@ -44,6 +70,19 @@ export const PreferencesDisplay: React.FC<PreferencesDisplayProps> = ({ preferen
           {preferences?.learningReason || 'No reason specified'}
         </Text>
       </View>
+
+      <Modal
+        visible={isEditing}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={handleCancel}
+      >
+        <EditPreferences 
+          preferences={preferences}
+          onUpdate={handleUpdate}
+          onCancel={handleCancel}
+        />
+      </Modal>
     </View>
   );
 };
@@ -60,10 +99,25 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
   title: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 12,
+  },
+  editButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 8,
+  },
+  editText: {
+    color: '#4f86f7',
+    marginLeft: 4,
+    fontWeight: '500',
   },
   section: {
     marginBottom: 16,

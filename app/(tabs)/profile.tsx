@@ -17,6 +17,7 @@ export default function ProfileScreen() {
     languageOptions,
     fetchUserProfile,
     updateMotherLanguage,
+    updatePreferences,
     handleLogout
   } = useProfile();
 
@@ -57,7 +58,8 @@ export default function ProfileScreen() {
             />
 
             <PreferencesDisplay 
-              preferences={profile.preferences} 
+              preferences={profile.preferences}
+              onPreferencesUpdate={updatePreferences}
             />
 
             <TouchableOpacity 
