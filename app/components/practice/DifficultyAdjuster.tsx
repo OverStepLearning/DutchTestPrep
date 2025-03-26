@@ -9,6 +9,7 @@ interface DifficultyAdjusterProps {
   difficultyValue: number;
   complexityValue: number;
   difficultyChange: string | null;
+  complexityChange: string | null;
   adjusting: boolean;
   adjustmentMode?: AdjustmentModeInfo;
   onAdjustDifficulty: () => void;
@@ -19,6 +20,7 @@ export const DifficultyAdjuster: React.FC<DifficultyAdjusterProps> = ({
   difficultyValue,
   complexityValue,
   difficultyChange,
+  complexityChange,
   adjusting,
   adjustmentMode = { isInAdjustmentMode: false, adjustmentPracticesRemaining: 0 },
   onAdjustDifficulty
@@ -28,15 +30,18 @@ export const DifficultyAdjuster: React.FC<DifficultyAdjusterProps> = ({
   
   const safeAdjustmentMode = adjustmentMode || { isInAdjustmentMode: false, adjustmentPracticesRemaining: 0 };
   
+  const hasChanges = difficultyChange !== null || complexityChange !== null;
+  const showTrend = hasChanges && difficultyTrend !== 'stable';
+  
   return (
     <View style={[
       practiceStyles.difficultyAdjustContainer, 
-      difficultyTrend !== 'stable' && {
+      showTrend && {
         backgroundColor: difficultyTrend === 'increasing' ? '#e6f7ef' : '#fde8e8',
         borderWidth: 1,
         borderColor: difficultyTrend === 'increasing' ? '#b7ebd8' : '#f8c9c9'
       },
-      safeAdjustmentMode.isInAdjustmentMode && styles.adjustmentModeContainer
+      safeAdjustmentMode.isInAdjustmentMode && practiceStyles.adjustmentModeGlow
     ]}>
       {safeAdjustmentMode.isInAdjustmentMode && (
         <View style={styles.adjustmentModeHeader}>
@@ -52,35 +57,36 @@ export const DifficultyAdjuster: React.FC<DifficultyAdjusterProps> = ({
           Current Difficulty: {formattedDifficulty}/10
         </Text>
         
-        {/* Always show trend, just changing the content based on state */}
-        <View style={[
-          practiceStyles.trendContainer, 
-          {
-            backgroundColor: difficultyTrend === 'increasing' 
-              ? '#d4f7e7' 
-              : difficultyTrend === 'decreasing' 
-                ? '#fad0d0'
-                : '#f0f0f0'
-          }
-        ]}>
-          {difficultyTrend !== 'stable' ? (
-            <>
-              <Ionicons 
-                name={difficultyTrend === 'increasing' ? 'arrow-up' : 'arrow-down'} 
-                size={16} 
-                color={difficultyTrend === 'increasing' ? '#27ae60' : '#e74c3c'} 
-              />
-              <Text style={[
-                practiceStyles.trendText, 
-                {color: difficultyTrend === 'increasing' ? '#27ae60' : '#e74c3c'}
-              ]}>
-                {difficultyTrend === 'increasing' ? 'Increasing' : 'Decreasing'}
-              </Text>
-            </>
-          ) : (
-            <Text style={practiceStyles.trendText}>Stable</Text>
-          )}
-        </View>
+        {hasChanges && (
+          <View style={[
+            practiceStyles.trendContainer, 
+            {
+              backgroundColor: difficultyTrend === 'increasing' 
+                ? '#d4f7e7' 
+                : difficultyTrend === 'decreasing' 
+                  ? '#fad0d0'
+                  : '#f0f0f0'
+            }
+          ]}>
+            {difficultyTrend !== 'stable' ? (
+              <>
+                <Ionicons 
+                  name={difficultyTrend === 'increasing' ? 'arrow-up' : 'arrow-down'} 
+                  size={16} 
+                  color={difficultyTrend === 'increasing' ? '#27ae60' : '#e74c3c'} 
+                />
+                <Text style={[
+                  practiceStyles.trendText, 
+                  {color: difficultyTrend === 'increasing' ? '#27ae60' : '#e74c3c'}
+                ]}>
+                  {difficultyTrend === 'increasing' ? 'Increasing' : 'Decreasing'}
+                </Text>
+              </>
+            ) : (
+              <Text style={practiceStyles.trendText}>Stable</Text>
+            )}
+          </View>
+        )}
       </View>
       
       <View style={styles.complexityRow}>
@@ -89,15 +95,31 @@ export const DifficultyAdjuster: React.FC<DifficultyAdjusterProps> = ({
         </Text>
       </View>
       
-      {/* Show numeric change when available */}
-      {difficultyChange && (
-        <View style={practiceStyles.changeContainer}>
-          <Text style={[
-            practiceStyles.changeText,
-            {color: difficultyChange.startsWith('-') ? '#e74c3c' : '#27ae60'}
-          ]}>
-            Change: {difficultyChange}
-          </Text>
+      {(difficultyChange || complexityChange) && (
+        <View style={practiceStyles.changesContainer}>
+          {difficultyChange && (
+            <View style={practiceStyles.changeItem}>
+              <Text style={practiceStyles.changeLabel}>Difficulty Change</Text>
+              <Text style={[
+                practiceStyles.changeValueText,
+                {color: difficultyChange.startsWith('-') ? '#e74c3c' : '#27ae60'}
+              ]}>
+                {difficultyChange}
+              </Text>
+            </View>
+          )}
+          
+          {complexityChange && (
+            <View style={practiceStyles.changeItem}>
+              <Text style={practiceStyles.changeLabel}>Complexity Change</Text>
+              <Text style={[
+                practiceStyles.changeValueText,
+                {color: complexityChange.startsWith('-') ? '#e74c3c' : '#27ae60'}
+              ]}>
+                {complexityChange}
+              </Text>
+            </View>
+          )}
         </View>
       )}
       
@@ -108,7 +130,7 @@ export const DifficultyAdjuster: React.FC<DifficultyAdjusterProps> = ({
           safeAdjustmentMode.isInAdjustmentMode && styles.inAdjustmentModeButton
         ]}
         onPress={onAdjustDifficulty}
-        disabled={adjusting}
+        disabled={adjusting || safeAdjustmentMode.isInAdjustmentMode}
       >
         {adjusting ? (
           <>
@@ -120,7 +142,7 @@ export const DifficultyAdjuster: React.FC<DifficultyAdjusterProps> = ({
             <Ionicons name="options" size={18} color="white" />
             <Text style={practiceStyles.adjustButtonText}>
               {safeAdjustmentMode.isInAdjustmentMode 
-                ? 'Fine-tuning in progress...' 
+                ? 'Adjustment in progress...' 
                 : 'Adjust Difficulty'}
             </Text>
           </>

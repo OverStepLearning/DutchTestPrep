@@ -21,6 +21,7 @@ const Practice = () => {
     errorMessage,
     difficultyTrend,
     difficultyChange,
+    complexityChange,
     adjusting,
     adjustmentMode,
     showAdjustmentDialog,
@@ -71,6 +72,7 @@ const Practice = () => {
           difficultyValue={difficulty}
           complexityValue={complexity}
           difficultyChange={difficultyChange}
+          complexityChange={complexityChange}
           adjusting={adjusting}
           adjustmentMode={adjustmentMode}
           onAdjustDifficulty={showAdjustmentDialog}

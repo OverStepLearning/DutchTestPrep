@@ -26,6 +26,7 @@ export function usePractice() {
   const [difficultyTrend, setDifficultyTrend] = useState<DifficultyTrend>('stable');
   const previousDifficultyRef = useRef<number | null>(null);
   const [difficultyChange, setDifficultyChange] = useState<string | null>(null);
+  const [complexityChange, setComplexityChange] = useState<string | null>(null);
   const [feedbackQuestion, setFeedbackQuestion] = useState('');
   const [feedbackAnswer, setFeedbackAnswer] = useState<string | null>(null);
   const [askingQuestion, setAskingQuestion] = useState(false);
@@ -188,6 +189,15 @@ export function usePractice() {
 
   // Function to show the difficulty adjustment dialog
   const showAdjustmentDialog = () => {
+    if (adjustmentMode.isInAdjustmentMode) {
+      Alert.alert(
+        'Adjustment in Progress',
+        'You are currently in adjustment mode. Complete the remaining practice exercises to finish calibrating your difficulty level.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+    
     setAdjusting(true);
     Alert.alert(
       'Adjust Difficulty',
@@ -196,14 +206,12 @@ export function usePractice() {
         {
           text: 'Easier',
           onPress: () => {
-            setAdjusting(false);
             adjustDifficulty('down');
           },
         },
         {
           text: 'Harder',
           onPress: () => {
-            setAdjusting(false);
             adjustDifficulty('up');
           }
         },
@@ -224,6 +232,7 @@ export function usePractice() {
       
       if (!user) {
         Alert.alert('Error', 'You must be logged in to adjust difficulty');
+        setAdjusting(false);
         return;
       }
       
@@ -238,7 +247,7 @@ export function usePractice() {
       });
       
       if (response.data?.success) {
-        const difficultyChangeInfo: DifficultyChangeInfo = response.data.data;
+        const difficultyChangeInfo = response.data.data;
         
         // Update adjustment mode status
         setAdjustmentMode({
@@ -253,6 +262,9 @@ export function usePractice() {
         const change = difficultyChangeInfo.change.toFixed(2);
         const sign = change.startsWith('-') ? '' : '+';
         setDifficultyChange(`${sign}${change}`);
+        
+        // Reset complexity change since we're only adjusting difficulty here
+        setComplexityChange(null);
         
         // Show alert with more detailed information
         Alert.alert(
@@ -272,6 +284,7 @@ export function usePractice() {
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Unknown error';
       setErrorMessage(`Failed to adjust difficulty: ${errorMsg}`);
+      Alert.alert('Error', 'Failed to adjust difficulty. Please try again.');
     } finally {
       setAdjusting(false);
     }
@@ -354,7 +367,7 @@ export function usePractice() {
         
         // Handle difficulty change info
         if (response.data.data.difficultyChange) {
-          const info: DifficultyChangeInfo = response.data.data.difficultyChange;
+          const info = response.data.data.difficultyChange;
           
           // Update difficulty trend
           if (info.change > 0) {
@@ -365,10 +378,17 @@ export function usePractice() {
             setDifficultyTrend('stable');
           }
           
-          // Format and display the change
+          // Format and display the difficulty change
           const changeStr = info.change.toFixed(2);
           const sign = info.change >= 0 ? '+' : '';
           setDifficultyChange(`${sign}${changeStr}`);
+          
+          // Format and display the complexity change if available
+          if (info.complexityChange !== undefined) {
+            const complexityStr = info.complexityChange.toFixed(2);
+            const complexitySign = info.complexityChange >= 0 ? '+' : '';
+            setComplexityChange(`${complexitySign}${complexityStr}`);
+          }
           
           // Store for future comparison
           previousDifficultyRef.current = info.newDifficulty;
@@ -410,10 +430,11 @@ export function usePractice() {
         feedback: feedbackText
       });
       
-      // Clear the change message after some time
-      if (difficultyChange) {
+      // Clear the change messages after some time
+      if (difficultyChange || complexityChange) {
         setTimeout(() => {
           setDifficultyChange(null);
+          setComplexityChange(null);
         }, 15000);
       }
     } catch (error) {
@@ -459,6 +480,7 @@ export function usePractice() {
     adjusting,
     difficultyTrend,
     difficultyChange,
+    complexityChange,
     askingQuestion,
     feedbackQuestion,
     feedbackAnswer,

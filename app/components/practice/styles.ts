@@ -3,7 +3,8 @@ import { StyleSheet } from 'react-native';
 export const practiceStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    padding: 16,
+    backgroundColor: '#fff'
   },
   scrollContainer: {
     padding: 20,
@@ -23,20 +24,21 @@ export const practiceStyles = StyleSheet.create({
     marginTop: 40,
   },
   practiceContainer: {
-    backgroundColor: 'white',
+    flex: 1,
+    backgroundColor: '#f9f9f9',
     borderRadius: 12,
-    padding: 20,
+    padding: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 3,
+    elevation: 3
   },
   practiceText: {
     fontSize: 18,
-    lineHeight: 28,
-    color: '#212529',
-    marginBottom: 20,
+    lineHeight: 26,
+    marginBottom: 24,
+    color: '#333'
   },
   difficultyContainer: {
     flexDirection: 'row',
@@ -181,71 +183,66 @@ export const practiceStyles = StyleSheet.create({
     fontStyle: 'italic',
   },
   difficultyAdjustContainer: {
-    marginVertical: 15,
-    padding: 15,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#f7f7f7',
     borderRadius: 8,
-    alignItems: 'center',
+    padding: 12,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#e0e0e0'
   },
   difficultyHeader: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-    width: '100%',
+    marginBottom: 8
   },
   difficultyText: {
     fontSize: 16,
     fontWeight: '600',
-    flex: 1,
+    color: '#333'
   },
   trendContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    backgroundColor: '#f0f0f0',
     borderRadius: 12,
-    marginLeft: 10,
-    borderWidth: 1,
-    borderColor: '#ddd',
+    paddingHorizontal: 10,
+    paddingVertical: 4
   },
   trendText: {
-    fontSize: 12,
-    fontWeight: '600',
-    marginLeft: 4,
+    fontSize: 13,
+    fontWeight: '500',
+    marginLeft: 4
   },
   changeContainer: {
-    marginVertical: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#ddd',
+    backgroundColor: '#f0f0f0',
+    borderRadius: 8,
+    padding: 8,
+    marginTop: 12,
+    alignSelf: 'flex-start'
   },
   changeText: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 14,
+    fontWeight: '600'
   },
   adjustMeButton: {
+    backgroundColor: '#4CAF50',
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 20,
-    backgroundColor: '#4f86f7',
-    minWidth: 180,
+    marginTop: 16
   },
   adjustingButton: {
-    backgroundColor: '#7ba7f9',
-    opacity: 0.8,
+    backgroundColor: '#999',
   },
   adjustButtonText: {
     color: 'white',
-    fontWeight: 'bold',
-    marginLeft: 8,
+    fontSize: 15,
+    fontWeight: '600',
+    marginLeft: 8
   },
   feedbackQuestionContainer: {
     marginTop: 20,
@@ -300,5 +297,36 @@ export const practiceStyles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 24,
     color: '#212529',
+  },
+  adjustmentModeGlow: {
+    shadowColor: '#4f86f7',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 15,
+    elevation: 10,
+    borderColor: '#4f86f7',
+    borderWidth: 2,
+    backgroundColor: '#f0f7ff',
+  },
+  changesContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    backgroundColor: '#f5f5f5',
+    borderRadius: 8,
+    padding: 10,
+    marginTop: 12
+  },
+  changeItem: {
+    alignItems: 'center',
+    paddingHorizontal: 12
+  },
+  changeLabel: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 4
+  },
+  changeValueText: {
+    fontSize: 14,
+    fontWeight: '600'
   },
 }); 
