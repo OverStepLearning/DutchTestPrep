@@ -30,7 +30,7 @@ export default function PracticeScreen() {
     submitAnswer,
     handleNextPractice,
     showAdjustmentDialog,
-    askFeedbackQuestion
+    askFollowUpQuestion
   } = usePractice();
 
   // Generate initial practice on mount if not already loaded
@@ -100,7 +100,7 @@ export default function PracticeScreen() {
                     askingQuestion={askingQuestion}
                     onNextPractice={handleNextPractice}
                     onSetFeedbackQuestion={setFeedbackQuestion}
-                    onAskQuestion={askFeedbackQuestion}
+                    onAskQuestion={askFollowUpQuestion}
                   />
                 )}
               </View>

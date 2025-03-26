@@ -3,13 +3,19 @@ export interface PracticeItem {
   _id: string;
   content: string | string[];
   translation?: string | string[];
-  type: 'vocabulary' | 'grammar' | 'conversation' | 'reading' | 'listening';
-  difficulty: number;
-  complexity: number;
+  practiceType?: string; // 'Vocabulary', 'Grammar', 'Sentence structure', etc.
+  difficulty: string; // 'easy', 'medium', 'hard'
+  complexity: string; // 'low', 'medium', 'high'
   categories: string[];
-  questionType?: string; // Type of question (mcq, spelling, fill-in-blank, etc.)
+  challengeAreas?: string[]; // Specific areas of challenge for the user
+  questionType?: string; // Type of question (mcq, multiple-choice, open-ended, etc.)
   options?: string[]; // Options for multiple choice questions
-  motherLanguage?: string; // User's native language
+  createdAt?: string;
+  userId?: string;
+  isCompleted?: boolean;
+  userAnswer?: string;
+  isCorrect?: boolean;
+  feedbackProvided?: string;
 }
 
 export interface FeedbackResponse {
