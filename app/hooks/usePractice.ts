@@ -113,13 +113,11 @@ export function usePractice() {
         const practice = mapPracticeItem(response.data.data);
         setCurrentPractice(practice);
         
-        // Update adjustment mode state
-        if (response.data.adjustmentMode !== undefined) {
-          setAdjustmentMode({
-            isInAdjustmentMode: !!response.data.adjustmentMode,
-            adjustmentPracticesRemaining: response.data.adjustmentPracticesRemaining || 0
-          });
-        }
+        // Update adjustment mode state - ensure defaults if not provided
+        setAdjustmentMode({
+          isInAdjustmentMode: response.data.adjustmentMode === true,
+          adjustmentPracticesRemaining: response.data.adjustmentPracticesRemaining || 0
+        });
         
         // Add batch items to the queue if available and not in adjustment mode
         if (!response.data.adjustmentMode && response.data?.batchItems && 
@@ -348,13 +346,11 @@ export function usePractice() {
       let isCorrect = false;
       
       if (response.data?.success && response.data?.data) {
-        // Update adjustment mode status
-        if (response.data.data.adjustmentMode !== undefined) {
-          setAdjustmentMode({
-            isInAdjustmentMode: !!response.data.data.adjustmentMode,
-            adjustmentPracticesRemaining: response.data.data.adjustmentPracticesRemaining || 0
-          });
-        }
+        // Update adjustment mode status - handle missing data safely
+        setAdjustmentMode({
+          isInAdjustmentMode: response.data.data.adjustmentMode === true,
+          adjustmentPracticesRemaining: response.data.data.adjustmentPracticesRemaining || 0
+        });
         
         // Handle difficulty change info
         if (response.data.data.difficultyChange) {

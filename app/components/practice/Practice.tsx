@@ -55,6 +55,10 @@ const Practice = () => {
     );
   }
 
+  // Ensure currentPractice has all required properties
+  const difficulty = currentPractice.difficulty || 1;
+  const complexity = currentPractice.complexity || 1;
+
   return (
     <View style={practiceStyles.container}>
       {/* Content will be your practice exercise display */}
@@ -64,8 +68,8 @@ const Practice = () => {
         {/* Difficulty adjuster */}
         <DifficultyAdjuster
           difficultyTrend={difficultyTrend}
-          difficultyValue={currentPractice.difficulty}
-          complexityValue={currentPractice.complexity}
+          difficultyValue={difficulty}
+          complexityValue={complexity}
           difficultyChange={difficultyChange}
           adjusting={adjusting}
           adjustmentMode={adjustmentMode}
