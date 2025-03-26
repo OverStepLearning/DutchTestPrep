@@ -187,7 +187,7 @@ export function usePractice() {
     generatePractice();
   };
 
-  // Function to show the difficulty adjustment dialog
+  // Function to show adjustment mode information and enter adjustment mode
   const showAdjustmentDialog = () => {
     // Don't allow adjustment when already in adjustment mode
     if (adjustmentMode.isInAdjustmentMode) {
@@ -199,18 +199,14 @@ export function usePractice() {
       return;
     }
     
-    // Confirmation popup without setting loading state yet
+    // Show confirmation before entering adjustment mode
     Alert.alert(
-      'Adjust Difficulty',
-      'Would you like to make the exercises easier or harder?',
+      'Enter Adjustment Mode',
+      'Would you like to enter difficulty adjustment mode? This will calibrate the difficulty level to better match your skills.',
       [
         {
-          text: 'Easier',
-          onPress: () => adjustDifficulty('down'),
-        },
-        {
-          text: 'Harder',
-          onPress: () => adjustDifficulty('up')
+          text: 'Yes, Enter Adjustment Mode',
+          onPress: () => enterAdjustmentMode(),
         },
         {
           text: 'Cancel',
@@ -220,12 +216,10 @@ export function usePractice() {
     );
   };
 
-  // Function to adjust difficulty level
-  const adjustDifficulty = async (direction: DifficultyDirection) => {
+  // Function to enter adjustment mode
+  const enterAdjustmentMode = async () => {
     try {
-      // Only set adjusting state when we're actually making the API call
       setAdjusting(true);
-      setErrorMessage(null);
       
       if (!user) {
         Alert.alert('Error', 'You must be logged in to adjust difficulty');
@@ -233,60 +227,42 @@ export function usePractice() {
         return;
       }
       
+      // Default number of adjustment practices
+      const ADJUSTMENT_PRACTICES_COUNT = 5;
+      
+      // Set adjustment mode locally
+      setAdjustmentMode({
+        isInAdjustmentMode: true,
+        adjustmentPracticesRemaining: ADJUSTMENT_PRACTICES_COUNT
+      });
+      
+      // Update user progress on the server to enter adjustment mode
       const token = await storage.getItem(config.STORAGE_KEYS.AUTH_TOKEN);
       
-      const response = await axios.post(`${config.API_URL}/api/practice/adjust-difficulty`, {
-        direction
-      }, {
+      await axios.post(`${config.API_URL}/api/practice/enter-adjustment-mode`, {}, {
         headers: {
           Authorization: `Bearer ${token}`
         }
+      }).catch(error => {
+        // Even if the API call fails, we'll continue with local adjustment mode
+        console.log('Failed to update server with adjustment mode:', error);
       });
       
-      if (response.data?.success) {
-        const difficultyChangeInfo = response.data.data;
-        
-        // Update adjustment mode status
-        setAdjustmentMode({
-          isInAdjustmentMode: !!response.data.data.adjustmentMode,
-          adjustmentPracticesRemaining: response.data.data.adjustmentPracticesRemaining || 0
-        });
-        
-        // Update difficulty trend immediately for visual feedback
-        setDifficultyTrend(direction === 'up' ? 'increasing' : 'decreasing');
-        
-        // Format and display the change
-        const change = difficultyChangeInfo.change.toFixed(2);
-        const sign = change.startsWith('-') ? '' : '+';
-        setDifficultyChange(`${sign}${change}`);
-        
-        // Reset complexity change since we're only adjusting difficulty here
-        setComplexityChange(null);
-        
-        // Show alert with more detailed information
-        Alert.alert(
-          'Difficulty Adjusted',
-          `Your difficulty level has changed from ${difficultyChangeInfo.oldDifficulty.toFixed(2)} to ${difficultyChangeInfo.newDifficulty.toFixed(2)}.\n\nChange: ${sign}${change}\n\nYou have entered adjustment mode. The next ${response.data.data.adjustmentPracticesRemaining} questions will help fine-tune your difficulty level.`,
-          [{ 
-            text: 'OK',
-            onPress: () => {
-              // Force a new practice generation with the updated difficulty
-              generatePractice(true);
-            }
-          }]
-        );
-        
-        // Clear the change message after some time
-        setTimeout(() => {
-          setDifficultyChange(null);
-        }, 15000);
-      } else {
-        Alert.alert('Error', 'Failed to adjust difficulty. Please try again.');
-      }
+      // Show confirmation
+      Alert.alert(
+        'Adjustment Mode Activated',
+        `You have entered adjustment mode. The next ${ADJUSTMENT_PRACTICES_COUNT} questions will help calibrate your difficulty level.`,
+        [{ 
+          text: 'OK',
+          onPress: () => {
+            // Force a new practice generation for adjustment
+            generatePractice(true);
+          }
+        }]
+      );
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-      setErrorMessage(`Failed to adjust difficulty: ${errorMsg}`);
-      Alert.alert('Error', 'Failed to adjust difficulty. Please try again.');
+      console.error('Error entering adjustment mode:', error);
+      Alert.alert('Error', 'Failed to enter adjustment mode. Please try again.');
     } finally {
       setAdjusting(false);
     }
@@ -505,6 +481,6 @@ export function usePractice() {
     showAdjustmentDialog,
     askFollowUpQuestion,
     setFeedbackAnswer,
-    adjustDifficulty
+    enterAdjustmentMode
   };
 } 
