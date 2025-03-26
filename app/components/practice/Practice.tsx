@@ -5,6 +5,7 @@ import { practiceStyles } from './styles';
 import { DifficultyAdjuster } from './DifficultyAdjuster';
 import { AnswerInput } from './AnswerInput';
 import { FeedbackDisplay } from './FeedbackDisplay';
+import AlertModal from '../common/AlertModal';
 
 const Practice = () => {
   const {
@@ -28,6 +29,10 @@ const Practice = () => {
     handleNextPractice,
     askFollowUpQuestion,
     feedbackAnswer,
+    // Alert state
+    showAlert,
+    alertConfig,
+    hideAlertModal,
   } = usePractice();
 
   // Handle the initial load and empty state
@@ -65,6 +70,15 @@ const Practice = () => {
 
   return (
     <View style={practiceStyles.container}>
+      {/* Custom Alert Modal */}
+      <AlertModal
+        visible={showAlert}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        buttons={alertConfig.buttons}
+        onClose={hideAlertModal}
+      />
+      
       {/* Content will be your practice exercise display */}
       <View style={[
         practiceStyles.practiceContainer,
