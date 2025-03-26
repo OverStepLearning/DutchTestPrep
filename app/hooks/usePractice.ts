@@ -34,6 +34,7 @@ export function usePractice() {
     isInAdjustmentMode: false,
     adjustmentPracticesRemaining: 0
   });
+  const [showAdjustmentModal, setShowAdjustmentModal] = useState(false);
 
   // Helper function to ensure practice item is formatted correctly
   const mapPracticeItem = (item: any): PracticeItem => {
@@ -199,26 +200,18 @@ export function usePractice() {
       return;
     }
     
-    // Show confirmation before entering adjustment mode
-    Alert.alert(
-      'Enter Adjustment Mode',
-      'Would you like to enter difficulty adjustment mode? This will calibrate the difficulty level to better match your skills.',
-      [
-        {
-          text: 'Yes, Enter Adjustment Mode',
-          onPress: () => enterAdjustmentMode(),
-        },
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        }
-      ]
-    );
+    // Show modal instead of Alert.alert
+    console.log('Opening adjustment modal');
+    setShowAdjustmentModal(true);
   };
 
   // Function to enter adjustment mode
   const enterAdjustmentMode = async () => {
     try {
+      // Close modal first
+      setShowAdjustmentModal(false);
+      
+      // Set loading state
       setAdjusting(true);
       
       if (!user) {
@@ -471,6 +464,7 @@ export function usePractice() {
     feedbackQuestion,
     feedbackAnswer,
     adjustmentMode,
+    showAdjustmentModal,
     
     setUserAnswer,
     setFeedbackQuestion,
@@ -481,6 +475,7 @@ export function usePractice() {
     showAdjustmentDialog,
     askFollowUpQuestion,
     setFeedbackAnswer,
-    enterAdjustmentMode
+    enterAdjustmentMode,
+    setShowAdjustmentModal,
   };
 } 

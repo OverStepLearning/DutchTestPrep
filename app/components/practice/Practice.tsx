@@ -5,6 +5,7 @@ import { practiceStyles } from './styles';
 import { DifficultyAdjuster } from './DifficultyAdjuster';
 import { AnswerInput } from './AnswerInput';
 import { FeedbackDisplay } from './FeedbackDisplay';
+import AdjustmentModal from '../common/AdjustmentModal';
 
 const Practice = () => {
   const {
@@ -25,6 +26,9 @@ const Practice = () => {
     adjusting,
     adjustmentMode,
     showAdjustmentDialog,
+    showAdjustmentModal,
+    setShowAdjustmentModal,
+    enterAdjustmentMode,
     handleNextPractice,
     askFollowUpQuestion,
     feedbackAnswer,
@@ -62,6 +66,13 @@ const Practice = () => {
 
   return (
     <View style={practiceStyles.container}>
+      {/* Custom adjustment modal */}
+      <AdjustmentModal
+        visible={showAdjustmentModal}
+        onClose={() => setShowAdjustmentModal(false)}
+        onConfirm={enterAdjustmentMode}
+      />
+      
       {/* Content will be your practice exercise display */}
       <View style={practiceStyles.practiceContainer}>
         <Text style={practiceStyles.practiceText}>{currentPractice.content}</Text>
