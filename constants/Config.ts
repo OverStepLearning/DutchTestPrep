@@ -5,7 +5,7 @@ export default {
   // API URL - default using localhost which works with Expo web
   API_URL: process.env.NODE_ENV === 'production' 
     ? 'https://desirabledifficult-backend.herokuapp.com' 
-    : 'http://localhost:3000',
+    : 'http://145.127.69.26:3000',
   
   // AI Provider endpoints
   AI_PROVIDERS: {
