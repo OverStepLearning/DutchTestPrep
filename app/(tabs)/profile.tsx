@@ -7,7 +7,7 @@ import { LanguageSelector } from '../components/profile/LanguageSelector';
 import { StatsSummary } from '../components/profile/StatsSummary';
 import { PreferencesDisplay } from '../components/profile/PreferencesDisplay';
 import { DifficultyDisplay } from '../components/profile/DifficultyDisplay';
-import { AISettings } from '../components/profile/AISettings';
+import AISettings from '../components/profile/AISettings';
 import { useAIProvider } from '@/contexts/AIProviderContext';
 
 export default function ProfileScreen() {
