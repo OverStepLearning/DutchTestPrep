@@ -8,6 +8,15 @@ interface PracticeHistoryItemProps {
 }
 
 export const PracticeHistoryItem: React.FC<PracticeHistoryItemProps> = ({ practice }) => {
+  // Ensure practice exists to prevent crashes
+  if (!practice) {
+    return (
+      <View style={styles.historyItem}>
+        <Text style={styles.errorText}>Invalid practice data</Text>
+      </View>
+    );
+  }
+  
   // Format date string
   const formatDate = (dateString: string | undefined) => {
     if (!dateString) return 'Unknown date';
@@ -25,15 +34,22 @@ export const PracticeHistoryItem: React.FC<PracticeHistoryItemProps> = ({ practi
     }
   };
 
+  // Safe access to properties with defaults
+  const isCorrect = practice.isCorrect ?? false;
+  const practiceType = practice.type 
+    ? (practice.type.charAt(0).toUpperCase() + practice.type.slice(1)) 
+    : 'Unknown';
+  const content = practice.content || 'No content';
+  const userAnswer = practice.userAnswer || 'No answer provided';
+  const categories = Array.isArray(practice.categories) ? practice.categories : [];
+  
   return (
-    <View style={[styles.historyItem, practice.isCorrect ? styles.correctItem : styles.incorrectItem]}>
+    <View style={[styles.historyItem, isCorrect ? styles.correctItem : styles.incorrectItem]}>
       <View style={styles.historyHeader}>
         <View style={styles.typeAndResult}>
-          <Text style={styles.practiceType}>
-            {practice.type ? (practice.type.charAt(0).toUpperCase() + practice.type.slice(1)) : 'Unknown'}
-          </Text>
-          <View style={[styles.resultBadge, practice.isCorrect ? styles.correctBadge : styles.incorrectBadge]}>
-            {practice.isCorrect ? (
+          <Text style={styles.practiceType}>{practiceType}</Text>
+          <View style={[styles.resultBadge, isCorrect ? styles.correctBadge : styles.incorrectBadge]}>
+            {isCorrect ? (
               <Ionicons name="checkmark" size={12} color="white" />
             ) : (
               <Ionicons name="close" size={12} color="white" />
@@ -43,18 +59,18 @@ export const PracticeHistoryItem: React.FC<PracticeHistoryItemProps> = ({ practi
         <Text style={styles.practiceDate}>{formatDate(practice.completedAt)}</Text>
       </View>
       
-      <Text style={styles.practiceContent} numberOfLines={2}>{practice.content || 'No content'}</Text>
+      <Text style={styles.practiceContent} numberOfLines={2}>{content}</Text>
       
       <Text style={styles.answerLabel}>Your answer:</Text>
-      <Text style={styles.userAnswer} numberOfLines={2}>{practice.userAnswer || 'No answer provided'}</Text>
+      <Text style={styles.userAnswer} numberOfLines={2}>{userAnswer}</Text>
       
       <View style={styles.categoryContainer}>
-        {(practice.categories || []).map((category, index) => (
+        {categories.map((category, index) => (
           <View key={index} style={styles.categoryTag}>
             <Text style={styles.categoryText}>{category}</Text>
           </View>
         ))}
-        {(!practice.categories || practice.categories.length === 0) && (
+        {categories.length === 0 && (
           <Text style={styles.emptyCategoriesText}>No categories</Text>
         )}
       </View>
@@ -148,6 +164,11 @@ const styles = StyleSheet.create({
   emptyCategoriesText: {
     fontSize: 12,
     color: '#999',
+    fontStyle: 'italic',
+  },
+  errorText: {
+    fontSize: 14,
+    color: '#f44336',
     fontStyle: 'italic',
   },
 }); 

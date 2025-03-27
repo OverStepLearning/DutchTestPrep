@@ -24,4 +24,4 @@ export interface ProgressStats {
   totalCategories: number;
   averageScore: number;
   streakDays: number;
-} 
+}

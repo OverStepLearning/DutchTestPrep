@@ -37,7 +37,7 @@ export const PracticeHistory: React.FC<PracticeHistoryProps> = ({
     );
   }
 
-  if (!history || history.practices.length === 0) {
+  if (!history || !Array.isArray(history.practices) || history.practices.length === 0) {
     return (
       <View style={styles.emptyContainer}>
         <Text style={styles.emptyText}>No practice history available</Text>
@@ -45,13 +45,19 @@ export const PracticeHistory: React.FC<PracticeHistoryProps> = ({
     );
   }
 
+  // Safely extract pagination values with defaults
+  const totalPages = history.pagination?.pages || 1;
+  const currentPage = page || 1;
+  const hasPrevious = currentPage > 1;
+  const hasNext = currentPage < totalPages;
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Practice History</Text>
       
       <FlatList
         data={history.practices}
-        keyExtractor={(item) => item._id}
+        keyExtractor={(item) => item._id || Math.random().toString()}
         renderItem={({ item }) => <PracticeHistoryItem practice={item} />}
         scrollEnabled={false}
       />
@@ -59,25 +65,25 @@ export const PracticeHistory: React.FC<PracticeHistoryProps> = ({
       {/* Pagination Controls */}
       <View style={styles.paginationContainer}>
         <TouchableOpacity
-          style={[styles.paginationButton, page <= 1 && styles.disabledButton]}
+          style={[styles.paginationButton, !hasPrevious && styles.disabledButton]}
           onPress={onPreviousPage}
-          disabled={page <= 1}
+          disabled={!hasPrevious}
         >
-          <Text style={[styles.paginationButtonText, page <= 1 && styles.disabledButtonText]}>
+          <Text style={[styles.paginationButtonText, !hasPrevious && styles.disabledButtonText]}>
             Previous
           </Text>
         </TouchableOpacity>
         
         <Text style={styles.paginationInfo}>
-          Page {page} of {history.pagination.pages}
+          Page {currentPage} of {totalPages}
         </Text>
         
         <TouchableOpacity
-          style={[styles.paginationButton, page >= history.pagination.pages && styles.disabledButton]}
+          style={[styles.paginationButton, !hasNext && styles.disabledButton]}
           onPress={onNextPage}
-          disabled={page >= history.pagination.pages}
+          disabled={!hasNext}
         >
-          <Text style={[styles.paginationButtonText, page >= history.pagination.pages && styles.disabledButtonText]}>
+          <Text style={[styles.paginationButtonText, !hasNext && styles.disabledButtonText]}>
             Next
           </Text>
         </TouchableOpacity>

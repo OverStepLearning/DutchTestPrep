@@ -90,11 +90,23 @@ export function useProgress() {
         }
       );
 
-      setHistory(response.data);
-      
-      // Calculate stats from practice data
-      if (response.data && response.data.practices) {
-        setStats(calculateStats(response.data.practices));
+      // Map backend response structure to frontend expected structure
+      if (response.data && response.data.success) {
+        const practiceHistory: PracticeHistory = {
+          practices: response.data.data || [],
+          pagination: {
+            total: response.data.pagination.total || 0,
+            page: response.data.pagination.page || 1,
+            pages: response.data.pagination.totalPages || 1
+          }
+        };
+        
+        setHistory(practiceHistory);
+        
+        // Calculate stats from practice data
+        setStats(calculateStats(practiceHistory.practices));
+      } else {
+        throw new Error('Invalid response from server');
       }
     } catch (error) {
       console.error('Error fetching practice history:', error);
