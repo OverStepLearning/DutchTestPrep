@@ -63,7 +63,6 @@ export function usePractice() {
   // Function to generate practice with additional error handling
   const generatePractice = async (forceNew = false) => {
     try {
-      console.log('[usePractice] generatePractice called - forceNew:', forceNew);
       setErrorMessage(null);
       
       if (!user) {
@@ -80,7 +79,6 @@ export function usePractice() {
       
       // If we're not forcing new generation and we have questions in the queue, use the next one
       if (!forceNew && questionQueue.length > 0) {
-        console.log('[usePractice] Using queued practice instead of API call');
         const nextQuestion = questionQueue[0];
         const remainingQuestions = questionQueue.slice(1);
         
@@ -97,7 +95,6 @@ export function usePractice() {
       
       // Otherwise, we need to fetch from the server
       setLoading(true);
-      console.log('[usePractice] Calling API to generate practice');
       
       const token = await storage.getItem(config.STORAGE_KEYS.AUTH_TOKEN);
       
@@ -113,7 +110,6 @@ export function usePractice() {
       
       // Ensure we have valid data before setting it
       if (response.data?.success && response.data?.data) {
-        console.log('[usePractice] API returned success with practice data');
         // Set the current practice item
         const practice = mapPracticeItem(response.data.data);
         setCurrentPractice(practice);
@@ -136,7 +132,6 @@ export function usePractice() {
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Unknown error';
       setErrorMessage(`Failed to generate practice: ${errorMsg}`);
-      console.error('[usePractice] Error generating practice:', error);
       Alert.alert('Error', 'Failed to generate practice. Please try again.');
     } finally {
       setLoading(false);
@@ -173,7 +168,6 @@ export function usePractice() {
       }
     } catch (error) {
       // Don't show error to user for background generation
-      console.log('Error generating batch:', error);
     } finally {
       setGeneratingBatch(false);
     }
@@ -194,8 +188,6 @@ export function usePractice() {
 
   // Function to show adjustment mode information and enter adjustment mode
   const showAdjustmentDialog = () => {
-    console.log('[usePractice] showAdjustmentDialog - current mode:', adjustmentMode.isInAdjustmentMode);
-    
     // Don't allow adjustment when already in adjustment mode
     if (adjustmentMode.isInAdjustmentMode) {
       Alert.alert(
@@ -214,7 +206,6 @@ export function usePractice() {
         {
           text: 'Yes, Enter Adjustment Mode',
           onPress: () => {
-            console.log('[usePractice] User confirmed adjustment mode');
             enterAdjustmentMode();
           },
         },
@@ -240,8 +231,6 @@ export function usePractice() {
       // Default number of adjustment practices
       const ADJUSTMENT_PRACTICES_COUNT = 5;
       
-      console.log('Before setting adjustmentMode:', adjustmentMode);
-      
       // Update the state with a new object (important for React reactivity)
       const newAdjustmentMode = {
         isInAdjustmentMode: true,
@@ -249,8 +238,6 @@ export function usePractice() {
       };
       
       setAdjustmentMode(newAdjustmentMode);
-      
-      console.log('After setting adjustmentMode:', newAdjustmentMode);
       
       // Update user progress on the server to enter adjustment mode
       const token = await storage.getItem(config.STORAGE_KEYS.AUTH_TOKEN);
@@ -262,10 +249,8 @@ export function usePractice() {
           }
         });
         
-        console.log('Server response for adjustment mode:', response.data);
       } catch (apiError) {
         // Even if the API call fails, we'll continue with local adjustment mode
-        console.log('Failed to update server with adjustment mode:', apiError);
       }
       
       // Show confirmation
@@ -386,7 +371,6 @@ export function usePractice() {
             const complexityStr = info.complexityChange.toFixed(2);
             const complexitySign = info.complexityChange >= 0 ? '+' : '';
             setComplexityChange(`${complexitySign}${complexityStr}`);
-            console.log(`Setting complexity change: ${complexitySign}${complexityStr}`);
           } else {
             // Reset complexity change if not provided
             setComplexityChange(null);

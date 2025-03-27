@@ -27,7 +27,6 @@ export const DifficultyAdjuster: React.FC<DifficultyAdjusterProps> = ({
 }) => {
   // Debug logging for props
   useEffect(() => {
-    console.log('[DifficultyAdjuster] adjustmentMode changed:', JSON.stringify(adjustmentMode));
     
     // Add warning for hardcoded value detection - helps catch bugs
     if (adjustmentMode && 
@@ -44,7 +43,6 @@ export const DifficultyAdjuster: React.FC<DifficultyAdjusterProps> = ({
   const adjustmentModeStr = adjustmentMode.isInAdjustmentMode ? 'Adjustment Mode' : 'Normal Mode';
   const hasChanges = difficultyChange !== null || complexityChange !== null;
   const showTrend = hasChanges && difficultyTrend !== 'stable';
-  console.log('DifficultyAdjuster render - adjustmentMode:', JSON.stringify(safeAdjustmentMode));
   return (
     <View style={[
       practiceStyles.difficultyAdjustContainer, 
