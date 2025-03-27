@@ -27,7 +27,14 @@ export const DifficultyAdjuster: React.FC<DifficultyAdjusterProps> = ({
 }) => {
   // Debug logging for props
   useEffect(() => {
-    console.log('DifficultyAdjuster - adjustmentMode changed:', JSON.stringify(adjustmentMode));
+    console.log('[DifficultyAdjuster] adjustmentMode changed:', JSON.stringify(adjustmentMode));
+    
+    // Add warning for hardcoded value detection - helps catch bugs
+    if (adjustmentMode && 
+        adjustmentMode.isInAdjustmentMode === true && 
+        adjustmentMode.adjustmentPracticesRemaining === 10) {
+      console.warn('[DifficultyAdjuster] WARNING: Detected likely hardcoded adjustmentMode value!');
+    }
   }, [adjustmentMode]);
 
   const formattedDifficulty = difficultyValue ? difficultyValue.toFixed(2) : '1.00';

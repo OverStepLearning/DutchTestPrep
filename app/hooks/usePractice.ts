@@ -63,6 +63,7 @@ export function usePractice() {
   // Function to generate practice with additional error handling
   const generatePractice = async (forceNew = false) => {
     try {
+      console.log('[usePractice] generatePractice called - forceNew:', forceNew);
       setErrorMessage(null);
       
       if (!user) {
@@ -79,6 +80,7 @@ export function usePractice() {
       
       // If we're not forcing new generation and we have questions in the queue, use the next one
       if (!forceNew && questionQueue.length > 0) {
+        console.log('[usePractice] Using queued practice instead of API call');
         const nextQuestion = questionQueue[0];
         const remainingQuestions = questionQueue.slice(1);
         
@@ -95,6 +97,7 @@ export function usePractice() {
       
       // Otherwise, we need to fetch from the server
       setLoading(true);
+      console.log('[usePractice] Calling API to generate practice');
       
       const token = await storage.getItem(config.STORAGE_KEYS.AUTH_TOKEN);
       
@@ -110,6 +113,7 @@ export function usePractice() {
       
       // Ensure we have valid data before setting it
       if (response.data?.success && response.data?.data) {
+        console.log('[usePractice] API returned success with practice data');
         // Set the current practice item
         const practice = mapPracticeItem(response.data.data);
         setCurrentPractice(practice);
@@ -132,6 +136,7 @@ export function usePractice() {
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Unknown error';
       setErrorMessage(`Failed to generate practice: ${errorMsg}`);
+      console.error('[usePractice] Error generating practice:', error);
       Alert.alert('Error', 'Failed to generate practice. Please try again.');
     } finally {
       setLoading(false);
@@ -189,17 +194,18 @@ export function usePractice() {
 
   // Function to show adjustment mode information and enter adjustment mode
   const showAdjustmentDialog = () => {
+    console.log('[usePractice] showAdjustmentDialog - current mode:', adjustmentMode.isInAdjustmentMode);
+    
     // Don't allow adjustment when already in adjustment mode
-    // if (adjustmentMode.isInAdjustmentMode) {
-    //   Alert.alert(
-    //     'Adjustment in Progress',
-    //     'You are currently in adjustment mode. Complete the remaining practice exercises to finish calibrating your difficulty level.',
-    //     [{ text: 'OK' }]
-    //   );
-    //   console.log('Adjustment Mode Already Active', adjustmentMode.isInAdjustmentMode);
-    //   return;
-    // }
-    enterAdjustmentMode();
+    if (adjustmentMode.isInAdjustmentMode) {
+      Alert.alert(
+        'Adjustment in Progress',
+        'You are currently in adjustment mode. Complete the remaining practice exercises to finish calibrating your difficulty level.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+    
     // Show confirmation before entering adjustment mode
     Alert.alert(
       'Enter Adjustment Mode',
@@ -207,7 +213,10 @@ export function usePractice() {
       [
         {
           text: 'Yes, Enter Adjustment Mode',
-          onPress: () => enterAdjustmentMode(),
+          onPress: () => {
+            console.log('[usePractice] User confirmed adjustment mode');
+            enterAdjustmentMode();
+          },
         },
         {
           text: 'Cancel',
@@ -442,13 +451,6 @@ export function usePractice() {
       setLoading(false);
     }
   };
-
-  // Initialize when component mounts
-  useEffect(() => {
-    if (user && !currentPractice && !loading) {
-      generatePractice();
-    }
-  }, [user]);
 
   // Update difficulty trend when current practice changes
   useEffect(() => {

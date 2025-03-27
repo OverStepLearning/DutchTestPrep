@@ -9,6 +9,8 @@ import { AnswerInput } from '../components/practice/AnswerInput';
 import { FeedbackDisplay } from '../components/practice/FeedbackDisplay';
 
 export default function PracticeScreen() {
+  console.log('[PracticeScreen] Component rendered');
+  
   const {
     loading,
     generatingBatch,
@@ -37,13 +39,27 @@ export default function PracticeScreen() {
 
   // Log state for debugging
   useEffect(() => {
-    console.log('PracticeScreen - adjustmentMode:', adjustmentMode);
+    console.log('[PracticeScreen] adjustmentMode changed:', adjustmentMode);
   }, [adjustmentMode]);
+  
+  // Log when currentPractice changes
+  useEffect(() => {
+    const contentPreview = typeof currentPractice?.content === 'string' 
+      ? currentPractice?.content?.substring(0, 30) 
+      : Array.isArray(currentPractice?.content)
+        ? currentPractice?.content[0]?.substring(0, 30)
+        : 'No content';
+        
+    console.log('[PracticeScreen] currentPractice changed:', contentPreview);
+  }, [currentPractice]);
 
   // Generate initial practice on mount if not already loaded
   useEffect(() => {
     if (!currentPractice && !loading) {
+      console.log('[PracticeScreen] No practice loaded, generating initial practice');
       generatePractice(true);
+    } else {
+      console.log('[PracticeScreen] Practice already loaded or loading in progress, skipping generation');
     }
   }, [currentPractice, loading, generatePractice]);
 
