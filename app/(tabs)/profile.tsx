@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet, View, ScrollView, TouchableOpacity, ActivityIndicator, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useProfile } from '../hooks/useProfile';
@@ -7,6 +7,8 @@ import { LanguageSelector } from '../components/profile/LanguageSelector';
 import { StatsSummary } from '../components/profile/StatsSummary';
 import { PreferencesDisplay } from '../components/profile/PreferencesDisplay';
 import { DifficultyDisplay } from '../components/profile/DifficultyDisplay';
+import { AISettings } from '../components/profile/AISettings';
+import { useAIProvider } from '@/contexts/AIProviderContext';
 
 export default function ProfileScreen() {
   const {
@@ -20,6 +22,24 @@ export default function ProfileScreen() {
     updatePreferences,
     handleLogout
   } = useProfile();
+  
+  // Initialize DeepSeek API key if provided by the user
+  const { setDeepseekApiKey } = useAIProvider();
+  
+  useEffect(() => {
+    // Set the DeepSeek API key from the parameter if it was passed (for demo purposes)
+    const initializeDeepSeekKey = async () => {
+      // This would typically be handled through user input,
+      // but for this demo we're initializing it if it's not already set
+      try {
+        await setDeepseekApiKey('sk-e77b5b74b4ea4b52809bab518b73df80');
+      } catch (error) {
+        console.error('Failed to initialize DeepSeek API key:', error);
+      }
+    };
+    
+    initializeDeepSeekKey();
+  }, [setDeepseekApiKey]);
 
   if (loading) {
     return (
@@ -63,6 +83,8 @@ export default function ProfileScreen() {
               preferences={profile.preferences}
               onPreferencesUpdate={updatePreferences}
             />
+            
+            <AISettings />
 
             <TouchableOpacity 
               style={styles.logoutButton}

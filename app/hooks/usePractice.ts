@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { Alert } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
+import { useAIProvider } from '../../contexts/AIProviderContext';
 import { storage } from '../../utils/storage';
 import config from '../../constants/Config';
 import { 
@@ -15,6 +16,7 @@ import {
 
 export function usePractice() {
   const { user } = useAuth();
+  const { currentProvider, deepseekApiKey } = useAIProvider();
   const [loading, setLoading] = useState(false);
   const [generatingBatch, setGeneratingBatch] = useState(false);
   const [currentPractice, setCurrentPractice] = useState<PracticeItem | null>(null);
@@ -101,7 +103,9 @@ export function usePractice() {
       // The backend handles all randomization with a single API call
       const response = await axios.post(`${config.API_URL}/api/practice/generate`, {
         userId: user._id,
-        batchSize: adjustmentMode.isInAdjustmentMode ? 1 : 3 // Only request 1 item in adjustment mode
+        batchSize: adjustmentMode.isInAdjustmentMode ? 1 : 3, // Only request 1 item in adjustment mode
+        aiProvider: currentProvider,
+        deepseekApiKey: currentProvider === 'deepseek' ? deepseekApiKey : null
       }, {
         headers: {
           Authorization: `Bearer ${token}`
@@ -150,7 +154,9 @@ export function usePractice() {
       // The backend handles all randomization with a single API call
       const response = await axios.post(`${config.API_URL}/api/practice/generate`, {
         userId: user._id,
-        batchSize: 5 // Request more items for the queue
+        batchSize: 5, // Request more items for the queue
+        aiProvider: currentProvider,
+        deepseekApiKey: currentProvider === 'deepseek' ? deepseekApiKey : null
       }, {
         headers: {
           Authorization: `Bearer ${token}`
@@ -243,7 +249,10 @@ export function usePractice() {
       const token = await storage.getItem(config.STORAGE_KEYS.AUTH_TOKEN);
       
       try {
-        const response = await axios.post(`${config.API_URL}/api/practice/enter-adjustment-mode`, {}, {
+        const response = await axios.post(`${config.API_URL}/api/practice/enter-adjustment-mode`, {
+          aiProvider: currentProvider,
+          deepseekApiKey: currentProvider === 'deepseek' ? deepseekApiKey : null
+        }, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -289,7 +298,9 @@ export function usePractice() {
         practiceId: currentPractice?._id,
         question: feedbackQuestion,
         userAnswer: currentPractice?.userAnswer || userAnswer,
-        feedback: feedback?.feedback
+        feedback: feedback?.feedback,
+        aiProvider: currentProvider,
+        deepseekApiKey: currentProvider === 'deepseek' ? deepseekApiKey : null
       }, {
         headers: {
           Authorization: `Bearer ${token}`
@@ -330,7 +341,9 @@ export function usePractice() {
       
       const response = await axios.post(`${config.API_URL}/api/practice/submit`, {
         practiceId: currentPractice._id,
-        userAnswer: userAnswer
+        userAnswer: userAnswer,
+        aiProvider: currentProvider,
+        deepseekApiKey: currentProvider === 'deepseek' ? deepseekApiKey : null
       }, {
         headers: {
           Authorization: `Bearer ${token}`

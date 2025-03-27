@@ -8,6 +8,7 @@ import React, { useEffect } from 'react';
 import 'react-native-reanimated';
 import { useColorScheme } from 'react-native';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import { AIProviderProvider } from '@/contexts/AIProviderContext';
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -71,9 +72,11 @@ export default function RootLayout() {
 
   return (
     <AuthProvider>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <RootLayoutNav />
-      </ThemeProvider>
+      <AIProviderProvider>
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+          <RootLayoutNav />
+        </ThemeProvider>
+      </AIProviderProvider>
     </AuthProvider>
   );
 }
