@@ -6,6 +6,7 @@ import axios from 'axios';
 import config from '@/constants/Config';
 import { FeedbackItem } from '../types/feedback';
 import { isNotEmpty } from '@/app/utils/validationUtils';
+import * as apiService from '@/utils/apiService';
 
 export function useFeedback() {
   const { user } = useAuth();
@@ -59,15 +60,14 @@ export function useFeedback() {
     
     try {
       const token = await storage.getItem(config.STORAGE_KEYS.AUTH_TOKEN);
+      if (token) {
+        apiService.setAuthToken(token);
+      }
       
-      const response = await axios.get(`${config.API_URL}/api/feedback/history`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+      const response = await apiService.get('/api/feedback/history');
       
-      if (response.data.success) {
-        setFeedbackHistory(response.data.data);
+      if (response.success) {
+        setFeedbackHistory(response.data);
       }
     } catch (error) {
       console.error('Error fetching feedback history:', error);
@@ -117,23 +117,25 @@ export function useFeedback() {
       setSubmitting(true);
       
       const token = await storage.getItem(config.STORAGE_KEYS.AUTH_TOKEN);
+      if (token) {
+        apiService.setAuthToken(token);
+      }
       
-      const response = await axios.post(
-        `${config.API_URL}/api/feedback/general`,
+      const headers = {
+        'App-Version': config.VERSION || '1.0.0'
+      };
+      
+      const response = await apiService.post(
+        '/api/feedback/general',
         {
           title: title.trim() || 'Feedback',
           message: message.trim(),
           category
         },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'App-Version': config.VERSION || '1.0.0'
-          }
-        }
+        { headers }
       );
       
-      if (response.data.success) {
+      if (response.success) {
         // Update submission count for rate limiting
         const newCount = submissionCount + 1;
         await storage.setItem('feedback_submission_count', newCount.toString());

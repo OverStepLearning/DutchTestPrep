@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Alert } from 'react-native';
 import { useAuth } from '@/contexts/AuthContext';
-import axios from 'axios';
 import Config from '@/constants/Config';
 import { storage } from '@/utils/storage';
+import * as apiService from '@/utils/apiService';
 import { isNotEmpty } from '@/app/utils/validationUtils';
 
 // Define network profile types
@@ -20,51 +20,40 @@ export function useLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [testingConnection, setTestingConnection] = useState(false);
-  const [activeNetwork, setActiveNetwork] = useState<NetworkProfile>('LOCALHOST');
-  const [showNetworkModal, setShowNetworkModal] = useState(false);
   
   const { login, isLoading, error, clearError } = useAuth();
-
-  // Get available network profiles
-  const networkProfiles: NetworkItem[] = Object.entries(Config.NETWORK_PROFILES).map(([key, url]) => ({
-    id: key as NetworkProfile,
-    name: key,
-    url: url as string
-  }));
   
-  // Get the active API URL
-  const getApiUrl = () => {
-    return Config.NETWORK_PROFILES[activeNetwork] || Config.API_URL;
-  };
-
-  // Set active network and save preference
-  const setNetwork = async (networkKey: NetworkProfile) => {
-    setActiveNetwork(networkKey);
-    
-    // Save preference
-    await storage.setItem(Config.STORAGE_KEYS.ACTIVE_NETWORK, networkKey);
-    
-    // Close modal
-    setShowNetworkModal(false);
-    
-    // Alert the user
-    Alert.alert(
-      'Network Changed', 
-      `Using ${networkKey} network: ${Config.NETWORK_PROFILES[networkKey]}`
-    );
-  };
-  
-  // Load network preference
+  // Set up the API URL based on the active network on mount
   useEffect(() => {
-    const loadNetworkPreference = async () => {
-      const savedNetwork = await storage.getItem(Config.STORAGE_KEYS.ACTIVE_NETWORK);
-      if (savedNetwork && Object.keys(Config.NETWORK_PROFILES).includes(savedNetwork)) {
-        setActiveNetwork(savedNetwork as NetworkProfile);
+    const initializeApiUrl = async () => {
+      const activeNetwork = await storage.getItem(Config.STORAGE_KEYS.ACTIVE_NETWORK);
+      if (activeNetwork && Object.keys(Config.NETWORK_PROFILES).includes(activeNetwork)) {
+        const apiUrl = Config.NETWORK_PROFILES[activeNetwork as keyof typeof Config.NETWORK_PROFILES];
+        apiService.setBaseURL(apiUrl);
+        console.log(`[useLogin] Initialized API URL to ${apiUrl}`);
+      } else {
+        // Default to the Config.API_URL which is environment-dependent
+        apiService.setBaseURL(Config.API_URL);
+        console.log(`[useLogin] Initialized API URL to ${Config.API_URL}`);
       }
     };
-    
-    loadNetworkPreference();
+
+    initializeApiUrl();
   }, []);
+  
+  // Get current API URL
+  const getApiUrl = async () => {
+    // Check if there's a stored network preference
+    const activeNetwork = await storage.getItem(Config.STORAGE_KEYS.ACTIVE_NETWORK);
+    let apiUrl = Config.API_URL;
+    
+    if (activeNetwork && Object.keys(Config.NETWORK_PROFILES).includes(activeNetwork)) {
+      apiUrl = Config.NETWORK_PROFILES[activeNetwork as keyof typeof Config.NETWORK_PROFILES];
+    }
+    
+    console.log(`[useLogin] Using API URL: ${apiUrl}`);
+    return apiUrl;
+  };
 
   // Handle login button press
   const handleLogin = async () => {
@@ -74,8 +63,15 @@ export function useLogin() {
     }
 
     try {
-      // Use the active API URL
-      await login(email, password, getApiUrl());
+      const apiUrl = await getApiUrl();
+      console.log(`[useLogin] Attempting login with API URL: ${apiUrl}`);
+      
+      // Ensure API service is using the correct URL
+      apiService.setBaseURL(apiUrl);
+      
+      // This will use the API URL that was set by NetworkSelector
+      await login(email, password);
+      
       // If successful, the auth context will update and redirect
     } catch (err) {
       console.error('Login error:', err);
@@ -85,7 +81,13 @@ export function useLogin() {
   // Quick developer login
   const quickDevLogin = async () => {
     try {
-      await login('test@example.com', 'password123', getApiUrl());
+      const apiUrl = await getApiUrl();
+      console.log(`[useLogin] Attempting quick dev login with API URL: ${apiUrl}`);
+      
+      // Ensure API service is using the correct URL
+      apiService.setBaseURL(apiUrl);
+      
+      await login('test@example.com', 'password123');
     } catch (err) {
       console.error('Quick login error:', err);
     }
@@ -95,17 +97,14 @@ export function useLogin() {
   const testConnection = async () => {
     setTestingConnection(true);
     try {
-      // Use the active API URL
-      const apiUrl = getApiUrl();
-      console.log(`Testing connection to: ${apiUrl}`);
+      const apiUrl = await getApiUrl();
+      console.log(`[useLogin] Testing connection to: ${apiUrl}`);
       
-      const response = await axios.get(`${apiUrl}/health`, {
-        timeout: 5000
-      });
+      const response = await apiService.testConnection(apiUrl);
       
       Alert.alert(
         'Connection Status', 
-        `Connected to server successfully!\n\nServer status: ${response.data.status}\nMongoDB: ${response.data.mongodb}`,
+        `Connected to server successfully!\n\nServer status: ${response.status}\nMongoDB: ${response.mongodb}`,
         [{ text: 'OK' }]
       );
     } catch (error: any) {
@@ -122,11 +121,7 @@ export function useLogin() {
       }
       
       Alert.alert('Connection Failed', errorMessage, [
-        { text: 'OK' },
-        { 
-          text: 'Change Network', 
-          onPress: () => setShowNetworkModal(true)
-        }
+        { text: 'OK' }
       ]);
     } finally {
       setTestingConnection(false);
@@ -149,15 +144,10 @@ export function useLogin() {
     setPassword,
     isLoading,
     error,
-    activeNetwork,
-    networkProfiles,
-    showNetworkModal,
-    setShowNetworkModal,
     testingConnection,
     handleLogin,
     quickDevLogin,
     testConnection,
-    setNetwork,
     getApiUrl
   };
 } 

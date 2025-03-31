@@ -5,7 +5,7 @@ import { PracticeItem, FeedbackResponse } from '../../types/practice';
 import { displayContent } from '../../utils/practiceUtils';
 
 interface FeedbackDisplayProps {
-  feedback: FeedbackResponse;
+  feedback: FeedbackResponse | any; // Make more flexible to support different response structures
   practice: PracticeItem;
   userAnswer: string;
   feedbackQuestion: string;
@@ -27,16 +27,31 @@ export const FeedbackDisplay: React.FC<FeedbackDisplayProps> = ({
   onSetFeedbackQuestion,
   onAskQuestion
 }) => {
+  // Extract the correct status from various possible structures
+  const isCorrectResult = 
+    feedback.isCorrect !== undefined ? feedback.isCorrect : 
+    feedback.correct !== undefined ? feedback.correct :
+    feedback.result !== undefined ? feedback.result :
+    feedback.evaluation?.isCorrect !== undefined ? feedback.evaluation.isCorrect :
+    false;
+  
+  // Extract feedback text from various possible structures
+  const feedbackText = 
+    typeof feedback.feedback === 'string' ? feedback.feedback :
+    feedback.evaluation?.feedback ? feedback.evaluation.feedback :
+    Array.isArray(feedback.feedback) ? feedback.feedback.join('\n') :
+    'No detailed feedback available';
+
   return (
     <View style={practiceStyles.feedbackContainer}>
       <Text style={[
         practiceStyles.feedbackTitle, 
-        { color: feedback.isCorrect ? '#4CAF50' : '#F44336' }
+        { color: isCorrectResult ? '#4CAF50' : '#F44336' }
       ]}>
-        {feedback.isCorrect ? 'Correct!' : 'Not quite right'}
+        {isCorrectResult ? 'Correct!' : 'Not quite right'}
       </Text>
       <Text style={practiceStyles.feedbackText}>
-        {displayContent(feedback.feedback)}
+        {displayContent(feedbackText)}
       </Text>
       
       {/* Next practice button */}

@@ -5,6 +5,7 @@ import axios from 'axios';
 import Config from '@/constants/Config';
 import { storage } from '@/utils/storage';
 import { UserProfile, LanguageOption } from '../types/profile';
+import * as apiService from '@/utils/apiService';
 
 // Language mapping with native names
 export const LANGUAGE_OPTIONS: LanguageOption[] = [
@@ -40,18 +41,19 @@ export function useProfile() {
       setError(null);
       
       const token = await storage.getItem(Config.STORAGE_KEYS.AUTH_TOKEN);
-      const response = await axios.get(`${Config.API_URL}/api/user/profile`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      if (token) {
+        apiService.setAuthToken(token);
+      }
       
-      if (response.data.success) {
-        setProfile(response.data.data);
+      // Use apiService instead of direct axios call
+      const response = await apiService.get('/api/user/profile');
+      
+      if (response.success) {
+        setProfile(response.data);
         
         // Set the selected language from the profile
-        if (response.data.data.user.motherLanguage) {
-          setSelectedLanguage(response.data.data.user.motherLanguage);
+        if (response.data.user.motherLanguage) {
+          setSelectedLanguage(response.data.user.motherLanguage);
         }
       } else {
         setError('Failed to load profile');
@@ -70,17 +72,14 @@ export function useProfile() {
       setLoading(true);
       
       const token = await storage.getItem(Config.STORAGE_KEYS.AUTH_TOKEN);
-      const response = await axios.put(
-        `${Config.API_URL}/api/auth/profile`, 
-        { motherLanguage: language },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      if (token) {
+        apiService.setAuthToken(token);
+      }
       
-      if (response.data && response.data.user) {
+      // Use apiService instead of direct axios call
+      const response = await apiService.put('/api/auth/profile', { motherLanguage: language });
+      
+      if (response && response.user) {
         // Update the profile state with the new mother language
         setProfile(prev => {
           if (!prev) return null;
@@ -112,17 +111,14 @@ export function useProfile() {
       setLoading(true);
       
       const token = await storage.getItem(Config.STORAGE_KEYS.AUTH_TOKEN);
-      const response = await axios.put(
-        `${Config.API_URL}/api/user/preferences`, 
-        updatedPreferences,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      if (token) {
+        apiService.setAuthToken(token);
+      }
       
-      if (response.data && response.data.success) {
+      // Use apiService instead of direct axios call
+      const response = await apiService.put('/api/user/preferences', updatedPreferences);
+      
+      if (response && response.success) {
         // Update the profile state with the new preferences
         setProfile(prev => {
           if (!prev) return null;

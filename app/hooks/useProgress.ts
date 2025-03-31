@@ -4,6 +4,7 @@ import axios from 'axios';
 import Config from '@/constants/Config';
 import { storage } from '@/utils/storage';
 import { Practice, PracticeHistory, ProgressStats } from '../types/progress';
+import * as apiService from '@/utils/apiService';
 
 export function useProgress() {
   const { user } = useAuth();
@@ -80,24 +81,21 @@ export function useProgress() {
       setError(null);
 
       const token = await storage.getItem(Config.STORAGE_KEYS.AUTH_TOKEN);
+      if (token) {
+        apiService.setAuthToken(token);
+      }
       
-      const response = await axios.get(
-        `${Config.API_URL}/api/practice/history/${user._id}?page=${page}&limit=10`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      );
+      // Use apiService instead of direct axios call
+      const response = await apiService.get(`/api/practice/history/${user._id}?page=${page}&limit=10`);
 
       // Map backend response structure to frontend expected structure
-      if (response.data && response.data.success) {
+      if (response && response.success) {
         const practiceHistory: PracticeHistory = {
-          practices: response.data.data || [],
+          practices: response.data || [],
           pagination: {
-            total: response.data.pagination.total || 0,
-            page: response.data.pagination.page || 1,
-            pages: response.data.pagination.totalPages || 1
+            total: response.pagination.total || 0,
+            page: response.pagination.page || 1,
+            pages: response.pagination.totalPages || 1
           }
         };
         

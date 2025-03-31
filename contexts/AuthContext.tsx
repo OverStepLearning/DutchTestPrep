@@ -1,8 +1,9 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
-import axios from 'axios';
 import { router } from 'expo-router';
 import Config from '@/constants/Config';
 import { storage } from '@/utils/storage';
+import { setAuthToken, setBaseURL, getBaseURL } from '@/utils/apiService';
+import * as apiService from '@/utils/apiService';
 
 // Define user type
 interface User {
@@ -51,18 +52,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           
           if (activeNetwork && Object.keys(Config.NETWORK_PROFILES).includes(activeNetwork)) {
             apiUrl = Config.NETWORK_PROFILES[activeNetwork as keyof typeof Config.NETWORK_PROFILES];
+            // Set the base URL to match the stored network preference
+            setBaseURL(apiUrl);
+            console.log(`[AuthContext] Setting API URL to ${apiUrl} from stored preference`);
           }
+          
+          // Set auth token for API requests
+          setAuthToken(storedToken);
           
           const storedUserData = await storage.getItem(Config.STORAGE_KEYS.USER_DATA);
           if (storedUserData) {
             setUser(JSON.parse(storedUserData));
           } else {
             // If we have a token but no user data, fetch user data
-            await fetchCurrentUser(storedToken, apiUrl);
+            await fetchCurrentUser(storedToken);
           }
         }
       } catch (error) {
         console.error('Error loading stored user:', error);
+        // If there's an error, clear auth data to prevent persistent auth issues
+        await logout();
       } finally {
         setIsLoading(false);
       }
@@ -72,17 +81,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // Fetch current user data from API
-  const fetchCurrentUser = async (authToken: string, customApiUrl?: string) => {
+  const fetchCurrentUser = async (authToken: string) => {
     try {
-      const apiUrl = customApiUrl || Config.API_URL;
-      const response = await axios.get(`${apiUrl}/api/auth/me`, {
-        headers: { Authorization: `Bearer ${authToken}` }
-      });
-
-      if (response.data.success) {
-        const userData = response.data.data;
-        setUser(userData);
-        await storage.setItem(Config.STORAGE_KEYS.USER_DATA, JSON.stringify(userData));
+      // Make sure token is set for requests
+      setAuthToken(authToken);
+      
+      console.log(`[AuthContext] Fetching current user using API URL: ${getBaseURL()}`);
+      
+      // Make the request using apiService
+      const userData = await apiService.get('/api/auth/me');
+      
+      if (userData && userData.success) {
+        setUser(userData.data);
+        await storage.setItem(Config.STORAGE_KEYS.USER_DATA, JSON.stringify(userData.data));
       } else {
         throw new Error('Failed to fetch user data');
       }
@@ -101,21 +112,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string, customApiUrl?: string) => {
     setIsLoading(true);
     try {
-      const apiUrl = customApiUrl || Config.API_URL;
-      console.log(`Attempting to login with API URL: ${apiUrl}`);
+      // If a custom API URL is provided, update the base URL
+      if (customApiUrl) {
+        setBaseURL(customApiUrl);
+      }
       
-      const response = await axios.post(`${apiUrl}/api/auth/login`, {
+      const currentApiUrl = getBaseURL();
+      console.log(`[AuthContext] Attempting to login using API URL: ${currentApiUrl}`);
+      
+      // Make the request using apiService
+      const data = await apiService.post('/api/auth/login', {
         email,
         password
-      }, {
-        timeout: Config.API_TIMEOUT, // Use the configured timeout
-        headers: {
-          'Content-Type': 'application/json'
-        }
       });
 
       // Check if successful response from backend
-      const data = response.data;
       if (data && data._id) {
         const newToken = data.token;
         const userData = {
@@ -128,6 +139,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Save token and user data
         await storage.setItem(Config.STORAGE_KEYS.AUTH_TOKEN, newToken);
         await storage.setItem(Config.STORAGE_KEYS.USER_DATA, JSON.stringify(userData));
+        
+        // Set auth token for future requests
+        setAuthToken(newToken);
         
         // Update state
         setToken(newToken);
@@ -168,22 +182,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = async (name: string, email: string, password: string, customApiUrl?: string) => {
     setIsLoading(true);
     try {
-      const apiUrl = customApiUrl || Config.API_URL;
-      console.log(`Attempting to register with API URL: ${apiUrl}`);
+      // If a custom API URL is provided, update the base URL
+      if (customApiUrl) {
+        setBaseURL(customApiUrl);
+      }
       
-      const response = await axios.post(`${apiUrl}/api/auth/register`, {
+      const currentApiUrl = getBaseURL();
+      console.log(`[AuthContext] Attempting to register using API URL: ${currentApiUrl}`);
+      
+      // Make the request using apiService
+      const data = await apiService.post('/api/auth/register', {
         name,
         email,
         password
-      }, {
-        timeout: Config.API_TIMEOUT, // Use the configured timeout
-        headers: {
-          'Content-Type': 'application/json'
-        }
       });
 
       // Check if successful response from backend
-      const data = response.data;
       if (data && data._id) {
         const newToken = data.token;
         const userData = {
@@ -196,6 +210,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Save token and user data
         await storage.setItem(Config.STORAGE_KEYS.AUTH_TOKEN, newToken);
         await storage.setItem(Config.STORAGE_KEYS.USER_DATA, JSON.stringify(userData));
+        
+        // Set auth token for future requests
+        setAuthToken(newToken);
         
         // Update state
         setToken(newToken);
@@ -231,6 +248,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Logout handler
   const logout = async () => {
     try {
+      // Clear auth token in API service
+      setAuthToken(null);
+      
       // Clear secure storage
       await storage.removeItem(Config.STORAGE_KEYS.AUTH_TOKEN);
       await storage.removeItem(Config.STORAGE_KEYS.USER_DATA);
@@ -251,26 +271,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return user?.hasCompletedOnboarding || false;
   };
 
-  // Set onboarding as complete
+  // Set onboarding as completed
   const setOnboardingComplete = async () => {
-    if (!user) return;
-    
     try {
-      // Update local user data
-      const updatedUser = { ...user, hasCompletedOnboarding: true };
-      setUser(updatedUser);
-      
-      // Save to secure storage
-      await storage.setItem(Config.STORAGE_KEYS.USER_DATA, JSON.stringify(updatedUser));
-      
-      // Update on server (if needed)
-      // This would typically be handled by the preferences API
+      if (user) {
+        // Update user in state
+        const updatedUser = {
+          ...user,
+          hasCompletedOnboarding: true
+        };
+        
+        setUser(updatedUser);
+        
+        // Update stored user data
+        await storage.setItem(Config.STORAGE_KEYS.USER_DATA, JSON.stringify(updatedUser));
+        
+        // Update onboarding status on server
+        await apiService.put('/api/user/onboarding-complete');
+      }
     } catch (error) {
       console.error('Error updating onboarding status:', error);
     }
   };
 
-  // Provide the auth context
+  // Provide auth context
   return (
     <AuthContext.Provider
       value={{
@@ -291,7 +315,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
-// Custom hook to use the auth context
+// Hook to use auth context
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {

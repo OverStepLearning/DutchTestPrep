@@ -9,6 +9,7 @@ import 'react-native-reanimated';
 import { useColorScheme } from 'react-native';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { AIProviderProvider } from '@/contexts/AIProviderContext';
+import * as Sentry from '../sentry';
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();

@@ -4,10 +4,10 @@ export const practiceStyles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#fff'
+    backgroundColor: '#ffffff',
   },
   scrollContainer: {
-    padding: 20,
+    padding: 10,
   },
   header: {
     flexDirection: 'row',
@@ -18,27 +18,162 @@ export const practiceStyles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
     color: '#333',
-    marginLeft: 10,
+    flex: 1,
   },
   loader: {
-    marginTop: 40,
+    marginTop: 50,
   },
   practiceContainer: {
-    flex: 1,
     backgroundColor: '#f9f9f9',
     borderRadius: 12,
     padding: 16,
+    marginBottom: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 3
+    elevation: 2,
+  },
+  practiceContent: {
+    marginBottom: 16,
   },
   practiceText: {
     fontSize: 18,
     lineHeight: 26,
-    marginBottom: 24,
-    color: '#333'
+    color: '#333',
+    marginBottom: 10,
+  },
+  translationText: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 16,
+    fontStyle: 'italic',
+  },
+  categoriesContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: 10,
+  },
+  categoryTag: {
+    backgroundColor: '#e1e8f0',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  categoryText: {
+    color: '#4a6fa5',
+    fontSize: 12,
+  },
+  inputContainer: {
+    marginTop: 16,
+  },
+  textInput: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    marginBottom: 16,
+    backgroundColor: '#fff',
+  },
+  submitButton: {
+    backgroundColor: '#4f86f7',
+    borderRadius: 8,
+    padding: 14,
+    alignItems: 'center',
+  },
+  submitButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  feedbackContainer: {
+    marginTop: 20,
+    backgroundColor: '#f0f8ff',
+    borderRadius: 8,
+    padding: 16,
+  },
+  feedbackText: {
+    fontSize: 16,
+    color: '#333',
+    lineHeight: 24,
+  },
+  nextButton: {
+    backgroundColor: '#4CAF50',
+    borderRadius: 8,
+    padding: 14,
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  nextButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  errorContainer: {
+    backgroundColor: '#ffebee',
+    padding: 16,
+    borderRadius: 8,
+    marginBottom: 20,
+  },
+  errorText: {
+    color: '#d32f2f',
+    fontSize: 16,
+    marginBottom: 10,
+  },
+  backgroundGenerationContainer: {
+    padding: 8,
+    marginBottom: 12,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 6,
+  },
+  backgroundGenerationText: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+  },
+  changeIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 10,
+  },
+  changeArrow: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  changeValueText: {
+    fontSize: 12,
+    marginLeft: 4,
+  },
+  // New styles for onboarding buttons and empty state
+  onboardingButton: {
+    backgroundColor: '#4f86f7',
+    borderRadius: 8,
+    padding: 12,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  onboardingButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  emptyStateContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 30,
+    backgroundColor: '#f5f8ff',
+    borderRadius: 12,
+    marginTop: 40,
+  },
+  emptyStateText: {
+    fontSize: 16,
+    color: '#333',
+    textAlign: 'center',
+    marginBottom: 20,
+    lineHeight: 24,
   },
   difficultyContainer: {
     flexDirection: 'row',
@@ -48,23 +183,6 @@ export const practiceStyles = StyleSheet.create({
   levelText: {
     fontSize: 14,
     color: '#6c757d',
-  },
-  categoriesContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 20,
-  },
-  categoryTag: {
-    backgroundColor: '#e9ecef',
-    borderRadius: 16,
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    marginRight: 8,
-    marginBottom: 8,
-  },
-  categoryText: {
-    fontSize: 12,
-    color: '#495057',
   },
   answerInput: {
     borderWidth: 1,
@@ -78,41 +196,15 @@ export const practiceStyles = StyleSheet.create({
     textAlignVertical: 'top',
     marginBottom: 20,
   },
-  submitButton: {
-    backgroundColor: '#4f86f7',
-    borderRadius: 8,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  nextButton: {
-    backgroundColor: '#4CAF50',
-    borderRadius: 8,
-    paddingVertical: 14,
-    alignItems: 'center',
-    marginTop: 15,
-  },
   buttonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
   },
-  feedbackContainer: {
-    marginTop: 20,
-    padding: 15,
-    backgroundColor: '#f8f9fa',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e9ecef',
-  },
   feedbackTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 10,
-  },
-  feedbackText: {
-    fontSize: 16,
-    color: '#212529',
-    lineHeight: 24,
   },
   translationContainer: {
     marginTop: 20,
@@ -125,10 +217,6 @@ export const practiceStyles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#4f86f7',
     marginBottom: 5,
-  },
-  translationText: {
-    fontSize: 16,
-    color: '#212529',
   },
   mcqContainer: {
     marginTop: 15,
@@ -159,28 +247,6 @@ export const practiceStyles = StyleSheet.create({
   mcqOptionTextSelected: {
     color: '#4f86f7',
     fontWeight: '500',
-  },
-  errorContainer: {
-    backgroundColor: '#ffdddd',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 15,
-    borderWidth: 1,
-    borderColor: '#f44336',
-  },
-  errorText: {
-    color: '#d32f2f',
-    fontSize: 14,
-  },
-  backgroundGenerationContainer: {
-    padding: 10,
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  backgroundGenerationText: {
-    fontSize: 12,
-    color: '#777',
-    fontStyle: 'italic',
   },
   difficultyAdjustContainer: {
     backgroundColor: '#f7f7f7',
@@ -220,10 +286,6 @@ export const practiceStyles = StyleSheet.create({
     padding: 8,
     marginTop: 12,
     alignSelf: 'flex-start'
-  },
-  changeText: {
-    fontSize: 14,
-    fontWeight: '600'
   },
   adjustMeButton: {
     backgroundColor: '#4CAF50',
@@ -324,9 +386,5 @@ export const practiceStyles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
     marginBottom: 4
-  },
-  changeValueText: {
-    fontSize: 14,
-    fontWeight: '600'
   },
 }); 

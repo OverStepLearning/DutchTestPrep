@@ -13,6 +13,8 @@ import {
   DifficultyChangeInfo,
   AdjustmentModeInfo
 } from '../types/practice';
+import * as apiService from '@/utils/apiService';
+import { useRouter } from 'expo-router';
 
 export function usePractice() {
   const { user } = useAuth();
@@ -36,6 +38,7 @@ export function usePractice() {
     isInAdjustmentMode: false,
     adjustmentPracticesRemaining: 0
   });
+  const router = useRouter();
 
   // Helper function to ensure practice item is formatted correctly
   const mapPracticeItem = (item: any): PracticeItem => {
@@ -62,33 +65,28 @@ export function usePractice() {
     };
   };
 
-  // Function to generate practice with additional error handling
+  // Function to generate a new practice item
   const generatePractice = async (forceNew = false) => {
     try {
-      setErrorMessage(null);
-      
-      if (!user) {
-        Alert.alert('Error', 'You must be logged in to practice');
+      // If we already have a current practice and we're not forcing a new one, don't regenerate
+      if (currentPractice && !forceNew) {
+        console.log('[usePractice] Practice already exists, not regenerating');
         return;
       }
       
-      // Clear all feedback-related state
-      setFeedback(null);
-      setUserAnswer('');
-      setFeedbackQuestion('');
-      setFeedbackAnswer(null);
-      setAskingQuestion(false);
-      
-      // If we're not forcing new generation and we have questions in the queue, use the next one
-      if (!forceNew && questionQueue.length > 0) {
+      // If we have queued questions and don't need to force a new one
+      if (questionQueue.length > 0 && !forceNew) {
+        // Use a question from the queue
         const nextQuestion = questionQueue[0];
-        const remainingQuestions = questionQueue.slice(1);
         
+        // Remove the used question from the queue
+        setQuestionQueue(prevQueue => prevQueue.slice(1));
+        
+        // Set the next question as current
         setCurrentPractice(nextQuestion);
-        setQuestionQueue(remainingQuestions);
         
         // If we're running low on queued questions, generate more in the background
-        if (remainingQuestions.length < 2 && !generatingBatch) {
+        if (questionQueue.length < 2 && !generatingBatch) {
           generatePracticeBatch();
         }
         
@@ -98,45 +96,112 @@ export function usePractice() {
       // Otherwise, we need to fetch from the server
       setLoading(true);
       
+      // Check authentication before proceeding
       const token = await storage.getItem(config.STORAGE_KEYS.AUTH_TOKEN);
+      if (!token) {
+        console.log('[usePractice] No auth token found');
+        setErrorMessage("You must be logged in to practice");
+        
+        // Try to get user from auth context again
+        if (!user) {
+          console.log('[usePractice] User not available, redirecting to login');
+          Alert.alert(
+            "Login Required",
+            "You need to be logged in to practice Dutch. Please log in and try again.",
+            [
+              {
+                text: "Go to Login",
+                onPress: () => {
+                  router.replace('/login');
+                }
+              },
+              {
+                text: "Cancel",
+                style: "cancel"
+              }
+            ]
+          );
+          setLoading(false);
+          return;
+        }
+        
+        // If we have a user but no token, try to get the token again
+        console.log('[usePractice] User available but no token, trying to refresh token');
+        setLoading(false);
+        return;
+      }
+      
+      // Make sure we have a user
+      if (!user || !user._id) {
+        console.log('[usePractice] User or user ID missing even with token:', !!user);
+        setErrorMessage("User information not available. Please log in again.");
+        setLoading(false);
+        return;
+      }
+      
+      console.log('[usePractice] Authenticated user ID:', user._id);
+      
+      // Explicitly set the auth token before making the request
+      apiService.setAuthToken(token);
+      
+      // Log the API URL being used
+      const apiUrl = apiService.getBaseURL();
+      console.log(`[usePractice] Generating practice using API URL: ${apiUrl} for user ${user._id}`);
       
       // The backend handles all randomization with a single API call
-      const response = await axios.post(`${config.API_URL}/api/practice/generate`, {
+      const response = await apiService.post('/api/practice/generate', {
         userId: user._id,
-        batchSize: adjustmentMode.isInAdjustmentMode ? 1 : 3, // Only request 1 item in adjustment mode
+        batchSize: adjustmentMode.isInAdjustmentMode ? 1 : 3,
         aiProvider: currentProvider,
         deepseekApiKey: currentProvider === 'deepseek' ? deepseekApiKey : null
-      }, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
       });
       
       // Ensure we have valid data before setting it
-      if (response.data?.success && response.data?.data) {
+      if (response?.success && response?.data) {
         // Set the current practice item
-        const practice = mapPracticeItem(response.data.data);
+        const practice = mapPracticeItem(response.data);
         setCurrentPractice(practice);
+        
+        // Clear any error messages since we succeeded
+        if (errorMessage) {
+          setErrorMessage(null);
+        }
         
         // Update adjustment mode state - ensure defaults if not provided
         setAdjustmentMode({
-          isInAdjustmentMode: response.data.adjustmentMode === true,
-          adjustmentPracticesRemaining: response.data.adjustmentPracticesRemaining || 0
+          isInAdjustmentMode: response.adjustmentMode === true,
+          adjustmentPracticesRemaining: response.adjustmentPracticesRemaining || 0
         });
         
         // Add batch items to the queue if available and not in adjustment mode
-        if (!response.data.adjustmentMode && response.data?.batchItems && 
-            Array.isArray(response.data.batchItems) && response.data.batchItems.length > 1) {
-          const batchItems = response.data.batchItems.slice(1).map(mapPracticeItem);
+        if (!response.adjustmentMode && response?.batchItems && 
+            Array.isArray(response.batchItems) && response.batchItems.length > 1) {
+          const batchItems = response.batchItems.slice(1).map(mapPracticeItem);
           setQuestionQueue(batchItems);
         }
       } else {
         throw new Error('Invalid practice data received');
       }
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      console.error('Error generating practice:', error);
+      
+      // Provide more detailed error information
+      let errorMsg = 'Unknown error';
+      if (error instanceof Error) {
+        errorMsg = error.message;
+      } else if (axios.isAxiosError(error)) {
+        errorMsg = error.response ? 
+          `${error.response.status} - ${error.response.statusText || 'Error'}` : 
+          'Network Error';
+          
+        // Check for auth-related errors
+        if (error.response?.status === 401) {
+          errorMsg = "Your session has expired. Please log in again.";
+          router.replace('/login');
+        }
+      }
+      
       setErrorMessage(`Failed to generate practice: ${errorMsg}`);
-      Alert.alert('Error', 'Failed to generate practice. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -150,30 +215,30 @@ export function usePractice() {
       setGeneratingBatch(true);
       
       const token = await storage.getItem(config.STORAGE_KEYS.AUTH_TOKEN);
+      if (token) {
+        apiService.setAuthToken(token);
+      }
       
       // The backend handles all randomization with a single API call
-      const response = await axios.post(`${config.API_URL}/api/practice/generate`, {
+      const response = await apiService.post('/api/practice/generate', {
         userId: user._id,
         batchSize: 5, // Request more items for the queue
         aiProvider: currentProvider,
         deepseekApiKey: currentProvider === 'deepseek' ? deepseekApiKey : null
-      }, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
       });
       
-      if (response.data?.success) {
+      if (response?.success) {
         // Check if backend returned batch items
-        if (response.data?.batchItems && Array.isArray(response.data.batchItems) && response.data.batchItems.length > 1) {
-          // Use the first item as current practice (already set in the regular response handling)
-          // Add the rest to the queue
-          const batchItems = response.data.batchItems.slice(1).map(mapPracticeItem);
+        if (response?.batchItems && Array.isArray(response.batchItems) && response.batchItems.length > 0) {
+          // Add all batch items to the queue - don't replace current practice
+          const batchItems = response.batchItems.map(mapPracticeItem);
           setQuestionQueue(prevQueue => [...prevQueue, ...batchItems]);
+          console.log(`[usePractice] Added ${batchItems.length} questions to queue in background`);
         }
       }
     } catch (error) {
       // Don't show error to user for background generation
+      console.log('[usePractice] Background batch generation error:', error);
     } finally {
       setGeneratingBatch(false);
     }
@@ -247,15 +312,14 @@ export function usePractice() {
       
       // Update user progress on the server to enter adjustment mode
       const token = await storage.getItem(config.STORAGE_KEYS.AUTH_TOKEN);
+      if (token) {
+        apiService.setAuthToken(token);
+      }
       
       try {
-        const response = await axios.post(`${config.API_URL}/api/practice/enter-adjustment-mode`, {
+        const response = await apiService.post('/api/practice/enter-adjustment-mode', {
           aiProvider: currentProvider,
           deepseekApiKey: currentProvider === 'deepseek' ? deepseekApiKey : null
-        }, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
         });
         
       } catch (apiError) {
@@ -289,32 +353,34 @@ export function usePractice() {
       return;
     }
     
+    if (!currentPractice) {
+      Alert.alert('Error', 'No practice active');
+      return;
+    }
+    
     try {
       setAskingQuestion(true);
       
       const token = await storage.getItem(config.STORAGE_KEYS.AUTH_TOKEN);
+      if (token) {
+        apiService.setAuthToken(token);
+      }
       
-      const response = await axios.post(`${config.API_URL}/api/practice/question`, {
-        practiceId: currentPractice?._id,
+      const response = await apiService.post('/api/practice/question', {
+        practiceId: currentPractice._id,
         question: feedbackQuestion,
-        userAnswer: currentPractice?.userAnswer || userAnswer,
-        feedback: feedback?.feedback,
         aiProvider: currentProvider,
         deepseekApiKey: currentProvider === 'deepseek' ? deepseekApiKey : null
-      }, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
       });
       
-      if (response.data?.answer) {
-        setFeedbackAnswer(response.data.answer);
+      if (response?.success && response?.answer) {
+        setFeedbackAnswer(response.answer);
       } else {
-        throw new Error('Failed to get an answer');
+        throw new Error('Failed to get answer');
       }
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-      Alert.alert('Error', `Failed to get an answer: ${errorMsg}`);
+      console.error('Error asking question:', error);
+      Alert.alert('Error', 'Failed to get answer to your question. Please try again.');
     } finally {
       setAskingQuestion(false);
     }
@@ -322,128 +388,133 @@ export function usePractice() {
 
   // Function to submit user's answer
   const submitAnswer = async () => {
+    if (!userAnswer.trim()) {
+      Alert.alert('Error', 'Please enter an answer');
+      return;
+    }
+    
+    if (!currentPractice) {
+      Alert.alert('Error', 'No practice active');
+      return;
+    }
+    
     try {
       setErrorMessage(null);
-      
-      if (!currentPractice) {
-        Alert.alert('Error', 'No practice question available');
-        return;
-      }
-      
-      if (!userAnswer || !userAnswer.trim()) {
-        Alert.alert('Error', 'Please provide an answer');
-        return;
-      }
       
       setLoading(true);
       
       const token = await storage.getItem(config.STORAGE_KEYS.AUTH_TOKEN);
+      if (!token) {
+        setErrorMessage("Authentication token not found. Please log in again.");
+        return;
+      }
       
-      const response = await axios.post(`${config.API_URL}/api/practice/submit`, {
-        practiceId: currentPractice._id,
-        userAnswer: userAnswer,
-        aiProvider: currentProvider,
-        deepseekApiKey: currentProvider === 'deepseek' ? deepseekApiKey : null
-      }, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+      // Explicitly set the auth token before making the request
+      apiService.setAuthToken(token);
       
-      // Handle potential array or undefined values in feedback
-      let feedbackText: string | string[] = '';
-      let isCorrect = false;
+      console.log(`[usePractice] Submitting answer for practice ID: ${currentPractice._id}`);
+      console.log(`[usePractice] Answer: ${userAnswer.substring(0, 50)}${userAnswer.length > 50 ? '...' : ''}`);
+      console.log(`[usePractice] Using API URL: ${apiService.getBaseURL()}`);
       
-      if (response.data?.success && response.data?.data) {
-        // Update adjustment mode status - handle missing data safely
-        setAdjustmentMode({
-          isInAdjustmentMode: response.data.data.adjustmentMode === true,
-          adjustmentPracticesRemaining: response.data.data.adjustmentPracticesRemaining || 0
+      try {
+        const response = await apiService.post('/api/practice/submit', {
+          practiceId: currentPractice._id,
+          userAnswer: userAnswer,
+          aiProvider: currentProvider,
+          deepseekApiKey: currentProvider === 'deepseek' ? deepseekApiKey : null
         });
         
-        // Handle difficulty change info
-        if (response.data.data.difficultyChange) {
-          const info = response.data.data.difficultyChange;
+        console.log(`[usePractice] Submit response:`, response ? 'Response received' : 'No response');
+        
+        // Debug response structure
+        if (response) {
+          console.log(`[usePractice] Response success: ${response.success}`);
+          console.log(`[usePractice] Has feedback property: ${!!response.feedback}`);
+          console.log(`[usePractice] Full response keys:`, Object.keys(response));
+        }
+        
+        if (!response) {
+          throw new Error('No response received from server');
+        }
+        
+        if (!response.success) {
+          throw new Error(response.message || 'Server reported failure');
+        }
+        
+        // Attempt to find feedback in different possible locations in the response
+        let feedbackData = null;
+        
+        // Check if feedback is directly in the response
+        if (response.feedback) {
+          feedbackData = response.feedback;
+        } 
+        // Check if feedback is in response.data.evaluation (specific format from our backend)
+        else if (response.data && response.data.evaluation && response.data.evaluation.feedback) {
+          console.log('[usePractice] Found feedback in response.data.evaluation structure');
+          feedbackData = {
+            result: response.data.evaluation.isCorrect,
+            correct: response.data.evaluation.isCorrect,
+            feedback: response.data.evaluation.feedback,
+            evaluation: response.data.evaluation
+          };
+        }
+        // Check if feedback is in response.data
+        else if (response.data && response.data.feedback) {
+          feedbackData = response.data.feedback;
+        }
+        // Check if the entire response is the feedback (backward compatibility)
+        else if (response.result || response.correct !== undefined || response.evaluation) {
+          feedbackData = response;
+        }
+        // Last resort - attempt to use the whole response if it looks like feedback
+        else if (typeof response === 'object' && Object.keys(response).length > 1) {
+          console.log(`[usePractice] Attempting to use whole response as feedback`);
+          feedbackData = response;
+        }
+        
+        if (!feedbackData) {
+          throw new Error('No feedback received in response');
+        }
+        
+        console.log(`[usePractice] Feedback received successfully`);
+        setFeedback(feedbackData);
+        
+        // Update adjustment mode remaining count if in adjustment mode
+        if (adjustmentMode.isInAdjustmentMode && response.adjustmentPracticesRemaining !== undefined) {
+          setAdjustmentMode({
+            ...adjustmentMode,
+            adjustmentPracticesRemaining: response.adjustmentPracticesRemaining
+          });
           
-          // Update difficulty trend
-          if (info.change > 0) {
-            setDifficultyTrend('increasing');
-          } else if (info.change < 0) {
-            setDifficultyTrend('decreasing');
-          } else {
-            setDifficultyTrend('stable');
-          }
-          
-          // Format and display the difficulty change with appropriate sign
-          const changeStr = info.change.toFixed(2);
-          const sign = info.change >= 0 ? '+' : '';
-          setDifficultyChange(`${sign}${changeStr}`);
-          
-          // Format and display the complexity change with appropriate sign
-          if (info.complexityChange !== undefined) {
-            const complexityStr = info.complexityChange.toFixed(2);
-            const complexitySign = info.complexityChange >= 0 ? '+' : '';
-            setComplexityChange(`${complexitySign}${complexityStr}`);
-          } else {
-            // Reset complexity change if not provided
-            setComplexityChange(null);
-          }
-          
-          // Store for future comparison
-          previousDifficultyRef.current = info.newDifficulty;
-          
-          // If exited adjustment mode, show a message
-          if (info.exitedAdjustmentMode) {
+          // If we've completed the adjustment, show a message
+          if (response.adjustmentPracticesRemaining === 0) {
             setTimeout(() => {
               Alert.alert(
                 'Adjustment Complete',
-                'Your difficulty level has been adjusted and fine-tuned based on your performance.',
+                'Difficulty adjustment complete! Your practice difficulty has been calibrated based on your performance.',
                 [{ text: 'OK' }]
               );
-            }, 500);
-          }
-        } else {
-          // Reset changes if not provided
-          setDifficultyChange(null);
-          setComplexityChange(null);
-        }
-        
-        // Store the next practice item in the queue if available
-        if (response.data.data.nextPractice) {
-          setQuestionQueue(prevQueue => [...prevQueue, response.data.data.nextPractice]);
-        }
-        
-        if (response.data.data.evaluation) {
-          const evaluation = response.data.data.evaluation;
-          
-          isCorrect = Boolean(evaluation.isCorrect);
-          
-          if (evaluation.feedback !== undefined) {
-            if (Array.isArray(evaluation.feedback)) {
-              feedbackText = evaluation.feedback;
-            } else {
-              feedbackText = evaluation.feedback;
-            }
+            }, 1000);
           }
         }
-      }
-      
-      setFeedback({
-        isCorrect,
-        feedback: feedbackText
-      });
-      
-      // Clear the change messages after some time
-      if (difficultyChange || complexityChange) {
-        setTimeout(() => {
-          setDifficultyChange(null);
-          setComplexityChange(null);
-        }, 15000);
+      } catch (submitError) {
+        console.error(`[usePractice] Submit error:`, submitError);
+        
+        // Get detailed error information
+        let errorDetails = 'Unknown error';
+        if (submitError instanceof Error) {
+          errorDetails = submitError.message;
+        } else if (axios.isAxiosError(submitError)) {
+          errorDetails = submitError.response ? 
+            `${submitError.response.status} - ${JSON.stringify(submitError.response.data || {})}` : 
+            'Network Error';
+        }
+        
+        throw new Error(`Failed to get feedback: ${errorDetails}`);
       }
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-      setErrorMessage(`Failed to submit answer: ${errorMsg}`);
-      Alert.alert('Error', 'Failed to submit answer. Please try again.');
+      console.error('Error submitting answer:', error);
+      Alert.alert('Error', `Failed to submit your answer: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`);
     } finally {
       setLoading(false);
     }

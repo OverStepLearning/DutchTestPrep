@@ -5,6 +5,7 @@ import axios from 'axios';
 import { useAuth } from '@/contexts/AuthContext';
 import Config from '@/constants/Config';
 import { storage } from '@/utils/storage';
+import * as apiService from '@/utils/apiService';
 import { OnboardingStep, OnboardingPreferences } from '../types/onboarding';
 
 export function useOnboarding() {
@@ -98,29 +99,28 @@ export function useOnboarding() {
         return;
       }
       
-      const response = await axios.post(
-        `${Config.API_URL}/api/user/preferences`, 
+      // Set auth token for API requests
+      apiService.setAuthToken(authToken);
+      
+      // Use apiService instead of direct axios call
+      const response = await apiService.post(
+        '/api/user/preferences', 
         {
           userId: user._id,
           preferredCategories: selectedCategories,
           challengeAreas: selectedChallenges,
           learningReason: selectedReason
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${authToken}`
-          }
         }
       );
       
-      if (response.data.success) {
+      if (response.success) {
         // Mark onboarding as complete in AuthContext
         await setOnboardingComplete();
         
         // Navigate to the main practice screen
         router.replace('/');
       } else {
-        throw new Error(response.data.message || 'Failed to save preferences');
+        throw new Error(response.message || 'Failed to save preferences');
       }
     } catch (error: any) {
       console.error('Error saving preferences:', error);
