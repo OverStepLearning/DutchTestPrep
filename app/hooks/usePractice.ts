@@ -246,15 +246,40 @@ export function usePractice() {
 
   // Function to handle moving to the next practice item
   const handleNextPractice = () => {
-    // Reset state for next practice
+    // Reset user interaction state
     setFeedback(null);
     setUserAnswer('');
     setFeedbackQuestion('');
     setFeedbackAnswer(null);
     setAskingQuestion(false);
     
-    // Generate a new practice or use the next one in queue
-    generatePractice();
+    // If we're in adjustment mode, we need to force a new practice 
+    if (adjustmentMode.isInAdjustmentMode) {
+      setCurrentPractice(null);
+      generatePractice(true);
+      return;
+    }
+    
+    // For normal mode, check if we have questions in the queue
+    if (questionQueue.length > 0) {
+      // Get the next question from the queue
+      const nextQuestion = questionQueue[0];
+      
+      // Remove the used question from the queue
+      setQuestionQueue(prevQueue => prevQueue.slice(1));
+      
+      // Set the next question as current
+      setCurrentPractice(nextQuestion);
+      
+      // If we're running low on queued questions, generate more in the background
+      if (questionQueue.length < 2 && !generatingBatch) {
+        generatePracticeBatch();
+      }
+    } else {
+      // Only if queue is empty, clear current practice and generate new one
+      setCurrentPractice(null);
+      generatePractice(false);
+    }
   };
 
   // Function to show adjustment mode information and enter adjustment mode
