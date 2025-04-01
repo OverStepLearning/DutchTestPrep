@@ -1,5 +1,6 @@
 import axios, { AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 import Config from '@/constants/Config';
+import * as Sentry from '@sentry/react-native';
 import { logAPICall } from '../sentry';
 
 // Create axios instance with default config
@@ -20,13 +21,36 @@ interface RequestParams {
 export const setAuthToken = (token: string | null) => {
   if (token) {
     api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    // Log successful token setting
+    Sentry.addBreadcrumb({
+      category: 'auth',
+      message: 'Auth token set',
+      level: 'info',
+    });
   } else {
     delete api.defaults.headers.common['Authorization'];
+    // Log token removal
+    Sentry.addBreadcrumb({
+      category: 'auth',
+      message: 'Auth token removed',
+      level: 'info',
+    });
   }
 };
 
 // Function to set base URL (for network switching)
 export const setBaseURL = (url: string) => {
+  // Log base URL change for debugging network issues
+  Sentry.addBreadcrumb({
+    category: 'network',
+    message: `API base URL changed`,
+    data: {
+      oldURL: api.defaults.baseURL,
+      newURL: url,
+    },
+    level: 'info',
+  });
+  
   api.defaults.baseURL = url;
 };
 
@@ -74,6 +98,31 @@ export const post = async <T = any>(
       console.log(`[API] Token begins with: ${token}`);
     }
     
+    // Special tracking for auth endpoints to debug TestFlight issues
+    if (endpoint.includes('/api/auth/')) {
+      Sentry.addBreadcrumb({
+        category: 'auth',
+        message: `Auth endpoint called: ${endpoint}`,
+        data: {
+          apiUrl: api.defaults.baseURL,
+          hasAuthHeader: !!api.defaults.headers.common['Authorization'],
+          email: data?.email ? '***@***.com' : undefined, // Redacted for privacy
+        },
+        level: 'info',
+      });
+      
+      // Add special context for auth requests
+      try {
+        Sentry.setContext('auth_request', {
+          endpoint,
+          baseURL: api.defaults.baseURL,
+          timestamp: new Date().toISOString(),
+        });
+      } catch (sentryError) {
+        console.error('Error setting Sentry context:', sentryError);
+      }
+    }
+    
     // Special case for practice-related API calls
     if (endpoint.includes('/api/practice/')) {
       // Log more details for practice endpoints
@@ -81,7 +130,19 @@ export const post = async <T = any>(
       
       // For submit endpoint, log more details
       if (endpoint === '/api/practice/submit') {
-    
+        console.log(`[API] Submitting answer for practice ID: ${data?.practiceId}`);
+        
+        // Use the known working user ID if specified
+        if (data && data.practiceId) {
+          // This is our "known good" user ID - for testing only
+          const knownWorkingUserId = '67df248d0773c33527788355';
+          
+          // Uncomment the next line to force using the working ID for testing
+          // data.forceUserId = knownWorkingUserId;
+          
+          console.log(`[API] Submitting with practice ID: ${data.practiceId}`);
+        }
+        
         // Set a longer timeout for submit since it involves AI evaluation
         config = {
           ...config,
@@ -112,6 +173,21 @@ export const post = async <T = any>(
       console.log(`[API] Full submit response structure:`, JSON.stringify(responseData).substring(0, 500));
     }
     
+    // For auth endpoints, log detailed response info (without sensitive data)
+    if (endpoint.includes('/api/auth/')) {
+      const authResponse = response.data as Record<string, any>;
+      Sentry.addBreadcrumb({
+        category: 'auth',
+        message: `Auth endpoint success: ${endpoint}`,
+        data: {
+          status: response.status,
+          hasToken: !!authResponse.token,
+          hasUserData: !!authResponse._id,
+        },
+        level: 'info',
+      });
+    }
+    
     // Log successful API call
     logAPICall(endpoint, data, response);
     
@@ -127,6 +203,28 @@ export const post = async <T = any>(
       message: axiosError.message,
       fullUrl: (api.defaults.baseURL || '') + endpoint
     });
+    
+    // Special handling for auth endpoint errors
+    if (endpoint.includes('/api/auth/')) {
+      console.error(`[API] Auth error details:`, {
+        endpoint,
+        status: axiosError.response?.status,
+        message: axiosError.message,
+      });
+      
+      // Capture extra details for auth failures
+      Sentry.captureException(axiosError, {
+        tags: {
+          api_endpoint: endpoint,
+          status_code: axiosError.response?.status?.toString() || 'unknown',
+        },
+        extra: {
+          apiUrl: api.defaults.baseURL,
+          responseData: axiosError.response?.data,
+          hasAuthHeader: !!api.defaults.headers.common['Authorization'],
+        }
+      });
+    }
     
     // Special handling for specific endpoint errors
     if (endpoint === '/api/practice/generate' && 

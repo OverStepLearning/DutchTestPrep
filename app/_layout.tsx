@@ -9,7 +9,43 @@ import 'react-native-reanimated';
 import { useColorScheme } from 'react-native';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { AIProviderProvider } from '@/contexts/AIProviderContext';
-import * as Sentry from '../sentry';
+import * as Sentry from '@sentry/react-native';
+import Config from '@/constants/Config';
+
+// Initialize Sentry with the newly generated DSN
+Sentry.init({
+  dsn: 'https://eebeb7eec994fbb802a43ca5f4427838@o4509077215051776.ingest.de.sentry.io/4509077262368848',
+  
+  // Set environment
+  environment: __DEV__ ? 'development' : 'production',
+  
+  // Performance monitoring
+  tracesSampleRate: 1.0,
+  enableAutoSessionTracking: true,
+
+  // Add version information
+  release: Config.VERSION || 'unknown',
+  dist: Config.buildNumber || '1',
+  
+  // Debug features (only in development)
+  debug: __DEV__,
+  
+  // Enhanced error data
+  attachStacktrace: true,
+  
+  // Additional context for auth-related issues
+  beforeSend(event) {
+    // Add API URL to context for network issues
+    event.contexts = {
+      ...event.contexts,
+      app: {
+        ...event.contexts?.app,
+        api_url: Config.API_URL,
+      }
+    };
+    return event;
+  },
+});
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();

@@ -4,6 +4,7 @@ import Config from '@/constants/Config';
 import { storage } from '@/utils/storage';
 import { setAuthToken, setBaseURL, getBaseURL } from '@/utils/apiService';
 import * as apiService from '@/utils/apiService';
+import * as Sentry from '@sentry/react-native';
 
 // Define user type
 interface User {
@@ -112,6 +113,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string, customApiUrl?: string) => {
     setIsLoading(true);
     try {
+      // Track login attempt in Sentry for TestFlight debugging
+      Sentry.addBreadcrumb({
+        category: 'auth',
+        message: 'Login attempt',
+        data: {
+          api_url: customApiUrl || getBaseURL(),
+          email_provided: !!email,
+          password_provided: !!password,
+          timestamp: new Date().toISOString(),
+        },
+        level: 'info',
+      });
+      
       // If a custom API URL is provided, update the base URL
       if (customApiUrl) {
         setBaseURL(customApiUrl);
@@ -119,6 +133,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       const currentApiUrl = getBaseURL();
       console.log(`[AuthContext] Attempting to login using API URL: ${currentApiUrl}`);
+      
+      // Additional Sentry logging for network information
+      Sentry.setContext("network_info", {
+        api_url: currentApiUrl,
+        attempting_login: true,
+        network_selector_active: !!customApiUrl,
+      });
       
       // Make the request using apiService
       const data = await apiService.post('/api/auth/login', {
@@ -159,16 +180,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error: any) {
       console.error('Login error:', error);
       
+      // Enhanced Sentry error tracking for login failures
+      Sentry.captureException(error, {
+        tags: {
+          feature: 'login',
+          api_url: getBaseURL(),
+        },
+        extra: {
+          current_network: await storage.getItem(Config.STORAGE_KEYS.ACTIVE_NETWORK) || 'default',
+          has_token: !!(await storage.getItem(Config.STORAGE_KEYS.AUTH_TOKEN)),
+          api_base_url: getBaseURL(),
+        },
+      });
+      
       // More detailed error handling
       if (error.response) {
         // The request was made and the server responded with a status code
         console.error('Response data:', error.response.data);
         console.error('Response status:', error.response.status);
-        setError(error.response.data.message || `Login failed (${error.response.status})`);
+        
+        // Specific error for 404 - could be API URL issue
+        if (error.response.status === 404) {
+          setError(`API endpoint not found (404). Please check network settings. URL: ${getBaseURL()}`);
+          
+          // Log specific details for 404 errors
+          Sentry.captureMessage(`Login 404 error with URL: ${getBaseURL()}`, {
+            level: 'error',
+            extra: {
+              api_url: getBaseURL(),
+              network_profile: await storage.getItem(Config.STORAGE_KEYS.ACTIVE_NETWORK),
+            },
+          });
+        } else {
+          setError(error.response.data.message || `Login failed (${error.response.status})`);
+        }
       } else if (error.request) {
         // The request was made but no response was received
         console.error('Request error:', error.request);
         setError('Network error. Please check your connection and try again.');
+        
+        // Capture network errors specifically
+        Sentry.captureMessage('Login network error - no response', {
+          level: 'error',
+          extra: {
+            api_url: getBaseURL(),
+            request_info: error.request._response || 'No response details',
+          },
+        });
       } else {
         // Something happened in setting up the request
         setError(`Request setup error: ${error.message}`);

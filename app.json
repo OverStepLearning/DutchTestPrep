@@ -4,6 +4,7 @@
     "slug": "dutch-test-prep",
     "version": "1.0.0",
     "orientation": "portrait",
+    "scheme": "dutchtestprep",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
@@ -22,7 +23,11 @@
         "NSCameraUsageDescription": "This app does not use the camera",
         "NSPhotoLibraryUsageDescription": "This app does not use the photo library",
         "NSMicrophoneUsageDescription": "This app does not use the microphone",
-        "UIBackgroundModes": ["remote-notification"]
+        "UIBackgroundModes": [
+          "remote-notification",
+          "remote-notification"
+        ],
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -37,6 +42,7 @@
     },
     "extra": {
       "eas": {
+        "projectId": "1d03c0a7-bb58-444f-8e44-0af10c02d8ca"
       }
     }
   }
