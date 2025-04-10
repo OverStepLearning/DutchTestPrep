@@ -2,6 +2,8 @@ import axios, { AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 import Config from '@/constants/Config';
 import * as Sentry from '@sentry/react-native';
 import { logAPICall } from '../sentry';
+import { router } from 'expo-router';
+import { storage } from '@/utils/storage';
 
 // Create axios instance with default config
 const api = axios.create({
@@ -307,6 +309,46 @@ export const testConnection = async (apiUrl: string): Promise<{ status: string; 
     throw error;
   }
 };
+
+// Add axios response interceptor to handle token expiration
+api.interceptors.response.use(
+  response => response,
+  async (error: AxiosError) => {
+    // Check if error is due to token expiration
+    if (error.response?.status === 401 && 
+        error.response?.data && 
+        ((error.response.data as any)?.message === 'Not authorized, token failed' || 
+         (error.message && error.message.includes('jwt expired')))) {
+      
+      console.log('[API] Token expired or invalid, logging out user');
+      Sentry.addBreadcrumb({
+        category: 'auth',
+        message: 'Token expired, automatic logout triggered',
+        level: 'info',
+      });
+
+      try {
+        // Clear auth token in API service
+        delete api.defaults.headers.common['Authorization'];
+        
+        // Clear secure storage
+        await storage.removeItem(Config.STORAGE_KEYS.AUTH_TOKEN);
+        await storage.removeItem(Config.STORAGE_KEYS.USER_DATA);
+        
+        // Navigate to login
+        router.replace({
+          pathname: '/login',
+          params: { reason: 'session_expired' }
+        });
+      } catch (logoutError) {
+        console.error('Error during automatic logout:', logoutError);
+        Sentry.captureException(logoutError);
+      }
+    }
+    
+    return Promise.reject(error);
+  }
+);
 
 export default {
   get,

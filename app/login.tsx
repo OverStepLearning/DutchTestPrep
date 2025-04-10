@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   StyleSheet, 
   KeyboardAvoidingView, 
@@ -17,8 +17,24 @@ import { storage } from '@/utils/storage';
 import Config from '@/constants/Config';
 import { NetworkSelector } from '@/app/components/auth/NetworkSelector';
 import * as apiService from '@/utils/apiService';
+import { useLocalSearchParams } from 'expo-router';
 
 const LoginScreen = () => {
+  const { reason } = useLocalSearchParams();
+  const [showSessionExpired, setShowSessionExpired] = useState(false);
+  
+  // Show session expired message if redirected with reason=session_expired
+  useEffect(() => {
+    if (reason === 'session_expired') {
+      setShowSessionExpired(true);
+      // Auto-hide after 5 seconds
+      const timer = setTimeout(() => {
+        setShowSessionExpired(false);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [reason]);
+
   // Clear all stored data (temporary debug function)
   const clearAllStorage = async () => {
     try {
@@ -68,6 +84,13 @@ const LoginScreen = () => {
     <LoginProvider>
       <View style={styles.container}>
         <StatusBar style="dark" />
+        {showSessionExpired && (
+          <View style={styles.sessionExpiredBanner}>
+            <Text style={styles.sessionExpiredText}>
+              Your session has expired. Please log in again.
+            </Text>
+          </View>
+        )}
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.container}
@@ -106,6 +129,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8f9fa',
+  },
+  sessionExpiredBanner: {
+    backgroundColor: '#d9534f',
+    padding: 12,
+    width: '100%',
+  },
+  sessionExpiredText: {
+    color: 'white',
+    textAlign: 'center',
+    fontWeight: 'bold',
   },
   debugContainer: {
     flexDirection: 'row',

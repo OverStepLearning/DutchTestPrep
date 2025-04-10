@@ -391,6 +391,9 @@ export function usePractice() {
         apiService.setAuthToken(token);
       }
       
+      console.log(`[usePractice] Asking question for practice ID: ${currentPractice._id}`);
+      console.log(`[usePractice] Question: ${feedbackQuestion}`);
+      
       const response = await apiService.post('/api/practice/question', {
         practiceId: currentPractice._id,
         question: feedbackQuestion,
@@ -398,10 +401,34 @@ export function usePractice() {
         deepseekApiKey: currentProvider === 'deepseek' ? deepseekApiKey : null
       });
       
-      if (response?.success && response?.answer) {
-        setFeedbackAnswer(response.answer);
+      console.log(`[usePractice] Question response:`, response ? 'Response received' : 'No response');
+      if (response) {
+        console.log(`[usePractice] Response success: ${response.success}`);
+        console.log(`[usePractice] Response keys:`, Object.keys(response));
+      }
+      
+      // Check for success and various answer location possibilities
+      if (response?.success) {
+        // Try to find the answer in different possible locations
+        let answerText = null;
+        
+        if (response.answer && response.answer !== '') {
+          answerText = response.answer;
+        } else if (response.data && response.data.answer) {
+          answerText = response.data.answer;
+        } else if (response.feedback) {
+          answerText = response.feedback;
+        }
+        
+        if (answerText) {
+          console.log(`[usePractice] Answer found, setting feedback answer`);
+          setFeedbackAnswer(answerText);
+        } else {
+          console.log(`[usePractice] No answer found in response`);
+          throw new Error('No answer content in the response');
+        }
       } else {
-        throw new Error('Failed to get answer');
+        throw new Error(response?.message || 'Failed to get answer');
       }
     } catch (error) {
       console.error('Error asking question:', error);
