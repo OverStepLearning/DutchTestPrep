@@ -257,9 +257,9 @@ export function usePractice() {
     if (adjustmentMode.isInAdjustmentMode) {
       setCurrentPractice(null);
       generatePractice(true);
-      return;
-    }
-    
+        return;
+      }
+      
     // For normal mode, check if we have questions in the queue
     if (questionQueue.length > 0) {
       // Get the next question from the queue
@@ -352,15 +352,15 @@ export function usePractice() {
       }
       
       // Show confirmation
-      Alert.alert(
+        Alert.alert(
         'Adjustment Mode Activated',
         `You have entered adjustment mode. The next ${ADJUSTMENT_PRACTICES_COUNT} questions will help calibrate your difficulty level.`,
         [{ 
           text: 'OK',
           onPress: () => {
             // Force a new practice generation for adjustment
-            generatePractice(true);
-          }
+        generatePractice(true);
+      }
         }]
       );
     } catch (error) {
@@ -396,7 +396,7 @@ export function usePractice() {
       
       const response = await apiService.post('/api/practice/question', {
         practiceId: currentPractice._id,
-        question: feedbackQuestion,
+          question: feedbackQuestion,
         aiProvider: currentProvider,
         deepseekApiKey: currentProvider === 'deepseek' ? deepseekApiKey : null
       });
@@ -575,14 +575,14 @@ export function usePractice() {
   // Update difficulty trend when current practice changes
   useEffect(() => {
     if (currentPractice && currentPractice.difficulty && previousDifficultyRef.current !== null) {
-      if (currentPractice.difficulty > previousDifficultyRef.current) {
-        setDifficultyTrend('increasing');
-      } else if (currentPractice.difficulty < previousDifficultyRef.current) {
-        setDifficultyTrend('decreasing');
-      } else {
-        setDifficultyTrend('stable');
+        if (currentPractice.difficulty > previousDifficultyRef.current) {
+          setDifficultyTrend('increasing');
+        } else if (currentPractice.difficulty < previousDifficultyRef.current) {
+          setDifficultyTrend('decreasing');
+        } else {
+          setDifficultyTrend('stable');
+        }
       }
-    }
     
     if (currentPractice?.difficulty) {
       previousDifficultyRef.current = currentPractice.difficulty;
