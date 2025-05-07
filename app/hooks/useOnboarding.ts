@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import axios from 'axios';
@@ -8,6 +8,29 @@ import { storage } from '@/utils/storage';
 import * as apiService from '@/utils/apiService';
 import { OnboardingStep, OnboardingPreferences } from '../types/onboarding';
 
+// Available learning subjects
+export const LEARNING_SUBJECTS = [
+  'Dutch',
+  'Spanish',
+  'French',
+  'German',
+  'Italian',
+  'Japanese',
+  'Chinese'
+];
+
+// Available mother languages
+export const MOTHER_LANGUAGES = [
+  'English',
+  'Dutch',
+  'Spanish',
+  'French',
+  'German',
+  'Italian',
+  'Japanese',
+  'Chinese'
+];
+
 export function useOnboarding() {
   const router = useRouter();
   const { user, setOnboardingComplete } = useAuth();
@@ -16,7 +39,29 @@ export function useOnboarding() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedChallenges, setSelectedChallenges] = useState<string[]>([]);
   const [selectedReason, setSelectedReason] = useState<string | null>(null);
+  const [selectedSubject, setSelectedSubject] = useState<string | null>('Dutch');
+  const [selectedMotherLanguage, setSelectedMotherLanguage] = useState<string | null>('English');
   const [loading, setLoading] = useState(false);
+
+  // Load selected subject from storage if coming from profile page
+  useEffect(() => {
+    const loadSavedSubject = async () => {
+      try {
+        const savedSubject = await storage.getItem('selectedLearningSubject');
+        if (savedSubject) {
+          console.log(`[Onboarding] Found saved learning subject: ${savedSubject}`);
+          setSelectedSubject(savedSubject);
+          
+          // Clear the saved subject to prevent it from affecting future onboarding sessions
+          await storage.removeItem('selectedLearningSubject');
+        }
+      } catch (error) {
+        console.error('[Onboarding] Error loading saved subject:', error);
+      }
+    };
+
+    loadSavedSubject();
+  }, []);
 
   // Toggle category selection
   const toggleCategory = (category: string) => {
@@ -49,26 +94,46 @@ export function useOnboarding() {
     setSelectedReason(reason);
   };
 
+  // Set learning subject
+  const selectSubject = (subject: string) => {
+    setSelectedSubject(subject);
+  };
+
+  // Set mother language
+  const selectMotherLanguage = (language: string) => {
+    setSelectedMotherLanguage(language);
+  };
+
   // Navigate to next step
   const nextStep = () => {
     // Validate current step
-    if (step === 1 && selectedCategories.length === 0) {
+    if (step === 1 && !selectedSubject) {
+      Alert.alert('Required', 'Please select a language or subject to learn');
+      return;
+    }
+
+    if (step === 2 && !selectedMotherLanguage) {
+      Alert.alert('Required', 'Please select your native language');
+      return;
+    }
+    
+    if (step === 3 && selectedCategories.length === 0) {
       Alert.alert('Required', 'Please select at least one category');
       return;
     }
     
-    if (step === 2 && selectedChallenges.length === 0) {
+    if (step === 4 && selectedChallenges.length === 0) {
       Alert.alert('Required', 'Please select at least one challenge area');
       return;
     }
     
-    if (step === 3 && !selectedReason) {
-      Alert.alert('Required', 'Please select your main reason for learning Dutch');
+    if (step === 5 && !selectedReason) {
+      Alert.alert('Required', 'Please select your main reason for learning');
       return;
     }
     
-    if (step < 3) {
-      setStep((prevStep) => (prevStep === 3 ? 3 : (prevStep + 1) as OnboardingStep));
+    if (step < 5) {
+      setStep((prevStep) => ((prevStep + 1) as OnboardingStep));
     } else {
       completeOnboarding();
     }
@@ -77,7 +142,7 @@ export function useOnboarding() {
   // Go back to previous step
   const prevStep = () => {
     if (step > 1) {
-      setStep((prevStep) => (prevStep === 1 ? 1 : (prevStep - 1) as OnboardingStep));
+      setStep((prevStep) => ((prevStep - 1) as OnboardingStep));
     }
   };
 
@@ -102,6 +167,16 @@ export function useOnboarding() {
       // Set auth token for API requests
       apiService.setAuthToken(authToken);
       
+      // First update user's mother language and learning subject
+      const updateResponse = await apiService.put('/api/user/language-settings', {
+        motherLanguage: selectedMotherLanguage,
+        learningSubject: selectedSubject
+      });
+      
+      if (!updateResponse.success) {
+        throw new Error(updateResponse.message || 'Failed to update language settings');
+      }
+      
       // Use apiService instead of direct axios call
       const response = await apiService.post(
         '/api/user/preferences', 
@@ -109,7 +184,8 @@ export function useOnboarding() {
           userId: user._id,
           preferredCategories: selectedCategories,
           challengeAreas: selectedChallenges,
-          learningReason: selectedReason
+          learningReason: selectedReason,
+          learningSubject: selectedSubject
         }
       );
       
@@ -140,10 +216,14 @@ export function useOnboarding() {
     selectedCategories,
     selectedChallenges,
     selectedReason,
+    selectedSubject,
+    selectedMotherLanguage,
     loading,
     toggleCategory,
     toggleChallenge,
     selectReason,
+    selectSubject,
+    selectMotherLanguage,
     nextStep,
     prevStep
   };

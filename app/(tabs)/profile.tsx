@@ -1,14 +1,16 @@
 import React, { useEffect } from 'react';
-import { StyleSheet, View, ScrollView, TouchableOpacity, ActivityIndicator, Text } from 'react-native';
+import { StyleSheet, View, ScrollView, TouchableOpacity, ActivityIndicator, Text, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useProfile } from '../hooks/useProfile';
 import { ProfileHeader } from '../components/profile/ProfileHeader';
 import { LanguageSelector } from '../components/profile/LanguageSelector';
+import { SubjectSelector } from '../components/profile/SubjectSelector';
 import { StatsSummary } from '../components/profile/StatsSummary';
 import { PreferencesDisplay } from '../components/profile/PreferencesDisplay';
 import { DifficultyDisplay } from '../components/profile/DifficultyDisplay';
 import AISettings from '../components/profile/AISettings';
 import { useAIProvider } from '@/contexts/AIProviderContext';
+import { useTabContext } from '@/contexts/TabContext';
 
 export default function ProfileScreen() {
   const {
@@ -18,13 +20,48 @@ export default function ProfileScreen() {
     selectedLanguage,
     languageOptions,
     fetchUserProfile,
+    updateLearningSubject,
     updateMotherLanguage,
     updatePreferences,
     handleLogout
   } = useProfile();
   
+  const { currentTab, shouldRefresh, currentSubject: tabSubject } = useTabContext();
+  const [refreshing, setRefreshing] = React.useState(false);
+  
   // Initialize DeepSeek API key if provided by the user
   const { setDeepseekApiKey } = useAIProvider();
+  
+  // Refresh data when entering the profile tab
+  useEffect(() => {
+    if (currentTab === 'profile' && shouldRefresh('profile')) {
+      console.log('[Profile] Tab focused - refreshing data');
+      fetchUserProfile(true); // Force refresh when tab focused
+    }
+  }, [currentTab, shouldRefresh]);
+  
+  // Also refresh when subject changes in TabContext
+  useEffect(() => {
+    if (currentTab === 'profile' && tabSubject) {
+      if (!profile || profile?.user?.learningSubject !== tabSubject) {
+        console.log(`[Profile] Subject mismatch: profile=${profile?.user?.learningSubject}, tab=${tabSubject}. Refreshing.`);
+        fetchUserProfile(true);
+      }
+    }
+  }, [tabSubject, currentTab]);
+  
+  // Pull-to-refresh handler
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    fetchUserProfile(true).finally(() => {
+      setRefreshing(false);
+    });
+  }, [fetchUserProfile]);
+  
+  // Button refresh handler
+  const handleManualRefresh = () => {
+    fetchUserProfile(true);
+  };
   
   useEffect(() => {
     // Set the DeepSeek API key from the parameter if it was passed (for demo purposes)
@@ -41,7 +78,7 @@ export default function ProfileScreen() {
     initializeDeepSeekKey();
   }, [setDeepseekApiKey]);
 
-  if (loading) {
+  if (loading && !refreshing) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#4f86f7" />
@@ -51,12 +88,25 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl 
+            refreshing={refreshing} 
+            onRefresh={onRefresh} 
+          />
+        }
+      >
         {profile ? (
           <>
             <ProfileHeader 
               name={profile.user.name} 
               email={profile.user.email} 
+            />
+
+            <SubjectSelector
+              currentSubject={profile.user.learningSubject || 'Dutch'}
+              onSubjectChange={updateLearningSubject}
             />
 
             <LanguageSelector
@@ -65,22 +115,32 @@ export default function ProfileScreen() {
               onLanguageChange={updateMotherLanguage}
             />
 
-            <DifficultyDisplay 
-              currentDifficulty={profile.progress.currentDifficulty || 1}
-              currentComplexity={profile.progress.currentComplexity || 1}
-              averageDifficulty={profile.progress.averageDifficulty}
-            />
+            {profile.progress ? (
+              <>
+                <DifficultyDisplay 
+                  currentDifficulty={profile.progress.currentDifficulty || 1}
+                  currentComplexity={profile.progress.currentComplexity || 1}
+                  averageDifficulty={profile.progress.averageDifficulty || 1}
+                />
 
-            <StatsSummary 
-              stats={{
-                completedPractices: profile.progress.completedPractices,
-                averageDifficulty: profile.progress.averageDifficulty,
-                lastActivity: profile.progress.lastActivity
-              }}
-            />
+                <StatsSummary 
+                  stats={{
+                    completedPractices: profile.progress.completedPractices || 0,
+                    averageDifficulty: profile.progress.averageDifficulty || 1,
+                    lastActivity: profile.progress.lastActivity || new Date()
+                  }}
+                />
+              </>
+            ) : (
+              <View style={styles.warningContainer}>
+                <Text style={styles.warningText}>
+                  Learning progress data is not available. Try switching to a different subject or refreshing the page.
+                </Text>
+              </View>
+            )}
 
             <PreferencesDisplay 
-              preferences={profile.preferences}
+              preferences={profile.preferences || {}}
               onPreferencesUpdate={updatePreferences}
             />
             
@@ -98,7 +158,7 @@ export default function ProfileScreen() {
             <Text style={styles.errorText}>{error}</Text>
             <TouchableOpacity
               style={styles.retryButton}
-              onPress={fetchUserProfile}
+              onPress={handleManualRefresh}
             >
               <Text style={styles.retryButtonText}>Retry</Text>
             </TouchableOpacity>
@@ -133,6 +193,19 @@ const styles = StyleSheet.create({
     color: '#d32f2f',
     textAlign: 'center',
     marginBottom: 16,
+  },
+  warningContainer: {
+    backgroundColor: '#fff3cd',
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#ffeeba',
+  },
+  warningText: {
+    fontSize: 14,
+    color: '#856404',
+    textAlign: 'center',
   },
   retryButton: {
     backgroundColor: '#4f86f7',

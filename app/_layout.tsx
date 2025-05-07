@@ -9,6 +9,7 @@ import 'react-native-reanimated';
 import { useColorScheme } from 'react-native';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { AIProviderProvider } from '@/contexts/AIProviderContext';
+import { TabProvider } from '@/contexts/TabContext';
 import * as Sentry from '@sentry/react-native';
 import Config from '@/constants/Config';
 
@@ -110,9 +111,11 @@ export default function RootLayout() {
   return (
     <AuthProvider>
       <AIProviderProvider>
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-          <RootLayoutNav />
-        </ThemeProvider>
+        <TabProvider>
+          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+            <RootLayoutNav />
+          </ThemeProvider>
+        </TabProvider>
       </AIProviderProvider>
     </AuthProvider>
   );

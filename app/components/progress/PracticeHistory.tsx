@@ -10,6 +10,7 @@ interface PracticeHistoryProps {
   page: number;
   onNextPage: () => void;
   onPreviousPage: () => void;
+  currentSubject?: string;
 }
 
 export const PracticeHistory: React.FC<PracticeHistoryProps> = ({
@@ -18,8 +19,12 @@ export const PracticeHistory: React.FC<PracticeHistoryProps> = ({
   error,
   page,
   onNextPage,
-  onPreviousPage
+  onPreviousPage,
+  currentSubject = ''
 }) => {
+  // Create title with subject if available
+  const historyTitle = currentSubject ? `${currentSubject} Practice History` : 'Practice History';
+  
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -53,7 +58,7 @@ export const PracticeHistory: React.FC<PracticeHistoryProps> = ({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Practice History</Text>
+      <Text style={styles.title}>{historyTitle}</Text>
       
       <FlatList
         data={history.practices}

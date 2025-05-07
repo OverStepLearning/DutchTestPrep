@@ -13,6 +13,8 @@ interface User {
   email: string;
   isAdmin?: boolean;
   hasCompletedOnboarding?: boolean;
+  learningSubject?: string;
+  motherLanguage?: string;
 }
 
 // Define auth context state
@@ -27,6 +29,7 @@ interface AuthContextType {
   logout: () => void;
   checkOnboardingStatus: () => boolean;
   setOnboardingComplete: () => Promise<void>;
+  updateUserData: (updates: Partial<User>) => Promise<void>;
 }
 
 // Create the auth context
@@ -352,6 +355,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Update user data
+  const updateUserData = async (updates: Partial<User>) => {
+    try {
+      if (user) {
+        // Update user in state
+        const updatedUser = {
+          ...user,
+          ...updates
+        };
+        
+        setUser(updatedUser);
+        
+        // Update stored user data
+        await storage.setItem(Config.STORAGE_KEYS.USER_DATA, JSON.stringify(updatedUser));
+      }
+    } catch (error) {
+      console.error('Error updating user data:', error);
+    }
+  };
+
   // Provide auth context
   return (
     <AuthContext.Provider
@@ -365,7 +388,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         register,
         logout,
         checkOnboardingStatus,
-        setOnboardingComplete
+        setOnboardingComplete,
+        updateUserData
       }}
     >
       {children}

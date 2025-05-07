@@ -1,0 +1,234 @@
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { LEARNING_SUBJECTS } from '../../hooks/useOnboarding';
+
+interface SubjectSelectorProps {
+  currentSubject: string;
+  onSubjectChange: (subject: string) => Promise<void>;
+}
+
+export const SubjectSelector: React.FC<SubjectSelectorProps> = ({ 
+  currentSubject, 
+  onSubjectChange 
+}) => {
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [selectedSubject, setSelectedSubject] = useState(currentSubject);
+
+  const handleSelectSubject = async (subject: string) => {
+    if (subject === currentSubject) {
+      setIsModalVisible(false);
+      return;
+    }
+
+    setSelectedSubject(subject);
+    setLoading(true);
+    
+    try {
+      await onSubjectChange(subject);
+      setIsModalVisible(false);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to update your learning subject. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Learning Subject</Text>
+        <TouchableOpacity 
+          style={styles.changeButton} 
+          onPress={() => setIsModalVisible(true)}
+        >
+          <Ionicons name="pencil" size={16} color="#4f86f7" />
+          <Text style={styles.changeText}>Change</Text>
+        </TouchableOpacity>
+      </View>
+      
+      <View style={styles.subjectContainer}>
+        <Text style={styles.currentSubject}>{currentSubject}</Text>
+        <Text style={styles.helpText}>
+          This is the language or subject you are currently learning.
+          Changing this will also change your practice questions.
+        </Text>
+      </View>
+
+      <Modal
+        visible={isModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setIsModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Select Learning Subject</Text>
+              <TouchableOpacity 
+                onPress={() => setIsModalVisible(false)}
+                disabled={loading}
+              >
+                <Ionicons name="close-circle" size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
+            
+            <Text style={styles.modalSubtitle}>
+              Choose the language or subject you want to learn
+            </Text>
+            
+            <ScrollView style={styles.subjectsList}>
+              {LEARNING_SUBJECTS.map((subject) => (
+                <TouchableOpacity
+                  key={subject}
+                  style={[
+                    styles.subjectItem,
+                    selectedSubject === subject && styles.selectedSubject
+                  ]}
+                  onPress={() => handleSelectSubject(subject)}
+                  disabled={loading}
+                >
+                  <Text 
+                    style={[
+                      styles.subjectText,
+                      selectedSubject === subject && styles.selectedSubjectText
+                    ]}
+                  >
+                    {subject}
+                  </Text>
+                  {selectedSubject === subject && (
+                    <Ionicons name="checkmark-circle" size={24} color="#fff" />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            {loading && (
+              <ActivityIndicator size="small" color="#4f86f7" style={styles.loader} />
+            )}
+
+            <Text style={styles.warningText}>
+              Note: Changing your learning subject may require setting up new preferences.
+            </Text>
+          </View>
+        </View>
+      </Modal>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  changeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  changeText: {
+    fontSize: 14,
+    color: '#4f86f7',
+    marginLeft: 4,
+  },
+  subjectContainer: {
+    marginBottom: 8,
+  },
+  currentSubject: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#4f86f7',
+    marginBottom: 8,
+  },
+  helpText: {
+    fontSize: 14,
+    color: '#777',
+    lineHeight: 20,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: '90%',
+    maxHeight: '80%',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  modalSubtitle: {
+    fontSize: 16,
+    color: '#666',
+    marginBottom: 16,
+  },
+  subjectsList: {
+    maxHeight: 300,
+    marginBottom: 16,
+  },
+  subjectItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+    padding: 16,
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  selectedSubject: {
+    backgroundColor: '#4f86f7',
+  },
+  subjectText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  selectedSubjectText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  loader: {
+    marginVertical: 12,
+  },
+  warningText: {
+    fontSize: 14,
+    color: '#ff6b6b',
+    fontStyle: 'italic',
+    marginTop: 8,
+  },
+}); 

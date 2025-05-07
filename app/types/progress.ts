@@ -7,6 +7,7 @@ export interface Practice {
   completedAt: string;
   userAnswer: string;
   categories: string[];
+  subject?: string;
 }
 
 export interface PracticeHistory {

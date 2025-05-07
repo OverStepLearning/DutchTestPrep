@@ -4,6 +4,7 @@ export interface UserProfile {
     name: string;
     email: string;
     motherLanguage?: string;
+    learningSubject?: string;
   };
   progress: {
     skillLevels: {
@@ -26,6 +27,7 @@ export interface UserProfile {
     preferredCategories: string[];
     challengeAreas: string[];
     learningReason: string;
+    learningSubject?: string;
   };
 }
 

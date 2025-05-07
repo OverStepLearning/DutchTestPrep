@@ -2,9 +2,11 @@ export interface OnboardingPreferences {
   preferredCategories: string[];
   challengeAreas: string[];
   learningReason: string | null;
+  learningSubject: string | null;
+  motherLanguage: string | null;
 }
 
-export type OnboardingStep = 1 | 2 | 3;
+export type OnboardingStep = 1 | 2 | 3 | 4 | 5;
 
 // Constants for practice areas
 export const CATEGORIES = [

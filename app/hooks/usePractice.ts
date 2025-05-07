@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Alert } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAIProvider } from '../../contexts/AIProviderContext';
+import { useTabContext } from '@/contexts/TabContext';
 import { storage } from '../../utils/storage';
 import config from '../../constants/Config';
 import { 
@@ -15,10 +16,12 @@ import {
 } from '../types/practice';
 import * as apiService from '@/utils/apiService';
 import { useRouter } from 'expo-router';
+import { PracticeEventEmitter, practiceEvents } from '../hooks/useProfile';
 
 export function usePractice() {
   const { user } = useAuth();
   const { currentProvider, deepseekApiKey } = useAIProvider();
+  const { currentSubject: tabSubject } = useTabContext();
   const [loading, setLoading] = useState(false);
   const [generatingBatch, setGeneratingBatch] = useState(false);
   const [currentPractice, setCurrentPractice] = useState<PracticeItem | null>(null);
@@ -66,16 +69,29 @@ export function usePractice() {
   };
 
   // Function to generate a new practice item
-  const generatePractice = async (forceNew = false) => {
+  const generatePractice = async (shouldAnimateNext = true, retryCount = 0): Promise<void> => {
+    if (!user) {
+      setErrorMessage('Please log in to generate practice');
+      return;
+    }
+
     try {
+      setErrorMessage(null);
+      setLoading(true);
+      setGeneratingBatch(false);
+      setFeedback(null);
+      setUserAnswer('');
+      
+      console.log(`[Practice] Generating practice for subject: ${tabSubject}`);
+      
       // If we already have a current practice and we're not forcing a new one, don't regenerate
-      if (currentPractice && !forceNew) {
+      if (currentPractice && !shouldAnimateNext) {
         console.log('[usePractice] Practice already exists, not regenerating');
         return;
       }
       
       // If we have queued questions and don't need to force a new one
-      if (questionQueue.length > 0 && !forceNew) {
+      if (questionQueue.length > 0 && !shouldAnimateNext) {
         // Use a question from the queue
         const nextQuestion = questionQueue[0];
         
@@ -151,6 +167,7 @@ export function usePractice() {
       // The backend handles all randomization with a single API call
       const response = await apiService.post('/api/practice/generate', {
         userId: user._id,
+        learningSubject: tabSubject || 'Dutch',
         batchSize: adjustmentMode.isInAdjustmentMode ? 1 : 3,
         aiProvider: currentProvider,
         deepseekApiKey: currentProvider === 'deepseek' ? deepseekApiKey : null
@@ -222,6 +239,7 @@ export function usePractice() {
       // The backend handles all randomization with a single API call
       const response = await apiService.post('/api/practice/generate', {
         userId: user._id,
+        learningSubject: tabSubject || 'Dutch',
         batchSize: 5, // Request more items for the queue
         aiProvider: currentProvider,
         deepseekApiKey: currentProvider === 'deepseek' ? deepseekApiKey : null
@@ -343,6 +361,7 @@ export function usePractice() {
       
       try {
         const response = await apiService.post('/api/practice/enter-adjustment-mode', {
+          learningSubject: tabSubject || 'Dutch',
           aiProvider: currentProvider,
           deepseekApiKey: currentProvider === 'deepseek' ? deepseekApiKey : null
         });
@@ -393,10 +412,12 @@ export function usePractice() {
       
       console.log(`[usePractice] Asking question for practice ID: ${currentPractice._id}`);
       console.log(`[usePractice] Question: ${feedbackQuestion}`);
+      console.log(`[usePractice] Using subject: ${tabSubject || 'Dutch'}`);
       
       const response = await apiService.post('/api/practice/question', {
         practiceId: currentPractice._id,
-          question: feedbackQuestion,
+        question: feedbackQuestion,
+        learningSubject: tabSubject || 'Dutch',
         aiProvider: currentProvider,
         deepseekApiKey: currentProvider === 'deepseek' ? deepseekApiKey : null
       });
@@ -467,11 +488,13 @@ export function usePractice() {
       console.log(`[usePractice] Submitting answer for practice ID: ${currentPractice._id}`);
       console.log(`[usePractice] Answer: ${userAnswer.substring(0, 50)}${userAnswer.length > 50 ? '...' : ''}`);
       console.log(`[usePractice] Using API URL: ${apiService.getBaseURL()}`);
+      console.log(`[usePractice] Using subject: ${tabSubject || 'Dutch'}`);
       
       try {
         const response = await apiService.post('/api/practice/submit', {
           practiceId: currentPractice._id,
           userAnswer: userAnswer,
+          learningSubject: tabSubject || 'Dutch',
           aiProvider: currentProvider,
           deepseekApiKey: currentProvider === 'deepseek' ? deepseekApiKey : null
         });
@@ -530,6 +553,10 @@ export function usePractice() {
         
         console.log(`[usePractice] Feedback received successfully`);
         setFeedback(feedbackData);
+        
+        // Notify that a practice has been completed - this will update stats in profile
+        PracticeEventEmitter.emit(practiceEvents.PRACTICE_COMPLETED);
+        console.log('[usePractice] Emitted practice completed event');
         
         // Update adjustment mode remaining count if in adjustment mode
         if (adjustmentMode.isInAdjustmentMode && response.adjustmentPracticesRemaining !== undefined) {

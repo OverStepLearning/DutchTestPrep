@@ -5,6 +5,8 @@ import { useOnboarding } from '../hooks/useOnboarding';
 import { CategorySelector } from '../components/onboarding/CategorySelector';
 import { ChallengeSelector } from '../components/onboarding/ChallengeSelector';
 import { ReasonSelector } from '../components/onboarding/ReasonSelector';
+import { SubjectSelector } from '../components/onboarding/SubjectSelector';
+import { MotherLanguageSelector } from '../components/onboarding/MotherLanguageSelector';
 import { NavigationButtons } from '../components/onboarding/NavigationButtons';
 
 export default function OnboardingScreen() {
@@ -13,10 +15,14 @@ export default function OnboardingScreen() {
     selectedCategories,
     selectedChallenges,
     selectedReason,
+    selectedSubject,
+    selectedMotherLanguage,
     loading,
     toggleCategory,
     toggleChallenge,
     selectReason,
+    selectSubject,
+    selectMotherLanguage,
     nextStep,
     prevStep
   } = useOnboarding();
@@ -26,19 +32,33 @@ export default function OnboardingScreen() {
     switch (step) {
       case 1:
         return (
+          <SubjectSelector
+            selectedSubject={selectedSubject}
+            onSelectSubject={selectSubject}
+          />
+        );
+      case 2:
+        return (
+          <MotherLanguageSelector
+            selectedMotherLanguage={selectedMotherLanguage}
+            onSelectMotherLanguage={selectMotherLanguage}
+          />
+        );
+      case 3:
+        return (
           <CategorySelector
             selectedCategories={selectedCategories}
             onToggleCategory={toggleCategory}
           />
         );
-      case 2:
+      case 4:
         return (
           <ChallengeSelector
             selectedChallenges={selectedChallenges}
             onToggleChallenge={toggleChallenge}
           />
         );
-      case 3:
+      case 5:
         return (
           <ReasonSelector
             selectedReason={selectedReason}
@@ -50,13 +70,32 @@ export default function OnboardingScreen() {
     }
   };
 
+  // Get the appropriate subtitle based on step and selected subject
+  const getStepTitle = () => {
+    const subjectName = selectedSubject || 'language';
+    switch (step) {
+      case 1:
+        return "Let's start learning";
+      case 2:
+        return "About your language background";
+      case 3:
+        return `Personalize your ${subjectName} learning`;
+      case 4:
+        return `What's challenging in ${subjectName}?`;
+      case 5:
+        return `Why learn ${subjectName}?`;
+      default:
+        return "Setup Your Practice";
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <Text style={styles.title}>Setup Your Practice</Text>
+          <Text style={styles.title}>{getStepTitle()}</Text>
           <Text style={styles.subtitle}>
-            Let's personalize your Dutch learning experience
+            Let's personalize your learning experience
           </Text>
         </View>
 
@@ -64,7 +103,7 @@ export default function OnboardingScreen() {
 
         <NavigationButtons
           currentStep={step}
-          totalSteps={3}
+          totalSteps={5}
           onNext={nextStep}
           onBack={prevStep}
           loading={loading}
