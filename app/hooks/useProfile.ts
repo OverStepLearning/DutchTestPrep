@@ -83,7 +83,7 @@ export function useProfile() {
       const historyResponse = await apiService.get(`/api/practice/history/${user._id}?page=1&limit=10&learningSubject=${subject}`);
       
       if (historyResponse && historyResponse.success) {
-        // Extract the total count from pagination
+        // Extract the total count from pagination for this specific subject
         const totalCompleted = historyResponse.pagination?.total || 0;
         const practices = historyResponse.data || [];
         
