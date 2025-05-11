@@ -11,6 +11,9 @@ import { DifficultyDisplay } from '../components/profile/DifficultyDisplay';
 import AISettings from '../components/profile/AISettings';
 import { useAIProvider } from '@/contexts/AIProviderContext';
 import { useTabContext } from '@/contexts/TabContext';
+import { storage } from '@/utils/storage';
+import Config from '@/constants/Config';
+import * as apiService from '@/utils/apiService';
 
 export default function ProfileScreen() {
   const {
@@ -61,6 +64,29 @@ export default function ProfileScreen() {
   // Button refresh handler
   const handleManualRefresh = () => {
     fetchUserProfile(true);
+  };
+  
+  // Add a function to test token expiration
+  const handleForceExpireToken = async () => {
+    try {
+      const token = await storage.getItem(Config.STORAGE_KEYS.AUTH_TOKEN);
+      if (token) {
+        // Modify the token to make it invalid
+        const invalidToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjE1MTYyMzkwMjJ9.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
+        await storage.setItem(Config.STORAGE_KEYS.AUTH_TOKEN, invalidToken);
+        
+        // Set the invalid token in API service directly
+        apiService.setAuthToken(invalidToken);
+        
+        // Immediate API request to trigger 401 error
+        console.log("[Profile] Testing token expiration with invalid token");
+        apiService.get('/api/user/profile').catch(err => {
+          console.log("[Profile] Expected auth error:", err.message);
+        });
+      }
+    } catch (error) {
+      console.error('Error forcing token expiration:', error);
+    }
   };
   
   useEffect(() => {
@@ -146,6 +172,17 @@ export default function ProfileScreen() {
             
             <AISettings />
 
+            {/* Developer testing buttons */}
+            <View style={styles.devSection}>
+              <Text style={styles.devSectionTitle}>Developer Tools</Text>
+              <TouchableOpacity 
+                style={styles.devButton}
+                onPress={handleForceExpireToken}
+              >
+                <Text style={styles.devButtonText}>Test Token Expiration</Text>
+              </TouchableOpacity>
+            </View>
+
             <TouchableOpacity 
               style={styles.logoutButton}
               onPress={handleLogout}
@@ -214,6 +251,31 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   retryButtonText: {
+    color: 'white',
+    fontWeight: '600',
+  },
+  devSection: {
+    backgroundColor: '#f1f1f1',
+    borderRadius: 8,
+    padding: 16,
+    marginVertical: 16,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  devSectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 12,
+    color: '#555',
+  },
+  devButton: {
+    backgroundColor: '#ff9800',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 6,
+    alignItems: 'center',
+  },
+  devButtonText: {
     color: 'white',
     fontWeight: '600',
   },

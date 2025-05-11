@@ -2,9 +2,10 @@ import React, { createContext, useState, useContext, useEffect, ReactNode } from
 import { router } from 'expo-router';
 import Config from '@/constants/Config';
 import { storage } from '@/utils/storage';
-import { setAuthToken, setBaseURL, getBaseURL } from '@/utils/apiService';
+import { setAuthToken, setBaseURL, getBaseURL, addTokenExpiredHandler, removeTokenExpiredHandler } from '@/utils/apiService';
 import * as apiService from '@/utils/apiService';
 import * as Sentry from '@sentry/react-native';
+import { Alert } from 'react-native';
 
 // Define user type
 interface User {
@@ -41,6 +42,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Logout handler
+  const logout = async () => {
+    try {
+      // Clear auth token in API service
+      setAuthToken(null);
+      
+      // Clear secure storage
+      await storage.removeItem(Config.STORAGE_KEYS.AUTH_TOKEN);
+      await storage.removeItem(Config.STORAGE_KEYS.USER_DATA);
+      
+      // Reset state
+      setUser(null);
+      setToken(null);
+      
+      // Navigate to login
+      router.replace('/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
+  // Handler for token expiration
+  const handleTokenExpiration = () => {
+    console.log("[AuthContext] Token expired, logging out user");
+    
+    // Log out immediately
+    logout();
+    
+    // Then show an alert to inform the user (after logout process has started)
+    Alert.alert(
+      "Session Expired",
+      "Your session has expired. You've been logged out. Please log in again.",
+      [{ text: "OK" }]
+    );
+  };
 
   // Load user data on app start
   useEffect(() => {
@@ -82,6 +119,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     loadStoredUser();
+    
+    // Register token expiration handler
+    addTokenExpiredHandler(handleTokenExpiration);
+    
+    // Clean up token expiration handler on unmount
+    return () => {
+      removeTokenExpiredHandler(handleTokenExpiration);
+    };
   }, []);
 
   // Fetch current user data from API
@@ -303,27 +348,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  // Logout handler
-  const logout = async () => {
-    try {
-      // Clear auth token in API service
-      setAuthToken(null);
-      
-      // Clear secure storage
-      await storage.removeItem(Config.STORAGE_KEYS.AUTH_TOKEN);
-      await storage.removeItem(Config.STORAGE_KEYS.USER_DATA);
-      
-      // Reset state
-      setUser(null);
-      setToken(null);
-      
-      // Navigate to login
-      router.replace('/login');
-    } catch (error) {
-      console.error('Logout error:', error);
     }
   };
 

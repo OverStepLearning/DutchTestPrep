@@ -310,35 +310,49 @@ export const testConnection = async (apiUrl: string): Promise<{ status: string; 
   }
 };
 
-// Add axios response interceptor to handle token expiration
+// Event handler for token expiration
+export const tokenExpiredHandlers: Array<() => void> = [];
+
+export const addTokenExpiredHandler = (handler: () => void) => {
+  tokenExpiredHandlers.push(handler);
+};
+
+export const removeTokenExpiredHandler = (handler: () => void) => {
+  const index = tokenExpiredHandlers.indexOf(handler);
+  if (index !== -1) {
+    tokenExpiredHandlers.splice(index, 1);
+  }
+};
+
+// Add axios response interceptor to handle token expiration and other auth failures
 api.interceptors.response.use(
   response => response,
   async (error: AxiosError) => {
-    // Check if error is due to token expiration
-    if (error.response?.status === 401 && 
-        error.response?.data && 
-        ((error.response.data as any)?.message === 'Not authorized, token failed' || 
-         (error.message && error.message.includes('jwt expired')))) {
+    // Check if error is due to token issues (expired token or invalid signature)
+    if (error.response?.status === 401) {
+      console.log('[API] Unauthorized error:', error.message);
+      console.log('[API] Token expired or invalid, notifying handlers');
       
-      console.log('[API] Token expired or invalid, logging out user');
       Sentry.addBreadcrumb({
         category: 'auth',
-        message: 'Token expired, automatic logout triggered',
+        message: 'Token invalid or expired, automatic logout triggered',
         level: 'info',
+        data: {
+          error: error.message
+        }
       });
 
       try {
         // Clear auth token in API service
         delete api.defaults.headers.common['Authorization'];
         
-        // Clear secure storage
-        await storage.removeItem(Config.STORAGE_KEYS.AUTH_TOKEN);
-        await storage.removeItem(Config.STORAGE_KEYS.USER_DATA);
-        
-        // Navigate to login
-        router.replace({
-          pathname: '/login',
-          params: { reason: 'session_expired' }
+        // Notify all handlers about token expiration
+        tokenExpiredHandlers.forEach(handler => {
+          try {
+            handler();
+          } catch (handlerError) {
+            console.error('Error in token expiration handler:', handlerError);
+          }
         });
       } catch (logoutError) {
         console.error('Error during automatic logout:', logoutError);
@@ -358,5 +372,7 @@ export default {
   setAuthToken,
   setBaseURL,
   getBaseURL,
-  testConnection
+  testConnection,
+  addTokenExpiredHandler,
+  removeTokenExpiredHandler
 }; 
