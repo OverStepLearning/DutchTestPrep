@@ -50,6 +50,9 @@ export function useOnboarding() {
         const savedSubject = await storage.getItem('selectedLearningSubject');
         if (savedSubject) {
           console.log(`[Onboarding] Found saved learning subject: ${savedSubject}`);
+          
+          // Reset all onboarding state for new subject
+          resetOnboardingState();
           setSelectedSubject(savedSubject);
           
           // Clear the saved subject to prevent it from affecting future onboarding sessions
@@ -62,6 +65,17 @@ export function useOnboarding() {
 
     loadSavedSubject();
   }, []);
+
+  // Reset all onboarding state to initial values
+  const resetOnboardingState = () => {
+    console.log('[Onboarding] Resetting onboarding state to step 1');
+    setStep(1);
+    setSelectedCategories([]);
+    setSelectedChallenges([]);
+    setSelectedReason(null);
+    setSelectedMotherLanguage('English');
+    setLoading(false);
+  };
 
   // Toggle category selection
   const toggleCategory = (category: string) => {
@@ -225,6 +239,7 @@ export function useOnboarding() {
     selectSubject,
     selectMotherLanguage,
     nextStep,
-    prevStep
+    prevStep,
+    resetOnboardingState
   };
 } 

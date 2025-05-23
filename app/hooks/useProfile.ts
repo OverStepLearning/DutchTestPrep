@@ -64,7 +64,7 @@ export const LANGUAGE_OPTIONS: LanguageOption[] = [
 
 export function useProfile() {
   const { user, logout, updateUserData } = useAuth();
-  const { currentSubject: tabSubject } = useTabContext();
+  const { currentSubject: tabSubject, forceRefreshAllTabs } = useTabContext();
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -134,9 +134,9 @@ export function useProfile() {
         apiService.setAuthToken(token);
       }
       
-      // Use the subject from TabContext directly instead of fetching it again
-      // This ensures consistent subject usage across the app
-      const subject = tabSubject || 'Dutch';
+      // Use currentSubject if available (most up-to-date), then tabSubject, then fallback to Dutch
+      // This ensures we use the latest subject even if TabContext hasn't updated yet
+      const subject = currentSubject || tabSubject || 'Dutch';
       
       // Update current subject if changed
       if (subject !== currentSubject) {
@@ -213,9 +213,9 @@ export function useProfile() {
   useEffect(() => {
     const onPracticeCompleted = () => {
       console.log('[Profile] Practice completed event received');
-      if (profile && profile.user.learningSubject === tabSubject) {
-        // Update the practice count
-        fetchCompleteStats(tabSubject);
+      if (profile && profile.user.learningSubject === currentSubject) {
+        // Update the practice count using the current subject
+        fetchCompleteStats(currentSubject);
       }
     };
     
@@ -229,7 +229,7 @@ export function useProfile() {
     return () => {
       subscription.remove();
     };
-  }, [profile, tabSubject]);
+  }, [profile, currentSubject]);
 
   // Initialize profile on component mount
   useEffect(() => {
@@ -340,8 +340,7 @@ export function useProfile() {
           // Set currentSubject in this hook to match the new subject
           setCurrentSubject(subject);
           
-          // Instead of immediately fetching a new profile, just update the existing one
-          // The TabContext will handle forcing refreshes of all tabs
+          // Update the profile state with the new subject immediately
           setProfile(prev => {
             if (!prev) return null;
             return {
@@ -353,6 +352,9 @@ export function useProfile() {
             };
           });
           
+          // Force refresh all tabs to update with new subject
+          forceRefreshAllTabs();
+          
           // Check if we need to redirect to onboarding for this subject
           try {
             const preferencesResponse = await apiService.get(`/api/user/preferences?learningSubject=${subject}`);
@@ -361,18 +363,14 @@ export function useProfile() {
               console.log(`[Profile] No preferences found for subject ${subject}, redirecting to onboarding`);
               await storage.setItem('selectedLearningSubject', subject);
               
-              Alert.alert(
-                'New Subject Selected',
-                `You've selected ${subject} as your learning subject. You need to set your learning preferences for this subject.`,
-                [
-                  {
-                    text: 'Set Preferences',
-                    onPress: () => router.replace('/(tabs)/onboarding')
-                  }
-                ]
-              );
+              // Redirect immediately without alert
+              router.replace('/(tabs)/onboarding');
             } else {
-              router.replace('/(tabs)');
+              console.log(`[Profile] Preferences found for subject ${subject}, staying on current page`);
+              // Force refresh the profile data for the new subject
+              setTimeout(() => {
+                fetchUserProfile(true);
+              }, 100);
             }
           } catch (prefError) {
             console.error(`[Profile] Error checking preferences:`, prefError);
