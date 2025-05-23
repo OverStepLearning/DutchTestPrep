@@ -29,6 +29,7 @@ interface AuthContextType {
   register: (name: string, email: string, password: string, customApiUrl?: string) => Promise<void>;
   logout: () => void;
   checkOnboardingStatus: () => boolean;
+  checkSubjectOnboardingStatus: (subject?: string) => Promise<boolean>;
   setOnboardingComplete: () => Promise<void>;
   updateUserData: (updates: Partial<User>) => Promise<void>;
 }
@@ -141,8 +142,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const userData = await apiService.get('/api/auth/me');
       
       if (userData && userData.success) {
-        setUser(userData.data);
-        await storage.setItem(Config.STORAGE_KEYS.USER_DATA, JSON.stringify(userData.data));
+        const user = userData.data;
+        setUser(user);
+        await storage.setItem(Config.STORAGE_KEYS.USER_DATA, JSON.stringify(user));
+        
+        // Check if we need to redirect based on subject-specific onboarding
+        const userLearningSubject = user.learningSubject || 'Dutch';
+        console.log(`[AuthContext] User loaded, checking onboarding for subject: ${userLearningSubject}`);
+        
+        try {
+          const preferencesResponse = await apiService.get(`/api/user/preferences?learningSubject=${userLearningSubject}`);
+          
+          if (!preferencesResponse || !preferencesResponse.data) {
+            // No preferences for current subject, redirect to onboarding
+            console.log(`[AuthContext] No preferences found for ${userLearningSubject}, should go to onboarding`);
+            // Note: We don't redirect here since this might be called during app initialization
+            // The app will handle redirection based on the user's navigation state
+          } else {
+            console.log(`[AuthContext] Preferences found for ${userLearningSubject}, user is fully onboarded`);
+          }
+        } catch (preferencesError) {
+          console.warn(`[AuthContext] Error checking preferences during user fetch:`, preferencesError);
+          // Continue with normal flow if we can't check preferences
+        }
       } else {
         throw new Error('Failed to fetch user data');
       }
@@ -202,7 +224,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           _id: data._id,
           name: data.name,
           email: data.email,
-          hasCompletedOnboarding: data.hasCompletedOnboarding || false
+          hasCompletedOnboarding: data.hasCompletedOnboarding || false,
+          learningSubject: data.learningSubject || 'Dutch'
         };
         
         // Save token and user data
@@ -216,11 +239,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setToken(newToken);
         setUser(userData);
         
-        // Navigate based on onboarding status
-        if (userData.hasCompletedOnboarding) {
-          router.replace('/');
-        } else {
-          router.replace('/(tabs)/onboarding');
+        // Check if onboarding is completed for the current learning subject
+        const userLearningSubject = userData.learningSubject || 'Dutch';
+        console.log(`[AuthContext] Checking onboarding for subject: ${userLearningSubject}`);
+        
+        try {
+          // Check if preferences exist for the current learning subject
+          const preferencesResponse = await apiService.get(`/api/user/preferences?learningSubject=${userLearningSubject}`);
+          
+          if (preferencesResponse && preferencesResponse.data) {
+            // Preferences exist for this subject, go to home
+            console.log(`[AuthContext] Preferences found for ${userLearningSubject}, navigating to home`);
+            router.replace('/');
+          } else {
+            // No preferences for this subject, go to onboarding
+            console.log(`[AuthContext] No preferences found for ${userLearningSubject}, navigating to onboarding`);
+            router.replace('/(tabs)/onboarding');
+          }
+        } catch (preferencesError) {
+          console.warn(`[AuthContext] Error checking preferences for ${userLearningSubject}:`, preferencesError);
+          // If we can't check preferences, use the global onboarding flag as fallback
+          if (userData.hasCompletedOnboarding) {
+            router.replace('/');
+          } else {
+            router.replace('/(tabs)/onboarding');
+          }
         }
       } else {
         setError(data.message || 'Login failed');
@@ -356,6 +399,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return user?.hasCompletedOnboarding || false;
   };
 
+  // Check if user has completed onboarding for a specific subject
+  const checkSubjectOnboardingStatus = async (subject?: string): Promise<boolean> => {
+    if (!user) return false;
+    
+    const learningSubject = subject || user.learningSubject || 'Dutch';
+    
+    try {
+      const preferencesResponse = await apiService.get(`/api/user/preferences?learningSubject=${learningSubject}`);
+      return !!(preferencesResponse && preferencesResponse.data);
+    } catch (error) {
+      console.warn(`[AuthContext] Error checking subject onboarding for ${learningSubject}:`, error);
+      // Fallback to global onboarding status
+      return user.hasCompletedOnboarding || false;
+    }
+  };
+
   // Set onboarding as completed
   const setOnboardingComplete = async () => {
     try {
@@ -412,6 +471,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         register,
         logout,
         checkOnboardingStatus,
+        checkSubjectOnboardingStatus,
         setOnboardingComplete,
         updateUserData
       }}

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Link, Tabs } from 'expo-router';
 import { Pressable, useColorScheme } from 'react-native';
@@ -18,16 +18,12 @@ function TabBarIcon(props: {
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
-  const { user, checkOnboardingStatus } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
   
-  // Check if user has completed onboarding
-  useEffect(() => {
-    // If user hasn't completed onboarding, redirect to onboarding
-    if (user && !checkOnboardingStatus()) {
-      router.replace('/(tabs)/onboarding');
-    }
-  }, [user]);
+  // Note: Removed automatic onboarding redirection from here to prevent race conditions
+  // The login flow in AuthContext now handles initial navigation based on subject-specific onboarding
+  // Only individual tabs/components should check if they need onboarding for their specific functionality
 
   return (
     <Tabs

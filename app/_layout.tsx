@@ -70,7 +70,10 @@ function RootLayoutNav() {
     } else if (user && !inAuthGroup) {
       // Redirect to the home page if the user is logged in 
       // and on an authentication page
-      router.replace('/');
+      // Add a small delay to prevent conflicts with login navigation
+      setTimeout(() => {
+        router.replace('/');
+      }, 100);
     }
   }, [user, segments, isLoading]);
 
