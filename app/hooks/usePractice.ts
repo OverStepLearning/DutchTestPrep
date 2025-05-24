@@ -52,6 +52,7 @@ export function usePractice() {
       _id: item._id || '',
       content: item.content || '',
       translation: item.translation || '',
+      scaffolding: item.scaffolding || '',
       difficulty: typeof item.difficulty === 'number' ? item.difficulty : 1,
       complexity: typeof item.complexity === 'number' ? item.complexity : 1,
       categories: Array.isArray(item.categories) ? item.categories : [],

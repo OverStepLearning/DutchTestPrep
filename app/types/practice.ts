@@ -3,6 +3,7 @@ export interface PracticeItem {
   _id: string;
   content: string | string[];
   translation?: string | string[];
+  scaffolding?: string; // Hint or scaffolding information from AI
   practiceType?: string; // 'Vocabulary', 'Grammar', 'Sentence structure', etc.
   difficulty: number; // 1-10 scale as a number
   complexity: number; // 1-10 scale as a number

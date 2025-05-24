@@ -72,7 +72,7 @@ function RootLayoutNav() {
       // and on an authentication page
       // Add a small delay to prevent conflicts with login navigation
       setTimeout(() => {
-        router.replace('/');
+      router.replace('/');
       }, 100);
     }
   }, [user, segments, isLoading]);

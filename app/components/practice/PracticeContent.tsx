@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, TouchableOpacity, Animated } from 'react-native';
 import { practiceStyles } from './styles';
 import { PracticeItem } from '../../types/practice';
 import { displayContent } from '../../utils/practiceUtils';
@@ -9,11 +9,54 @@ interface PracticeContentProps {
 }
 
 export const PracticeContent: React.FC<PracticeContentProps> = ({ practice }) => {
+  const [isHintExpanded, setIsHintExpanded] = useState(false);
+  const animatedHeight = useRef(new Animated.Value(0)).current;
+
+  const toggleHint = () => {
+    setIsHintExpanded(!isHintExpanded);
+    Animated.timing(animatedHeight, {
+      toValue: isHintExpanded ? 0 : 1,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+  };
+
+  const hintMaxHeight = animatedHeight.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 200], // Adjust this value based on your content
+  });
+
   return (
     <>
       <Text style={practiceStyles.practiceText}>
         {displayContent(practice.content)}
       </Text>
+      
+      {/* Show scaffolding/hint if available */}
+      {practice.scaffolding && practice.scaffolding.trim() !== '' && (
+        <View style={practiceStyles.hintContainer}>
+          <TouchableOpacity onPress={toggleHint} style={practiceStyles.hintHeader}>
+            <Text style={practiceStyles.hintLabel}>💡 Hint</Text>
+            <Text style={[practiceStyles.hintToggle, { transform: [{ rotate: isHintExpanded ? '180deg' : '0deg' }] }]}>
+              ▼
+            </Text>
+          </TouchableOpacity>
+          
+          <Animated.View 
+            style={[
+              practiceStyles.hintContent,
+              { 
+                maxHeight: hintMaxHeight,
+                opacity: animatedHeight,
+              }
+            ]}
+          >
+            <Text style={practiceStyles.hintText}>
+              {practice.scaffolding}
+            </Text>
+          </Animated.View>
+        </View>
+      )}
       
       {/* Difficulty and complexity indicators */}
       <View style={practiceStyles.difficultyContainer}>

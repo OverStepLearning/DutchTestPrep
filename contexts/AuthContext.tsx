@@ -259,10 +259,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } catch (preferencesError) {
           console.warn(`[AuthContext] Error checking preferences for ${userLearningSubject}:`, preferencesError);
           // If we can't check preferences, use the global onboarding flag as fallback
-          if (userData.hasCompletedOnboarding) {
-            router.replace('/');
-          } else {
-            router.replace('/(tabs)/onboarding');
+        if (userData.hasCompletedOnboarding) {
+          router.replace('/');
+        } else {
+          router.replace('/(tabs)/onboarding');
           }
         }
       } else {

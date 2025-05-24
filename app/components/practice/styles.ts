@@ -43,6 +43,40 @@ export const practiceStyles = StyleSheet.create({
     color: '#333',
     marginBottom: 10,
   },
+  // Hint/scaffolding styles
+  hintContainer: {
+    backgroundColor: '#fff3cd',
+    borderLeftWidth: 4,
+    borderLeftColor: '#ffc107',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+  },
+  hintHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 4,
+  },
+  hintLabel: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#856404',
+  },
+  hintToggle: {
+    fontSize: 12,
+    color: '#856404',
+    fontWeight: 'bold',
+  },
+  hintContent: {
+    overflow: 'hidden',
+  },
+  hintText: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: '#6c5100',
+    marginTop: 8,
+  },
   translationText: {
     fontSize: 14,
     color: '#666',
