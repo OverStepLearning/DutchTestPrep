@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { usePractice } from '../hooks/usePractice';
 import { useAuth } from '../../contexts/AuthContext';
+import { useTabContext } from '@/contexts/TabContext';
 import { practiceStyles } from '../components/practice/styles';
 import { DifficultyAdjuster } from '../components/practice/DifficultyAdjuster';
 import { PracticeContent } from '../components/practice/PracticeContent';
@@ -20,6 +21,7 @@ export default function PracticeScreen() {
   const auth = useAuth();
   const user = auth?.user;
   const token = auth?.token;
+  const { currentSubject } = useTabContext();
 
   const {
     loading,
@@ -112,7 +114,7 @@ export default function PracticeScreen() {
     <SafeAreaView style={practiceStyles.container}>
       <ScrollView contentContainerStyle={practiceStyles.scrollContainer}>
         <View style={practiceStyles.header}>
-          <Text style={practiceStyles.title}>Dutch Practice</Text>
+          <Text style={practiceStyles.title}>{currentSubject || 'Dutch'} Practice</Text>
         </View>
         
         {/* Difficulty adjuster */}

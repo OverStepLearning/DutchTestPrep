@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import { practiceStyles } from './styles';
 import { PracticeItem } from '../../types/practice';
+import { useTabContext } from '../../../contexts/TabContext';
 
 interface AnswerInputProps {
   practice: PracticeItem;
@@ -18,6 +19,8 @@ export const AnswerInput: React.FC<AnswerInputProps> = ({
   onSubmit,
   disabled
 }) => {
+  const { currentSubject } = useTabContext();
+
   // Check for both 'mcq' and 'multiple-choice' question types
   const isMultipleChoice = (practice.questionType === 'mcq' || practice.questionType === 'multiple-choice') && 
       Array.isArray(practice.options) && 
@@ -71,7 +74,7 @@ export const AnswerInput: React.FC<AnswerInputProps> = ({
     <View>
       <TextInput
         style={practiceStyles.answerInput}
-        placeholder="Type your answer in Dutch..."
+        placeholder={`Type your answer in ${currentSubject || 'Dutch'}...`}
         value={userAnswer || ''}
         onChangeText={onChangeAnswer}
         multiline
