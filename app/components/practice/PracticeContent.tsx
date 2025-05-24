@@ -35,7 +35,13 @@ export const PracticeContent: React.FC<PracticeContentProps> = ({ practice }) =>
       {/* Show scaffolding/hint if available */}
       {practice.scaffolding && practice.scaffolding.trim() !== '' && (
         <View style={practiceStyles.hintContainer}>
-          <TouchableOpacity onPress={toggleHint} style={practiceStyles.hintHeader}>
+          <TouchableOpacity 
+            onPress={toggleHint} 
+            style={[
+              practiceStyles.hintHeader,
+              { opacity: isHintExpanded ? 1 : 0.6 }
+            ]}
+          >
             <Text style={practiceStyles.hintLabel}>💡 Hint</Text>
             <Text style={[practiceStyles.hintToggle, { transform: [{ rotate: isHintExpanded ? '180deg' : '0deg' }] }]}>
               ▼
