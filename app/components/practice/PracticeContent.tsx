@@ -6,9 +6,13 @@ import { displayContent } from '../../utils/practiceUtils';
 
 interface PracticeContentProps {
   practice: PracticeItem;
+  subjectProgress?: {
+    currentDifficulty: number;
+    currentComplexity: number;
+  };
 }
 
-export const PracticeContent: React.FC<PracticeContentProps> = ({ practice }) => {
+export const PracticeContent: React.FC<PracticeContentProps> = ({ practice, subjectProgress }) => {
   const [isHintExpanded, setIsHintExpanded] = useState(false);
   const animatedHeight = useRef(new Animated.Value(0)).current;
 
@@ -67,10 +71,10 @@ export const PracticeContent: React.FC<PracticeContentProps> = ({ practice }) =>
       {/* Difficulty and complexity indicators */}
       <View style={practiceStyles.difficultyContainer}>
         <Text style={practiceStyles.levelText}>
-          Difficulty: {practice.difficulty ? practice.difficulty.toFixed(2) : '1.00'}/10
+          Difficulty: {subjectProgress?.currentDifficulty ? subjectProgress.currentDifficulty.toFixed(2) : (practice.difficulty ? practice.difficulty.toFixed(2) : '1.00')}/10
         </Text>
         <Text style={practiceStyles.levelText}>
-          Complexity: {practice.complexity ? practice.complexity.toFixed(2) : '1.00'}/10
+          Complexity: {subjectProgress?.currentComplexity ? subjectProgress.currentComplexity.toFixed(2) : (practice.complexity ? practice.complexity.toFixed(2) : '1.00')}/10
         </Text>
       </View>
       

@@ -41,7 +41,52 @@ export function usePractice() {
     isInAdjustmentMode: false,
     adjustmentPracticesRemaining: 0
   });
+  const [subjectProgress, setSubjectProgress] = useState<{
+    currentDifficulty: number;
+    currentComplexity: number;
+  }>({
+    currentDifficulty: 1,
+    currentComplexity: 1
+  });
   const router = useRouter();
+
+  // Function to fetch subject-specific progress data (same as profile)
+  const fetchSubjectProgress = async (subject: string): Promise<void> => {
+    try {
+      const token = await storage.getItem(config.STORAGE_KEYS.AUTH_TOKEN);
+      if (token) {
+        apiService.setAuthToken(token);
+      }
+      
+      console.log(`[usePractice] Fetching progress for subject: ${subject}`);
+      
+      // Use the same API endpoint as profile to get subject-specific progress
+      const response = await apiService.get(`/api/user/profile?learningSubject=${subject}`);
+      
+      if (response?.success && response?.data?.progress) {
+        const progress = response.data.progress;
+        setSubjectProgress({
+          currentDifficulty: progress.currentDifficulty || 1,
+          currentComplexity: progress.currentComplexity || 1
+        });
+        console.log(`[usePractice] Updated progress - Difficulty: ${progress.currentDifficulty}, Complexity: ${progress.currentComplexity}`);
+      } else {
+        console.log(`[usePractice] No progress data found for subject: ${subject}`);
+        // Keep default values if no data available
+        setSubjectProgress({
+          currentDifficulty: 1,
+          currentComplexity: 1
+        });
+      }
+    } catch (error) {
+      console.warn(`[usePractice] Error fetching progress for subject ${subject}:`, error);
+      // Keep default values on error
+      setSubjectProgress({
+        currentDifficulty: 1,
+        currentComplexity: 1
+      });
+    }
+  };
 
   // Helper function to ensure practice item is formatted correctly
   const mapPracticeItem = (item: any): PracticeItem => {
@@ -559,6 +604,12 @@ export function usePractice() {
         PracticeEventEmitter.emit(practiceEvents.PRACTICE_COMPLETED);
         console.log('[usePractice] Emitted practice completed event');
         
+        // Refresh subject progress data to show updated difficulty/complexity immediately
+        if (tabSubject) {
+          await fetchSubjectProgress(tabSubject);
+          console.log('[usePractice] Refreshed subject progress after answer submission');
+        }
+        
         // Update adjustment mode remaining count if in adjustment mode
         if (adjustmentMode.isInAdjustmentMode && response.adjustmentPracticesRemaining !== undefined) {
           setAdjustmentMode({
@@ -600,22 +651,37 @@ export function usePractice() {
     }
   };
 
-  // Update difficulty trend when current practice changes
+  // Update difficulty trend when subject progress changes (user's actual level)
   useEffect(() => {
-    if (currentPractice && currentPractice.difficulty && previousDifficultyRef.current !== null) {
-        if (currentPractice.difficulty > previousDifficultyRef.current) {
-          setDifficultyTrend('increasing');
-        } else if (currentPractice.difficulty < previousDifficultyRef.current) {
-          setDifficultyTrend('decreasing');
-        } else {
-          setDifficultyTrend('stable');
-        }
+    if (subjectProgress && subjectProgress.currentDifficulty && previousDifficultyRef.current !== null) {
+      if (subjectProgress.currentDifficulty > previousDifficultyRef.current) {
+        setDifficultyTrend('increasing');
+      } else if (subjectProgress.currentDifficulty < previousDifficultyRef.current) {
+        setDifficultyTrend('decreasing');
+      } else {
+        setDifficultyTrend('stable');
       }
-    
-    if (currentPractice?.difficulty) {
-      previousDifficultyRef.current = currentPractice.difficulty;
     }
-  }, [currentPractice]);
+    
+    if (subjectProgress?.currentDifficulty) {
+      previousDifficultyRef.current = subjectProgress.currentDifficulty;
+    }
+  }, [subjectProgress.currentDifficulty]); // Track changes in user's actual difficulty level
+
+  // Handle subject changes - fetch new progress data for the new subject
+  useEffect(() => {
+    if (tabSubject) {
+      console.log(`[usePractice] Subject changed to ${tabSubject}, fetching progress data`);
+      fetchSubjectProgress(tabSubject);
+    }
+  }, [tabSubject]);
+
+  // Initialize progress data on mount
+  useEffect(() => {
+    if (user && tabSubject) {
+      fetchSubjectProgress(tabSubject);
+    }
+  }, [user]);
 
   return {
     loading,
@@ -632,6 +698,7 @@ export function usePractice() {
     feedbackQuestion,
     feedbackAnswer,
     adjustmentMode,
+    subjectProgress,
     
     setUserAnswer,
     setFeedbackQuestion,
@@ -642,6 +709,7 @@ export function usePractice() {
     showAdjustmentDialog,
     askFollowUpQuestion,
     setFeedbackAnswer,
-    enterAdjustmentMode
+    enterAdjustmentMode,
+    fetchSubjectProgress
   };
 } 

@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 interface DifficultyDisplayProps {
@@ -13,6 +13,8 @@ export const DifficultyDisplay: React.FC<DifficultyDisplayProps> = ({
   currentComplexity,
   averageDifficulty
 }) => {
+  const [showInfoModal, setShowInfoModal] = useState(false);
+
   // Format numbers to 2 decimal places
   const formatNumber = (num: number): string => num.toFixed(2);
   
@@ -31,13 +33,21 @@ export const DifficultyDisplay: React.FC<DifficultyDisplayProps> = ({
     if (level < 8) return 'Advanced';
     return 'Expert';
   };
-  
+
   const difficultyColor = getDifficultyColor(currentDifficulty);
   const difficultyLabel = getDifficultyLabel(currentDifficulty);
   
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Learning Level</Text>
+      <View style={styles.titleContainer}>
+        <Text style={styles.title}>Learning Level</Text>
+        <TouchableOpacity 
+          onPress={() => setShowInfoModal(true)}
+          style={styles.infoIconContainer}
+        >
+          <Ionicons name="information-circle-outline" size={20} color="#4f86f7" />
+        </TouchableOpacity>
+      </View>
       
       <View style={styles.levelContainer}>
         <View style={styles.mainLevelDisplay}>
@@ -75,6 +85,60 @@ export const DifficultyDisplay: React.FC<DifficultyDisplayProps> = ({
           </Text>
         </View>
       </View>
+
+      {/* Info Modal */}
+      <Modal
+        visible={showInfoModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowInfoModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Learning Metrics Explained</Text>
+              <TouchableOpacity 
+                onPress={() => setShowInfoModal(false)}
+                style={styles.closeButton}
+              >
+                <Ionicons name="close" size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
+            
+            <View style={styles.explanationContainer}>
+              <View style={styles.explanationItem}>
+                <View style={styles.explanationHeader}>
+                  <Ionicons name="school" size={20} color="#4f86f7" />
+                  <Text style={styles.explanationTitle}>Learning Level</Text>
+                </View>
+                <Text style={styles.explanationText}>
+                  Your current skill level (1-10). This increases when you answer correctly and decreases when you struggle. It determines the difficulty of new practice questions.
+                </Text>
+              </View>
+
+              <View style={styles.explanationItem}>
+                <View style={styles.explanationHeader}>
+                  <Ionicons name="trending-up" size={20} color="#4f86f7" />
+                  <Text style={styles.explanationTitle}>Complexity Level</Text>
+                </View>
+                <Text style={styles.explanationText}>
+                  How complex the language structures are (1-10). This tracks your mastery of advanced grammar, vocabulary, and sentence patterns. Resets when you reach mastery.
+                </Text>
+              </View>
+
+              <View style={styles.explanationItem}>
+                <View style={styles.explanationHeader}>
+                  <Ionicons name="analytics" size={20} color="#4f86f7" />
+                  <Text style={styles.explanationTitle}>Average Difficulty</Text>
+                </View>
+                <Text style={styles.explanationText}>
+                  The average difficulty of all practice questions you've completed. This shows your historical performance and learning progress over time.
+                </Text>
+              </View>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -91,10 +155,17 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
+  titleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
   title: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 12,
+  },
+  infoIconContainer: {
+    padding: 4,
   },
   levelContainer: {
     alignItems: 'center',
@@ -156,5 +227,52 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     flex: 1,
     lineHeight: 20,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 12,
+    width: '80%',
+    maxHeight: '80%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    flex: 1,
+  },
+  closeButton: {
+    padding: 4,
+  },
+  explanationContainer: {
+    flex: 1,
+  },
+  explanationItem: {
+    marginBottom: 12,
+  },
+  explanationHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  explanationTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginLeft: 8,
+  },
+  explanationText: {
+    fontSize: 14,
+    color: '#555',
   },
 }); 

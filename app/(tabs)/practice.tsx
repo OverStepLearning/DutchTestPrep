@@ -38,6 +38,7 @@ export default function PracticeScreen() {
     feedbackAnswer,
     askingQuestion,
     adjustmentMode,
+    subjectProgress,
     
     setUserAnswer,
     setFeedbackQuestion,
@@ -121,8 +122,8 @@ export default function PracticeScreen() {
         {currentPractice && (
           <DifficultyAdjuster 
             difficultyTrend={difficultyTrend}
-            difficultyValue={currentPractice.difficulty}
-            complexityValue={currentPractice.complexity || 1}
+            difficultyValue={subjectProgress.currentDifficulty}
+            complexityValue={subjectProgress.currentComplexity}
             difficultyChange={difficultyChange}
             complexityChange={complexityChange}
             adjusting={adjusting}
@@ -185,7 +186,7 @@ export default function PracticeScreen() {
             {/* Practice content */}
             {currentPractice && (
               <View style={practiceStyles.practiceContainer}>
-                <PracticeContent practice={currentPractice} />
+                <PracticeContent practice={currentPractice} subjectProgress={subjectProgress} />
                 
                 {!feedback ? (
                   <AnswerInput 
