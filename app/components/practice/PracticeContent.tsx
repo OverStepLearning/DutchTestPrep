@@ -71,7 +71,7 @@ export const PracticeContent: React.FC<PracticeContentProps> = ({ practice, subj
       {/* Difficulty and complexity indicators */}
       <View style={practiceStyles.difficultyContainer}>
         <Text style={practiceStyles.levelText}>
-          Difficulty: {subjectProgress?.currentDifficulty ? subjectProgress.currentDifficulty.toFixed(2) : (practice.difficulty ? practice.difficulty.toFixed(2) : '1.00')}/10
+          Learning Level: {subjectProgress?.currentDifficulty ? subjectProgress.currentDifficulty.toFixed(2) : (practice.difficulty ? practice.difficulty.toFixed(2) : '1.00')}/10
         </Text>
         <Text style={practiceStyles.levelText}>
           Complexity: {subjectProgress?.currentComplexity ? subjectProgress.currentComplexity.toFixed(2) : (practice.complexity ? practice.complexity.toFixed(2) : '1.00')}/10

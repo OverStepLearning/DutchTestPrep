@@ -352,7 +352,7 @@ export function usePractice() {
     if (adjustmentMode.isInAdjustmentMode) {
       Alert.alert(
         'Adjustment in Progress',
-        'You are currently in adjustment mode. Complete the remaining practice exercises to finish calibrating your difficulty level.',
+        'You are currently in adjustment mode. Complete the remaining practice exercises to finish calibrating your learning level.',
         [{ text: 'OK' }]
       );
       return;
@@ -361,7 +361,7 @@ export function usePractice() {
     // Show confirmation before entering adjustment mode
     Alert.alert(
       'Enter Adjustment Mode',
-      'Would you like to enter difficulty adjustment mode? This will calibrate the difficulty level to better match your skills.',
+      'Would you like to enter learning level adjustment mode? This will calibrate the learning level to better match your skills.',
       [
         {
           text: 'Yes, Enter Adjustment Mode',
@@ -383,7 +383,7 @@ export function usePractice() {
       setAdjusting(true);
       
       if (!user) {
-        Alert.alert('Error', 'You must be logged in to adjust difficulty');
+        Alert.alert('Error', 'You must be logged in to adjust learning level');
         setAdjusting(false);
         return;
       }
@@ -419,7 +419,7 @@ export function usePractice() {
       // Show confirmation
         Alert.alert(
         'Adjustment Mode Activated',
-        `You have entered adjustment mode. The next ${ADJUSTMENT_PRACTICES_COUNT} questions will help calibrate your difficulty level.`,
+        `You have entered adjustment mode. The next ${ADJUSTMENT_PRACTICES_COUNT} questions will help calibrate your learning level.`,
         [{ 
           text: 'OK',
           onPress: () => {
@@ -622,7 +622,7 @@ export function usePractice() {
             setTimeout(() => {
               Alert.alert(
                 'Adjustment Complete',
-                'Difficulty adjustment complete! Your practice difficulty has been calibrated based on your performance.',
+                'Learning level adjustment complete! Your practice learning level has been calibrated based on your performance.',
                 [{ text: 'OK' }]
               );
             }, 1000);

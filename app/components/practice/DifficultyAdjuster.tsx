@@ -64,7 +64,7 @@ export const DifficultyAdjuster: React.FC<DifficultyAdjusterProps> = ({
     
       <View style={practiceStyles.difficultyHeader}>
         <Text style={practiceStyles.difficultyText}>
-          Current {adjustmentModeStr} Difficulty: {formattedDifficulty}/10
+          Current {adjustmentModeStr} Learning Level: {formattedDifficulty}/10
         </Text>
         
         {hasChanges && (
@@ -109,7 +109,7 @@ export const DifficultyAdjuster: React.FC<DifficultyAdjusterProps> = ({
         <View style={practiceStyles.changesContainer}>
           {difficultyChange && (
             <View style={practiceStyles.changeItem}>
-              <Text style={practiceStyles.changeLabel}>Difficulty Change</Text>
+              <Text style={practiceStyles.changeLabel}>Learning Level Change</Text>
               <Text style={[
                 practiceStyles.changeValueText,
                 {color: difficultyChange.startsWith('-') ? '#e74c3c' : '#27ae60'}
@@ -153,7 +153,7 @@ export const DifficultyAdjuster: React.FC<DifficultyAdjusterProps> = ({
             <Text style={practiceStyles.adjustButtonText}>
               {safeAdjustmentMode.isInAdjustmentMode 
                 ? 'Adjustment in progress...' 
-                : 'Adjust Difficulty'}
+                : 'Adjust Learning Level'}
             </Text>
           </>
         )}
