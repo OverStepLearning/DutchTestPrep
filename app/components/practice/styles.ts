@@ -71,7 +71,7 @@ export const practiceStyles = StyleSheet.create({
     opacity: 0.8,
   },
   hintContent: {
-    overflow: 'hidden',
+    // Remove overflow hidden to allow full content display
   },
   hintText: {
     fontSize: 15,

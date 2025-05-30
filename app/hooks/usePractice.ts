@@ -20,7 +20,7 @@ import { PracticeEventEmitter, practiceEvents } from '../hooks/useProfile';
 
 export function usePractice() {
   const { user } = useAuth();
-  const { currentProvider, deepseekApiKey } = useAIProvider();
+  const { currentProvider, deepseekApiKey, geminiApiKey } = useAIProvider();
   const { currentSubject: tabSubject } = useTabContext();
   const [loading, setLoading] = useState(false);
   const [generatingBatch, setGeneratingBatch] = useState(false);
@@ -216,7 +216,8 @@ export function usePractice() {
         learningSubject: tabSubject || 'Dutch',
         batchSize: adjustmentMode.isInAdjustmentMode ? 1 : 3,
         aiProvider: currentProvider,
-        deepseekApiKey: currentProvider === 'deepseek' ? deepseekApiKey : null
+        deepseekApiKey: currentProvider === 'deepseek' ? deepseekApiKey : null,
+        geminiApiKey: currentProvider === 'gemini' ? geminiApiKey : null
       });
       
       // Ensure we have valid data before setting it
@@ -288,7 +289,8 @@ export function usePractice() {
         learningSubject: tabSubject || 'Dutch',
         batchSize: 5, // Request more items for the queue
         aiProvider: currentProvider,
-        deepseekApiKey: currentProvider === 'deepseek' ? deepseekApiKey : null
+        deepseekApiKey: currentProvider === 'deepseek' ? deepseekApiKey : null,
+        geminiApiKey: currentProvider === 'gemini' ? geminiApiKey : null
       });
       
       if (response?.success) {
@@ -409,7 +411,8 @@ export function usePractice() {
         const response = await apiService.post('/api/practice/enter-adjustment-mode', {
           learningSubject: tabSubject || 'Dutch',
           aiProvider: currentProvider,
-          deepseekApiKey: currentProvider === 'deepseek' ? deepseekApiKey : null
+          deepseekApiKey: currentProvider === 'deepseek' ? deepseekApiKey : null,
+          geminiApiKey: currentProvider === 'gemini' ? geminiApiKey : null
         });
         
       } catch (apiError) {
@@ -465,7 +468,8 @@ export function usePractice() {
         question: feedbackQuestion,
         learningSubject: tabSubject || 'Dutch',
         aiProvider: currentProvider,
-        deepseekApiKey: currentProvider === 'deepseek' ? deepseekApiKey : null
+        deepseekApiKey: currentProvider === 'deepseek' ? deepseekApiKey : null,
+        geminiApiKey: currentProvider === 'gemini' ? geminiApiKey : null
       });
       
       console.log(`[usePractice] Question response:`, response ? 'Response received' : 'No response');
@@ -542,7 +546,8 @@ export function usePractice() {
           userAnswer: userAnswer,
           learningSubject: tabSubject || 'Dutch',
           aiProvider: currentProvider,
-          deepseekApiKey: currentProvider === 'deepseek' ? deepseekApiKey : null
+          deepseekApiKey: currentProvider === 'deepseek' ? deepseekApiKey : null,
+          geminiApiKey: currentProvider === 'gemini' ? geminiApiKey : null
         });
         
         console.log(`[usePractice] Submit response:`, response ? 'Response received' : 'No response');

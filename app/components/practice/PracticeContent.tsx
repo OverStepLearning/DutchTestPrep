@@ -25,11 +25,6 @@ export const PracticeContent: React.FC<PracticeContentProps> = ({ practice, subj
     }).start();
   };
 
-  const hintMaxHeight = animatedHeight.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 200], // Adjust this value based on your content
-  });
-
   return (
     <>
       <Text style={practiceStyles.practiceText}>
@@ -52,19 +47,13 @@ export const PracticeContent: React.FC<PracticeContentProps> = ({ practice, subj
             </Text>
           </TouchableOpacity>
           
-          <Animated.View 
-            style={[
-              practiceStyles.hintContent,
-              { 
-                maxHeight: hintMaxHeight,
-                opacity: animatedHeight,
-              }
-            ]}
-          >
-            <Text style={practiceStyles.hintText}>
-              {practice.scaffolding}
-            </Text>
-          </Animated.View>
+          {isHintExpanded && (
+            <View style={practiceStyles.hintContent}>
+              <Text style={practiceStyles.hintText}>
+                {practice.scaffolding}
+              </Text>
+            </View>
+          )}
         </View>
       )}
       

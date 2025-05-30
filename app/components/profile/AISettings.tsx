@@ -14,9 +14,11 @@ export default function AISettings() {
     try {
       await setAIProvider(provider);
     } catch (error) {
+      const providerName = provider === 'gpt4o' ? 'GPT-4o' : 
+                          provider === 'deepseek' ? 'DeepSeek' : 'Gemini';
       Alert.alert(
         'Error',
-        `Failed to switch to ${provider === 'gpt4o' ? 'GPT-4' : 'DeepSeek'} AI`
+        `Failed to switch to ${providerName} AI`
       );
     } finally {
       setIsLoading(false);
@@ -39,7 +41,7 @@ export default function AISettings() {
             disabled={isLoading}
           >
             <Ionicons
-              name="logo-google"
+              name="hardware-chip"
               size={24}
               color={currentProvider === 'gpt4o' ? '#fff' : '#666'}
             />
@@ -47,7 +49,7 @@ export default function AISettings() {
               styles.providerButtonText,
               currentProvider === 'gpt4o' && styles.activeProviderButtonText
             ]}>
-              GPT-4
+              GPT-4o
             </Text>
           </TouchableOpacity>
 
@@ -69,6 +71,27 @@ export default function AISettings() {
               currentProvider === 'deepseek' && styles.activeProviderButtonText
             ]}>
               DeepSeek
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.providerButton,
+              currentProvider === 'gemini' && styles.activeProviderButton
+            ]}
+            onPress={() => handleProviderSwitch('gemini')}
+            disabled={isLoading}
+          >
+            <Ionicons
+              name="logo-google"
+              size={24}
+              color={currentProvider === 'gemini' ? '#fff' : '#666'}
+            />
+            <Text style={[
+              styles.providerButtonText,
+              currentProvider === 'gemini' && styles.activeProviderButtonText
+            ]}>
+              Gemini
             </Text>
           </TouchableOpacity>
         </View>
@@ -101,10 +124,12 @@ const styles = StyleSheet.create({
   },
   providerButtons: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 8,
+    flexWrap: 'wrap',
   },
   providerButton: {
     flex: 1,
+    minWidth: 100,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -117,8 +142,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#007AFF',
   },
   providerButtonText: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#666',
+    fontWeight: '500',
   },
   activeProviderButtonText: {
     color: '#fff',

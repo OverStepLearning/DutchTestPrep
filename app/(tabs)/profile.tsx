@@ -33,7 +33,7 @@ export default function ProfileScreen() {
   const [refreshing, setRefreshing] = React.useState(false);
   
   // Initialize DeepSeek API key if provided by the user
-  const { setDeepseekApiKey } = useAIProvider();
+  const { setDeepseekApiKey, setGeminiApiKey } = useAIProvider();
   
   // Refresh data when entering the profile tab
   useEffect(() => {
@@ -90,19 +90,20 @@ export default function ProfileScreen() {
   };
   
   useEffect(() => {
-    // Set the DeepSeek API key from the parameter if it was passed (for demo purposes)
-    const initializeDeepSeekKey = async () => {
+    // Set the API keys from the parameters if they were passed (for demo purposes)
+    const initializeApiKeys = async () => {
       // This would typically be handled through user input,
-      // but for this demo we're initializing it if it's not already set
+      // but for this demo we're initializing them if they're not already set
       try {
         await setDeepseekApiKey('sk-e77b5b74b4ea4b52809bab518b73df80');
+        await setGeminiApiKey('AIzaSyDr2mzAFZrPuPDB1Jpb3X4cR70PxpQ20TY');
       } catch (error) {
-        console.error('Failed to initialize DeepSeek API key:', error);
+        console.error('Failed to initialize API keys:', error);
       }
     };
     
-    initializeDeepSeekKey();
-  }, [setDeepseekApiKey]);
+    initializeApiKeys();
+  }, [setDeepseekApiKey, setGeminiApiKey]);
 
   if (loading && !refreshing) {
     return (
