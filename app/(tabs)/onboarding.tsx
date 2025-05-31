@@ -63,6 +63,7 @@ export default function OnboardingScreen() {
           <ReasonSelector
             selectedReason={selectedReason}
             onSelectReason={selectReason}
+            selectedSubject={selectedSubject}
           />
         );
       default:

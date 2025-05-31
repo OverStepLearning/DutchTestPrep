@@ -5,15 +5,19 @@ import { LEARNING_REASONS } from '../../types/onboarding';
 interface ReasonSelectorProps {
   selectedReason: string | null;
   onSelectReason: (reason: string) => void;
+  selectedSubject?: string | null;
 }
 
 export const ReasonSelector: React.FC<ReasonSelectorProps> = ({
   selectedReason,
-  onSelectReason
+  onSelectReason,
+  selectedSubject
 }) => {
+  const subjectName = selectedSubject || 'this language';
+  
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Why are you learning Dutch?</Text>
+      <Text style={styles.title}>Why are you learning {subjectName}?</Text>
       <Text style={styles.description}>
         Select your main motivation for learning the language
       </Text>

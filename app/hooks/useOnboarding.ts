@@ -11,12 +11,15 @@ import { OnboardingStep, OnboardingPreferences } from '../types/onboarding';
 // Available learning subjects
 export const LEARNING_SUBJECTS = [
   'Dutch',
+  'English',
   'Spanish',
   'French',
   'German',
   'Italian',
   'Japanese',
-  'Chinese'
+  'Chinese',
+  'Rapa Nui',
+  'Tamil'
 ];
 
 // Available mother languages
@@ -28,7 +31,9 @@ export const MOTHER_LANGUAGES = [
   'German',
   'Italian',
   'Japanese',
-  'Chinese'
+  'Chinese',
+  'Rapa Nui',
+  'Tamil'
 ];
 
 export function useOnboarding() {

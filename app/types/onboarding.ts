@@ -24,7 +24,7 @@ export const CATEGORIES = [
   'Housing'
 ];
 
-// Common challenge areas for Dutch learners
+// Common challenge areas for language learners
 export const CHALLENGE_AREAS = [
   'Pronunciation',
   'Verb conjugation',
@@ -39,14 +39,14 @@ export const CHALLENGE_AREAS = [
   'Separable verbs'
 ];
 
-// Reasons for learning Dutch
+// Reasons for learning languages
 export const LEARNING_REASONS = [
   'For work or business',
   'For travel',
-  'To live in the Netherlands/Belgium',
-  'To connect with Dutch family/heritage',
+  'To live in a country where it\'s spoken',
+  'To connect with family/heritage',
   'For academic purposes',
   'For fun/personal interest',
-  'To speak with Dutch friends/partner',
+  'To speak with friends/partner',
   'Other'
 ]; 
