@@ -92,10 +92,42 @@ export function usePractice() {
   const mapPracticeItem = (item: any): PracticeItem => {
     if (!item) return null as unknown as PracticeItem;
     
+    // Helper function to safely parse content that might be JSON string
+    const parseContent = (content: any): string => {
+      if (!content) return '';
+      
+      // If it's already a string, check if it looks like JSON
+      if (typeof content === 'string') {
+        try {
+          // Try to parse as JSON if it starts with { or [
+          if (content.trim().startsWith('{') || content.trim().startsWith('[')) {
+            const parsed = JSON.parse(content);
+            // If parsed object has a content field, use that
+            if (parsed.content) {
+              return parsed.content;
+            }
+            // Otherwise, return the original string
+            return content;
+          }
+          return content;
+        } catch (e) {
+          // If JSON parsing fails, return as-is
+          return content;
+        }
+      }
+      
+      // If it's an object, try to extract content
+      if (typeof content === 'object' && content.content) {
+        return content.content;
+      }
+      
+      return String(content);
+    };
+    
     // Create a safe copy of the data with fallbacks
     return {
       _id: item._id || '',
-      content: item.content || '',
+      content: parseContent(item.content),
       translation: item.translation || '',
       scaffolding: item.scaffolding || '',
       difficulty: typeof item.difficulty === 'number' ? item.difficulty : 1,

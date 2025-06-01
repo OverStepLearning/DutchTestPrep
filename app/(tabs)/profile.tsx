@@ -108,7 +108,7 @@ export default function ProfileScreen() {
   if (loading && !refreshing) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#4f86f7" />
+        <ActivityIndicator size="large" color="#318F65" />
       </View>
     );
   }
@@ -210,7 +210,7 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#E6F4EC', // Mint Foam - light background
   },
   scrollContent: {
     padding: 16,
@@ -220,75 +220,106 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#E6F4EC', // Mint Foam - background
   },
   errorContainer: {
     padding: 20,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#FFFFFF', // Snow - card surface
+    borderRadius: 12,
+    marginHorizontal: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   errorText: {
     fontSize: 16,
-    color: '#d32f2f',
+    color: '#318F65', // Forest Verdant - error text
     textAlign: 'center',
     marginBottom: 16,
+    fontWeight: '500',
   },
   warningContainer: {
-    backgroundColor: '#fff3cd',
+    backgroundColor: '#FFF8D3', // Lemon Frost - warning background
     borderRadius: 8,
     padding: 16,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#ffeeba',
+    borderColor: '#E5AF00', // Golden Mango - warning border
   },
   warningText: {
     fontSize: 14,
-    color: '#856404',
+    color: '#318F65', // Forest Verdant - warning text
     textAlign: 'center',
+    fontWeight: '500',
   },
   retryButton: {
-    backgroundColor: '#4f86f7',
+    backgroundColor: '#5CA480', // Overstep Green - secondary action
     paddingVertical: 10,
     paddingHorizontal: 24,
     borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   retryButtonText: {
-    color: 'white',
+    color: '#FFFFFF', // Snow - button text
     fontWeight: '600',
   },
   devSection: {
-    backgroundColor: '#f1f1f1',
+    backgroundColor: '#FFFFFF', // Snow - card surface
     borderRadius: 8,
     padding: 16,
     marginVertical: 16,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: '#E6F4EC', // Mint Foam - border
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   devSectionTitle: {
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 12,
-    color: '#555',
+    color: '#318F65', // Forest Verdant - heading
   },
   devButton: {
-    backgroundColor: '#ff9800',
+    backgroundColor: '#E5AF00', // Golden Mango - dev action
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 6,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   devButtonText: {
-    color: 'white',
+    color: '#FFFFFF', // Snow - button text
     fontWeight: '600',
   },
   logoutButton: {
-    backgroundColor: '#f44336',
+    backgroundColor: '#E5AF00', // Golden Mango - logout action
     paddingVertical: 14,
     borderRadius: 8,
     alignItems: 'center',
     marginTop: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   logoutButtonText: {
-    color: 'white',
+    color: '#FFFFFF', // Snow - button text
     fontSize: 16,
     fontWeight: '600',
   },

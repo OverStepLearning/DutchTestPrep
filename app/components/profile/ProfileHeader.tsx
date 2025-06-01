@@ -12,9 +12,9 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ name, email }) => 
     return name.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 2);
   };
 
-  // Get random background color for user status (same logic as home tab)
+  // Get random background color for user status (updated to green palette)
   const getUserStatusColor = () => {
-    const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F'];
+    const colors = ['#318F65', '#5CA480', '#2E8B57', '#3CB371', '#20B2AA', '#008B8B', '#4682B4', '#5F9EA0'];
     const index = name.length % colors.length;
     return colors[index];
   };
@@ -36,6 +36,14 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
     marginBottom: 24,
+    backgroundColor: '#FFFFFF', // Snow - card surface
+    padding: 20,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   avatarContainer: {
     width: 80,
@@ -53,15 +61,17 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: 'white',
+    color: '#FFFFFF', // Snow - text on colored background
   },
   name: {
     fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 4,
+    color: '#318F65', // Forest Verdant - heading
   },
   email: {
     fontSize: 14,
-    color: '#666',
+    color: '#5CA480', // Overstep Green - secondary text
+    fontWeight: '500',
   },
 }); 

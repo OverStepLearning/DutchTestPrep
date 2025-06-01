@@ -4,7 +4,7 @@ export const practiceStyles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#E6F4EC', // Mint Foam - light background
   },
   scrollContainer: {
     padding: 10,
@@ -17,14 +17,14 @@ export const practiceStyles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#318F65', // Forest Verdant - heading
     flex: 1,
   },
   loader: {
     marginTop: 50,
   },
   practiceContainer: {
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#FFFFFF', // Snow - card surface
     borderRadius: 12,
     padding: 16,
     marginBottom: 20,
@@ -40,14 +40,14 @@ export const practiceStyles = StyleSheet.create({
   practiceText: {
     fontSize: 18,
     lineHeight: 26,
-    color: '#333',
+    color: '#212121', // Charcoal - main text
     marginBottom: 10,
   },
   // Hint/scaffolding styles
   hintContainer: {
-    backgroundColor: '#fff3cd',
+    backgroundColor: '#FFF8D3', // Lemon Frost - soft banner
     borderLeftWidth: 4,
-    borderLeftColor: '#ffc107',
+    borderLeftColor: '#E5AF00', // Golden Mango - accent
     borderRadius: 8,
     padding: 8,
     marginBottom: 16,
@@ -62,11 +62,11 @@ export const practiceStyles = StyleSheet.create({
   hintLabel: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#856404',
+    color: '#318F65', // Forest Verdant
   },
   hintToggle: {
     fontSize: 10,
-    color: '#856404',
+    color: '#318F65', // Forest Verdant
     fontWeight: '500',
     opacity: 0.8,
   },
@@ -76,12 +76,12 @@ export const practiceStyles = StyleSheet.create({
   hintText: {
     fontSize: 15,
     lineHeight: 22,
-    color: '#6c5100',
+    color: '#212121', // Charcoal - body text
     marginTop: 8,
   },
   translationText: {
     fontSize: 14,
-    color: '#666',
+    color: '#5CA480', // Overstep Green - secondary text
     marginBottom: 16,
     fontStyle: 'italic',
   },
@@ -91,84 +91,106 @@ export const practiceStyles = StyleSheet.create({
     marginBottom: 10,
   },
   categoryTag: {
-    backgroundColor: '#e1e8f0',
+    backgroundColor: '#E6F4EC', // Mint Foam - light background
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 20,
     marginRight: 8,
     marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#5CA480', // Overstep Green - border
   },
   categoryText: {
-    color: '#4a6fa5',
+    color: '#318F65', // Forest Verdant - tag text
     fontSize: 12,
+    fontWeight: '500',
   },
   inputContainer: {
     marginTop: 16,
   },
   textInput: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: '#5CA480', // Overstep Green - input border
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
     marginBottom: 16,
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF', // Snow - input background
+    color: '#212121', // Charcoal - input text
   },
   submitButton: {
-    backgroundColor: '#4f86f7',
+    backgroundColor: '#F6C83F', // Sunbeam Yellow - primary CTA
     borderRadius: 8,
     padding: 14,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   submitButtonText: {
-    color: '#fff',
+    color: '#212121', // Charcoal - text on light button
     fontSize: 16,
     fontWeight: '600',
   },
   feedbackContainer: {
     marginTop: 20,
-    backgroundColor: '#f0f8ff',
+    backgroundColor: '#E6F4EC', // Mint Foam - feedback background
     borderRadius: 8,
     padding: 16,
+    borderLeftWidth: 4,
+    borderLeftColor: '#318F65', // Forest Verdant - accent
   },
   feedbackText: {
     fontSize: 16,
-    color: '#333',
+    color: '#212121', // Charcoal - main text
     lineHeight: 24,
   },
   nextButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#5CA480', // Overstep Green - secondary action
     borderRadius: 8,
     padding: 14,
     alignItems: 'center',
     marginTop: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   nextButtonText: {
-    color: '#fff',
+    color: '#FFFFFF', // Snow - text on dark button
     fontSize: 16,
     fontWeight: '600',
   },
   errorContainer: {
-    backgroundColor: '#ffebee',
+    backgroundColor: '#FFF8D3', // Lemon Frost - error background
     padding: 16,
     borderRadius: 8,
     marginBottom: 20,
+    borderLeftWidth: 4,
+    borderLeftColor: '#E5AF00', // Golden Mango - warning accent
   },
   errorText: {
-    color: '#d32f2f',
+    color: '#318F65', // Forest Verdant - error text
     fontSize: 16,
     marginBottom: 10,
+    fontWeight: '500',
   },
   backgroundGenerationContainer: {
     padding: 8,
     marginBottom: 12,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#E6F4EC', // Mint Foam - background
     borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#5CA480', // Overstep Green - border
   },
   backgroundGenerationText: {
     fontSize: 14,
-    color: '#666',
+    color: '#318F65', // Forest Verdant - text
     textAlign: 'center',
+    fontWeight: '500',
   },
   changeIndicator: {
     flexDirection: 'row',
@@ -185,26 +207,36 @@ export const practiceStyles = StyleSheet.create({
   },
   // New styles for onboarding buttons and empty state
   onboardingButton: {
-    backgroundColor: '#4f86f7',
+    backgroundColor: '#318F65', // Forest Verdant - primary action
     borderRadius: 8,
     padding: 12,
     alignItems: 'center',
     marginTop: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   onboardingButtonText: {
-    color: '#fff',
+    color: '#FFFFFF', // Snow - text on dark button
     fontSize: 16,
     fontWeight: '600',
   },
   retryButton: {
-    backgroundColor: '#ff6b35',
+    backgroundColor: '#E5AF00', // Golden Mango - retry action
     borderRadius: 8,
     padding: 12,
     alignItems: 'center',
     marginTop: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   retryButtonText: {
-    color: '#fff',
+    color: '#FFFFFF', // Snow - text on dark button
     fontSize: 16,
     fontWeight: '600',
   },
@@ -212,13 +244,15 @@ export const practiceStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 30,
-    backgroundColor: '#f5f8ff',
+    backgroundColor: '#E6F4EC', // Mint Foam - empty state background
     borderRadius: 12,
     marginTop: 40,
+    borderWidth: 1,
+    borderColor: '#5CA480', // Overstep Green - border
   },
   emptyStateText: {
     fontSize: 16,
-    color: '#333',
+    color: '#212121', // Charcoal - main text
     textAlign: 'center',
     marginBottom: 20,
     lineHeight: 24,
@@ -230,22 +264,23 @@ export const practiceStyles = StyleSheet.create({
   },
   levelText: {
     fontSize: 14,
-    color: '#6c757d',
+    color: '#5CA480', // Overstep Green - secondary text
+    fontWeight: '500',
   },
   answerInput: {
     borderWidth: 1,
-    borderColor: '#ced4da',
+    borderColor: '#5CA480', // Overstep Green - input border
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    color: '#495057',
-    backgroundColor: '#fff',
+    color: '#212121', // Charcoal - input text
+    backgroundColor: '#FFFFFF', // Snow - input background
     minHeight: 100,
     textAlignVertical: 'top',
     marginBottom: 20,
   },
   buttonText: {
-    color: 'white',
+    color: '#FFFFFF', // Snow - button text
     fontSize: 16,
     fontWeight: '600',
   },
@@ -253,17 +288,20 @@ export const practiceStyles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 10,
+    color: '#318F65', // Forest Verdant - heading
   },
   translationContainer: {
     marginTop: 20,
     padding: 15,
-    backgroundColor: '#e8f4fd',
+    backgroundColor: '#E6F4EC', // Mint Foam - background
     borderRadius: 8,
+    borderLeftWidth: 4,
+    borderLeftColor: '#318F65', // Forest Verdant - accent
   },
   translationLabel: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#4f86f7',
+    color: '#318F65', // Forest Verdant - label
     marginBottom: 5,
   },
   mcqContainer: {
@@ -274,35 +312,40 @@ export const practiceStyles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 10,
     fontWeight: '500',
-    color: '#333',
+    color: '#212121', // Charcoal - main text
   },
   mcqOption: {
     padding: 15,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: '#5CA480', // Overstep Green - border
     borderRadius: 8,
     marginBottom: 10,
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF', // Snow - option background
   },
   mcqOptionSelected: {
-    borderColor: '#4f86f7',
-    backgroundColor: '#e6f0ff',
+    borderColor: '#318F65', // Forest Verdant - selected border
+    backgroundColor: '#E6F4EC', // Mint Foam - selected background
   },
   mcqOptionText: {
     fontSize: 16,
-    color: '#333',
+    color: '#212121', // Charcoal - option text
   },
   mcqOptionTextSelected: {
-    color: '#4f86f7',
+    color: '#318F65', // Forest Verdant - selected text
     fontWeight: '500',
   },
   difficultyAdjustContainer: {
-    backgroundColor: '#f7f7f7',
+    backgroundColor: '#FFFFFF', // Snow - card surface
     borderRadius: 8,
     padding: 12,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#e0e0e0'
+    borderColor: '#E6F4EC', // Mint Foam - border
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   difficultyHeader: {
     flexDirection: 'row',
@@ -313,12 +356,12 @@ export const practiceStyles = StyleSheet.create({
   difficultyText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333'
+    color: '#318F65', // Forest Verdant - heading
   },
   trendContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#E6F4EC', // Mint Foam - background
     borderRadius: 12,
     paddingHorizontal: 10,
     paddingVertical: 4
@@ -326,65 +369,81 @@ export const practiceStyles = StyleSheet.create({
   trendText: {
     fontSize: 13,
     fontWeight: '500',
-    marginLeft: 4
+    marginLeft: 4,
+    color: '#5CA480', // Overstep Green - secondary text
   },
   changeContainer: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#FFF8D3', // Lemon Frost - change background
     borderRadius: 8,
     padding: 8,
     marginTop: 12,
     alignSelf: 'flex-start'
   },
   adjustMeButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#5CA480', // Overstep Green - secondary action
     borderRadius: 8,
     paddingVertical: 10,
     paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 16
+    marginTop: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   adjustingButton: {
-    backgroundColor: '#999',
+    backgroundColor: '#E5AF00', // Golden Mango - adjusting state
   },
   adjustButtonText: {
-    color: 'white',
+    color: '#FFFFFF', // Snow - button text
     fontSize: 15,
     fontWeight: '600',
     marginLeft: 8
   },
   feedbackQuestionContainer: {
     marginTop: 20,
-    backgroundColor: '#f0f8ff',
+    backgroundColor: '#E6F4EC', // Mint Foam - feedback background
     borderRadius: 12,
     padding: 15,
     borderWidth: 1,
-    borderColor: '#d1e3f6',
+    borderColor: '#5CA480', // Overstep Green - border
   },
   feedbackQuestionLabel: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#4a6da7',
+    color: '#318F65', // Forest Verdant - label
     marginBottom: 10,
   },
-  feedbackQuestionInput: {
-    backgroundColor: '#fff',
+  feedbackInput: {
     borderWidth: 1,
-    borderColor: '#dee2e6',
+    borderColor: '#5CA480', // Overstep Green - input border
     borderRadius: 8,
-    padding: 10,
+    padding: 12,
     fontSize: 16,
+    color: '#212121', // Charcoal - input text
+    backgroundColor: '#FFFFFF', // Snow - input background
+    marginBottom: 12,
     minHeight: 80,
-    marginBottom: 10,
+    textAlignVertical: 'top',
   },
   askButton: {
-    backgroundColor: '#4a6da7',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
+    backgroundColor: '#F6C83F', // Sunbeam Yellow - primary CTA
     borderRadius: 8,
+    padding: 12,
     alignItems: 'center',
-    marginBottom: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  askButtonText: {
+    color: '#212121', // Charcoal - text on light button
+    fontSize: 16,
+    fontWeight: '600',
   },
   disabledButton: {
     backgroundColor: '#a0a0a0',

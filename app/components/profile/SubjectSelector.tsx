@@ -43,7 +43,7 @@ export const SubjectSelector: React.FC<SubjectSelectorProps> = ({
           style={styles.changeButton} 
           onPress={() => setIsModalVisible(true)}
         >
-          <Ionicons name="pencil" size={16} color="#4f86f7" />
+          <Ionicons name="pencil" size={16} color="#318F65" />
           <Text style={styles.changeText}>Change</Text>
         </TouchableOpacity>
       </View>
@@ -70,7 +70,7 @@ export const SubjectSelector: React.FC<SubjectSelectorProps> = ({
                 onPress={() => setIsModalVisible(false)}
                 disabled={loading}
               >
-                <Ionicons name="close-circle" size={24} color="#666" />
+                <Ionicons name="close-circle" size={24} color="#5CA480" />
               </TouchableOpacity>
             </View>
             
@@ -98,14 +98,14 @@ export const SubjectSelector: React.FC<SubjectSelectorProps> = ({
                     {subject}
                   </Text>
                   {selectedSubject === subject && (
-                    <Ionicons name="checkmark-circle" size={24} color="#fff" />
+                    <Ionicons name="checkmark-circle" size={24} color="#FFFFFF" />
                   )}
                 </TouchableOpacity>
               ))}
             </ScrollView>
 
             {loading && (
-              <ActivityIndicator size="small" color="#4f86f7" style={styles.loader} />
+              <ActivityIndicator size="small" color="#318F65" style={styles.loader} />
             )}
 
             <Text style={styles.warningText}>
@@ -120,7 +120,7 @@ export const SubjectSelector: React.FC<SubjectSelectorProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF', // Snow - card surface
     borderRadius: 10,
     padding: 16,
     marginBottom: 16,
@@ -139,16 +139,21 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#318F65', // Forest Verdant - heading
   },
   changeButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#FFF8D3', // Lemon Frost - soft action
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
   },
   changeText: {
     fontSize: 14,
-    color: '#4f86f7',
+    color: '#318F65', // Forest Verdant - action text
     marginLeft: 4,
+    fontWeight: '500',
   },
   subjectContainer: {
     marginBottom: 8,
@@ -156,12 +161,12 @@ const styles = StyleSheet.create({
   currentSubject: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#4f86f7',
+    color: '#E5AF00', // Golden Mango - highlighted value
     marginBottom: 8,
   },
   helpText: {
     fontSize: 14,
-    color: '#777',
+    color: '#5CA480', // Overstep Green - secondary text
     lineHeight: 20,
   },
   modalOverlay: {
@@ -173,7 +178,7 @@ const styles = StyleSheet.create({
   modalContent: {
     width: '90%',
     maxHeight: '80%',
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF', // Snow - modal background
     borderRadius: 12,
     padding: 20,
     shadowColor: '#000',
@@ -191,44 +196,49 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#318F65', // Forest Verdant - heading
   },
   modalSubtitle: {
     fontSize: 16,
-    color: '#666',
+    color: '#5CA480', // Overstep Green - secondary text
     marginBottom: 16,
   },
   subjectsList: {
     maxHeight: 300,
-    marginBottom: 16,
   },
   subjectItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-    padding: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginBottom: 8,
     borderRadius: 8,
-    marginBottom: 10,
+    backgroundColor: '#E6F4EC', // Mint Foam - option background
+    borderWidth: 1,
+    borderColor: '#5CA480', // Overstep Green - border
   },
   selectedSubject: {
-    backgroundColor: '#4f86f7',
+    backgroundColor: '#318F65', // Forest Verdant - selected background
+    borderColor: '#318F65',
   },
   subjectText: {
     fontSize: 16,
-    color: '#333',
+    color: '#212121', // Charcoal - option text
+    fontWeight: '500',
   },
   selectedSubjectText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: '#FFFFFF', // Snow - selected text
+    fontWeight: '600',
   },
   loader: {
-    marginVertical: 12,
+    marginVertical: 16,
   },
   warningText: {
-    fontSize: 14,
-    color: '#ff6b6b',
+    fontSize: 12,
+    color: '#5CA480', // Overstep Green - warning text
+    textAlign: 'center',
+    marginTop: 16,
     fontStyle: 'italic',
-    marginTop: 8,
   },
 }); 

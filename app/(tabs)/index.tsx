@@ -66,7 +66,7 @@ export default function HomeScreen() {
 
   // Get random background color for user status
   const getUserStatusColor = () => {
-    const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F'];
+    const colors = ['#318F65', '#5CA480', '#2E8B57', '#3CB371', '#20B2AA', '#008B8B', '#4682B4', '#5F9EA0'];
     const name = user?.name || 'Learner';
     const index = name.length % colors.length;
     return colors[index];
@@ -109,7 +109,7 @@ export default function HomeScreen() {
                 style={styles.startButton}
                 onPress={() => router.push('/(tabs)/practice')}
               >
-                <Ionicons name="play-circle" size={24} color="#fff" />
+                <Ionicons name="play-circle" size={24} color="#212121" />
                 <Text style={styles.startButtonText}>START</Text>
               </TouchableOpacity>
             </View>
@@ -128,7 +128,7 @@ export default function HomeScreen() {
         {/* Learning Streak */}
         <View style={styles.streakContainer}>
           <View style={styles.streakHeader}>
-            <Ionicons name="flame" size={24} color="#ff6b35" />
+            <Ionicons name="flame" size={24} color="#E5AF00" />
             <Text style={styles.streakTitle}>Learning Streak</Text>
           </View>
           <Text style={styles.streakNumber}>7</Text>
@@ -149,7 +149,7 @@ export default function HomeScreen() {
               onPress={() => router.push('/(tabs)/profile')}
             >
               <Text style={styles.changeSubjectText}>Change</Text>
-              <Ionicons name="chevron-forward" size={16} color="#4f86f7" />
+              <Ionicons name="chevron-forward" size={16} color="#318F65" />
             </TouchableOpacity>
           </View>
         </View>
@@ -178,7 +178,7 @@ export default function HomeScreen() {
               style={[styles.actionCard, styles.secondaryCard]}
               onPress={() => router.push('/(tabs)/progress')}
             >
-              <Ionicons name="trending-up" size={24} color="#4f86f7" />
+              <Ionicons name="trending-up" size={24} color="#318F65" />
               <Text style={styles.secondaryCardTitle}>Progress</Text>
             </TouchableOpacity>
 
@@ -186,7 +186,7 @@ export default function HomeScreen() {
               style={[styles.actionCard, styles.secondaryCard]}
               onPress={() => router.push('/(tabs)/profile')}
             >
-              <Ionicons name="settings" size={24} color="#4f86f7" />
+              <Ionicons name="settings" size={24} color="#318F65" />
               <Text style={styles.secondaryCardTitle}>Settings</Text>
             </TouchableOpacity>
           </View>
@@ -200,14 +200,22 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#E6F4EC', // Mint Foam - light section background
   },
   scrollContent: {
     paddingBottom: 16,
   },
   greetingSection: {
+    backgroundColor: '#FFFFFF', // Snow - card surface
     padding: 20,
     marginBottom: 16,
+    marginHorizontal: 16,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   greetingContent: {
     flexDirection: 'row',
@@ -237,26 +245,33 @@ const styles = StyleSheet.create({
   greeting: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#318F65', // Forest Verdant - heading color
     marginBottom: 4,
   },
   userName: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#4f86f7',
+    color: '#5CA480', // Overstep Green - secondary text
     marginBottom: 8,
   },
   welcomeText: {
     fontSize: 16,
-    color: '#666',
+    color: '#212121', // Charcoal - body text
     lineHeight: 22,
   },
   tipSection: {
     marginBottom: 24,
+    marginHorizontal: 16,
     paddingHorizontal: 20,
     paddingVertical: 32,
     minHeight: 320,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#FFFFFF', // Snow - card surface
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 4,
   },
   tipContent: {
     flexDirection: 'row',
@@ -270,12 +285,12 @@ const styles = StyleSheet.create({
   tipTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#318F65', // Forest Verdant - heading
     marginBottom: 8,
   },
   tipText: {
     fontSize: 16,
-    color: '#666',
+    color: '#212121', // Charcoal - body text
     lineHeight: 24,
     marginBottom: 24,
   },
@@ -283,7 +298,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#4f86f7',
+    backgroundColor: '#F6C83F', // Sunbeam Yellow - primary CTA
     paddingVertical: 16,
     paddingHorizontal: 24,
     borderRadius: 25,
@@ -296,7 +311,7 @@ const styles = StyleSheet.create({
   startButtonText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#212121', // Charcoal - text on light button
     marginLeft: 8,
   },
   rightContent: {
@@ -331,18 +346,20 @@ const styles = StyleSheet.create({
   },
   secondaryCard: {
     width: '48%',
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF', // Snow - card surface
     alignItems: 'center',
     paddingVertical: 20,
+    borderWidth: 1,
+    borderColor: '#E6F4EC', // Mint Foam - subtle border
   },
   secondaryCardTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
+    color: '#318F65', // Forest Verdant - icon color
     marginTop: 8,
   },
   streakContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF', // Snow - card surface
     padding: 20,
     borderRadius: 12,
     marginBottom: 24,
@@ -353,6 +370,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
+    borderLeftWidth: 4,
+    borderLeftColor: '#E5AF00', // Golden Mango - accent strip
   },
   streakHeader: {
     flexDirection: 'row',
@@ -362,26 +381,26 @@ const styles = StyleSheet.create({
   streakTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#318F65', // Forest Verdant - heading
     marginLeft: 8,
   },
   streakNumber: {
     fontSize: 48,
     fontWeight: 'bold',
-    color: '#ff6b35',
+    color: '#E5AF00', // Golden Mango - highlight number
     marginBottom: 4,
   },
   streakText: {
     fontSize: 16,
-    color: '#333',
+    color: '#212121', // Charcoal - body text
     marginBottom: 4,
   },
   streakSubtext: {
     fontSize: 14,
-    color: '#666',
+    color: '#5CA480', // Overstep Green - secondary text
   },
   goalContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF', // Snow - card surface
     padding: 20,
     borderRadius: 12,
     marginBottom: 24,
@@ -395,7 +414,7 @@ const styles = StyleSheet.create({
   goalTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#318F65', // Forest Verdant - heading
     marginBottom: 16,
   },
   goalProgress: {
@@ -405,20 +424,20 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: '#E6F4EC', // Mint Foam - background
     marginBottom: 8,
   },
   progressFill: {
     height: '100%',
     borderRadius: 4,
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#E5AF00', // Golden Mango - progress bar
   },
   goalText: {
     fontSize: 14,
-    color: '#666',
+    color: '#212121', // Charcoal - body text
   },
   goalButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#5CA480', // Overstep Green - secondary action
     padding: 12,
     borderRadius: 8,
     alignItems: 'center',
@@ -426,10 +445,10 @@ const styles = StyleSheet.create({
   goalButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#fff',
+    color: '#FFFFFF', // Snow - text on dark button
   },
   subjectContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF', // Snow - card surface
     padding: 20,
     borderRadius: 12,
     marginBottom: 24,
@@ -443,7 +462,7 @@ const styles = StyleSheet.create({
   subjectTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#318F65', // Forest Verdant - heading
     marginBottom: 16,
   },
   subjectCard: {
@@ -457,17 +476,17 @@ const styles = StyleSheet.create({
   subjectName: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#212121', // Charcoal - main text
     marginBottom: 4,
   },
   subjectLevel: {
     fontSize: 14,
-    color: '#666',
+    color: '#5CA480', // Overstep Green - secondary text
   },
   changeSubjectButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f0f7ff',
+    backgroundColor: '#FFF8D3', // Lemon Frost - soft banner
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 6,
@@ -475,7 +494,7 @@ const styles = StyleSheet.create({
   changeSubjectText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#4f86f7',
+    color: '#318F65', // Forest Verdant - action text
     marginRight: 4,
   },
   userInitials: {

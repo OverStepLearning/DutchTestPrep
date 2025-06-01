@@ -89,35 +89,59 @@ export default function ProgressScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#E6F4EC', // Mint Foam - light background
   },
   scrollContent: {
     padding: 16,
   },
   header: {
     marginBottom: 20,
+    backgroundColor: '#FFFFFF', // Snow - card surface
+    padding: 20,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   title: {
     fontSize: 26,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#318F65', // Forest Verdant - heading
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
+    color: '#5CA480', // Overstep Green - secondary text
     marginTop: 5,
+    fontWeight: '500',
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 16,
-    color: '#333',
+    color: '#318F65', // Forest Verdant - heading
   },
   historyContainer: {
     marginTop: 24,
+    backgroundColor: '#FFFFFF', // Snow - card surface
+    borderRadius: 12,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   loadingIndicator: {
     padding: 20,
     alignItems: 'center',
+    backgroundColor: '#FFFFFF', // Snow - card surface
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
 }); 
