@@ -109,7 +109,7 @@ export default function HomeScreen() {
                 style={styles.startButton}
                 onPress={() => router.push('/(tabs)/practice')}
               >
-                <Ionicons name="play-circle" size={24} color="#4f86f7" />
+                <Ionicons name="play-circle" size={24} color="#fff" />
                 <Text style={styles.startButtonText}>START</Text>
               </TouchableOpacity>
             </View>
@@ -117,7 +117,7 @@ export default function HomeScreen() {
             {/* Right Side - Mascot */}
             <View style={styles.rightContent}>
               <Image 
-                source={require('@/assets/images/mascot.png')} 
+                source={require('../../assets/images/mascot.png')} 
                 style={styles.mascotImage}
                 resizeMode="contain"
               />
