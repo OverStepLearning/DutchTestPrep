@@ -125,27 +125,6 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Quick Action Cards */}
-        <View style={styles.actionCardsContainer}>
-          <View style={styles.secondaryCardsRow}>
-            <TouchableOpacity 
-              style={[styles.actionCard, styles.secondaryCard]}
-              onPress={() => router.push('/(tabs)/progress')}
-            >
-              <Ionicons name="trending-up" size={24} color="#4f86f7" />
-              <Text style={styles.secondaryCardTitle}>Progress</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={[styles.actionCard, styles.secondaryCard]}
-              onPress={() => router.push('/(tabs)/profile')}
-            >
-              <Ionicons name="settings" size={24} color="#4f86f7" />
-              <Text style={styles.secondaryCardTitle}>Settings</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
         {/* Learning Streak */}
         <View style={styles.streakContainer}>
           <View style={styles.streakHeader}>
@@ -155,6 +134,24 @@ export default function HomeScreen() {
           <Text style={styles.streakNumber}>7</Text>
           <Text style={styles.streakText}>days in a row! 🔥</Text>
           <Text style={styles.streakSubtext}>Keep it up! You're doing great!</Text>
+        </View>
+
+        {/* Current Subject */}
+        <View style={styles.subjectContainer}>
+          <Text style={styles.subjectTitle}>Currently Learning</Text>
+          <View style={styles.subjectCard}>
+            <View style={styles.subjectInfo}>
+              <Text style={styles.subjectName}>{currentSubject || 'Dutch'}</Text>
+              <Text style={styles.subjectLevel}>Intermediate Level</Text>
+            </View>
+            <TouchableOpacity 
+              style={styles.changeSubjectButton}
+              onPress={() => router.push('/(tabs)/profile')}
+            >
+              <Text style={styles.changeSubjectText}>Change</Text>
+              <Ionicons name="chevron-forward" size={16} color="#4f86f7" />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Today's Goal */}
@@ -174,20 +171,23 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Current Subject */}
-        <View style={styles.subjectContainer}>
-          <Text style={styles.subjectTitle}>Currently Learning</Text>
-          <View style={styles.subjectCard}>
-            <View style={styles.subjectInfo}>
-              <Text style={styles.subjectName}>{currentSubject || 'Dutch'}</Text>
-              <Text style={styles.subjectLevel}>Intermediate Level</Text>
-            </View>
+        {/* Quick Action Cards */}
+        <View style={styles.actionCardsContainer}>
+          <View style={styles.secondaryCardsRow}>
             <TouchableOpacity 
-              style={styles.changeSubjectButton}
+              style={[styles.actionCard, styles.secondaryCard]}
+              onPress={() => router.push('/(tabs)/progress')}
+            >
+              <Ionicons name="trending-up" size={24} color="#4f86f7" />
+              <Text style={styles.secondaryCardTitle}>Progress</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={[styles.actionCard, styles.secondaryCard]}
               onPress={() => router.push('/(tabs)/profile')}
             >
-              <Text style={styles.changeSubjectText}>Change</Text>
-              <Ionicons name="chevron-forward" size={16} color="#4f86f7" />
+              <Ionicons name="settings" size={24} color="#4f86f7" />
+              <Text style={styles.secondaryCardTitle}>Settings</Text>
             </TouchableOpacity>
           </View>
         </View>
