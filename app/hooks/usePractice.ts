@@ -287,7 +287,7 @@ export function usePractice() {
       const response = await apiService.post('/api/practice/generate', {
         userId: user._id,
         learningSubject: tabSubject || 'Dutch',
-        batchSize: 5, // Request more items for the queue
+        batchSize: 3, // Reduced from 5 to 3 for better performance
         aiProvider: currentProvider,
         deepseekApiKey: currentProvider === 'deepseek' ? deepseekApiKey : null,
         geminiApiKey: currentProvider === 'gemini' ? geminiApiKey : null
@@ -673,10 +673,28 @@ export function usePractice() {
     }
   }, [subjectProgress.currentDifficulty]); // Track changes in user's actual difficulty level
 
-  // Handle subject changes - fetch new progress data for the new subject
+  // Handle subject changes - clear all practice state and fetch new progress data
   useEffect(() => {
     if (tabSubject) {
-      console.log(`[usePractice] Subject changed to ${tabSubject}, fetching progress data`);
+      console.log(`[usePractice] Subject changed to ${tabSubject}, clearing practice state and fetching progress data`);
+      
+      // Clear all practice-related state for the new subject
+      setCurrentPractice(null);
+      setQuestionQueue([]);
+      setUserAnswer('');
+      setFeedback(null);
+      setErrorMessage(null);
+      setFeedbackQuestion('');
+      setFeedbackAnswer(null);
+      setAskingQuestion(false);
+      
+      // Reset difficulty tracking
+      setDifficultyTrend('stable');
+      setDifficultyChange(null);
+      setComplexityChange(null);
+      previousDifficultyRef.current = null;
+      
+      // Fetch progress data for the new subject
       fetchSubjectProgress(tabSubject);
     }
   }, [tabSubject]);

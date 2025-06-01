@@ -196,6 +196,18 @@ export const practiceStyles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  retryButton: {
+    backgroundColor: '#ff6b35',
+    borderRadius: 8,
+    padding: 12,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  retryButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
   emptyStateContainer: {
     alignItems: 'center',
     justifyContent: 'center',

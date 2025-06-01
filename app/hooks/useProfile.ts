@@ -64,7 +64,7 @@ export const LANGUAGE_OPTIONS: LanguageOption[] = [
 
 export function useProfile() {
   const { user, logout, updateUserData } = useAuth();
-  const { currentSubject: tabSubject, forceRefreshAllTabs } = useTabContext();
+  const { currentSubject: tabSubject, forceRefreshAllTabs, updateCurrentSubject } = useTabContext();
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -339,6 +339,9 @@ export function useProfile() {
           
           // Set currentSubject in this hook to match the new subject
           setCurrentSubject(subject);
+          
+          // Immediately update TabContext with the new subject
+          updateCurrentSubject(subject);
           
           // Update the profile state with the new subject immediately
           setProfile(prev => {

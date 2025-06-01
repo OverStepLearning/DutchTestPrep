@@ -12,6 +12,7 @@ interface TabContextType {
   shouldRefresh: (tab: string, intervalMs?: number) => boolean;
   refreshTab: (tab: string) => void;
   forceRefreshAllTabs: () => void;
+  updateCurrentSubject: (subject: string) => void;
 }
 
 // Create the context
@@ -102,6 +103,16 @@ export function TabProvider({ children }: { children: ReactNode }) {
     setLastVisited({}); // Clear all last visited times to force refresh on all tabs
   };
 
+  // Manually update current subject (useful when subject changes from profile)
+  const updateCurrentSubject = (subject: string): void => {
+    console.log(`[TabContext] Manually updating subject to: ${subject}`);
+    if (subject !== currentSubject) {
+      setCurrentSubject(subject);
+      setLastCheckedSubject(subject);
+      forceRefreshAllTabs();
+    }
+  };
+
   return (
     <TabContext.Provider
       value={{
@@ -111,7 +122,8 @@ export function TabProvider({ children }: { children: ReactNode }) {
         getLastVisitTime,
         shouldRefresh,
         refreshTab,
-        forceRefreshAllTabs
+        forceRefreshAllTabs,
+        updateCurrentSubject
       }}
     >
       {children}

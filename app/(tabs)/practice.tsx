@@ -16,6 +16,7 @@ export default function PracticeScreen() {
   const initialLoadRef = useRef(false);
   const authCheckedRef = useRef(false);
   const navigationReadyRef = useRef(false);
+  const lastSubjectRef = useRef<string>('');
   
   // Use optional chaining for auth to prevent errors if context is not ready
   const auth = useAuth();
@@ -111,6 +112,24 @@ export default function PracticeScreen() {
     }
   }, [currentPractice, loading, generatePractice, user, token]);
 
+  // Handle subject changes - force regenerate practice for new subject
+  useEffect(() => {
+    if (currentSubject && lastSubjectRef.current && currentSubject !== lastSubjectRef.current) {
+      console.log(`[PracticeScreen] Subject changed from ${lastSubjectRef.current} to ${currentSubject} - regenerating practice`);
+      
+      // Reset the initial load flag to allow regeneration
+      initialLoadRef.current = false;
+      
+      // Force generate new practice for the new subject
+      generatePractice(true);
+    }
+    
+    // Update the last subject reference
+    if (currentSubject) {
+      lastSubjectRef.current = currentSubject;
+    }
+  }, [currentSubject, generatePractice]);
+
   return (
     <SafeAreaView style={practiceStyles.container}>
       <ScrollView contentContainerStyle={practiceStyles.scrollContainer}>
@@ -143,6 +162,24 @@ export default function PracticeScreen() {
         {errorMessage && (
           <View style={practiceStyles.errorContainer}>
             <Text style={practiceStyles.errorText}>{errorMessage}</Text>
+            
+            {/* Add retry button for general errors (timeouts, generation failures, etc.) */}
+            <TouchableOpacity 
+              style={practiceStyles.retryButton}
+              onPress={() => {
+                console.log('[PracticeScreen] User clicked retry button');
+                // Reset the initial load flag to allow regeneration
+                initialLoadRef.current = false;
+                // Clear the error message
+                // setErrorMessage(null); // This will be handled by generatePractice
+                // Force generate new practice
+                generatePractice(true);
+              }}
+            >
+              <Text style={practiceStyles.retryButtonText}>
+                🔄 Try Again
+              </Text>
+            </TouchableOpacity>
             
             {/* Add onboarding button if the error is about preferences */}
             {errorMessage.includes('onboarding') && (
@@ -216,8 +253,22 @@ export default function PracticeScreen() {
             {!currentPractice && !errorMessage && !loading && (
               <View style={practiceStyles.emptyStateContainer}>
                 <Text style={practiceStyles.emptyStateText}>
-                  Ready to start practicing Dutch? Complete onboarding to personalize your experience.
+                  Ready to start practicing {currentSubject || 'Dutch'}? Complete onboarding to personalize your experience.
                 </Text>
+                <TouchableOpacity 
+                  style={practiceStyles.retryButton}
+                  onPress={() => {
+                    console.log('[PracticeScreen] User clicked refresh from empty state');
+                    // Reset the initial load flag to allow regeneration
+                    initialLoadRef.current = false;
+                    // Force generate new practice
+                    generatePractice(true);
+                  }}
+                >
+                  <Text style={practiceStyles.retryButtonText}>
+                    🔄 Refresh Practice
+                  </Text>
+                </TouchableOpacity>
                 <TouchableOpacity 
                   style={practiceStyles.onboardingButton}
                   onPress={() => {
