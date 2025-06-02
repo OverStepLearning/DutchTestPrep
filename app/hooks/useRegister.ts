@@ -8,6 +8,7 @@ interface RegisterInputs {
   email: string;
   password: string;
   confirmPassword: string;
+  invitationCode: string;
 }
 
 interface UseRegisterReturn {
@@ -25,6 +26,7 @@ export function useRegister(): UseRegisterReturn {
     email: '',
     password: '',
     confirmPassword: '',
+    invitationCode: '',
   });
   
   const { register, isLoading, error, clearError } = useAuth();
@@ -45,10 +47,10 @@ export function useRegister(): UseRegisterReturn {
 
   // Validate form inputs
   const validateForm = (): boolean => {
-    const { name, email, password, confirmPassword } = inputs;
+    const { name, email, password, confirmPassword, invitationCode } = inputs;
     
     // Check for empty fields
-    if (!isNotEmpty(name) || !isNotEmpty(email) || !isNotEmpty(password) || !isNotEmpty(confirmPassword)) {
+    if (!isNotEmpty(name) || !isNotEmpty(email) || !isNotEmpty(password) || !isNotEmpty(confirmPassword) || !isNotEmpty(invitationCode)) {
       Alert.alert('Error', 'Please fill in all fields');
       return false;
     }
@@ -80,6 +82,8 @@ export function useRegister(): UseRegisterReturn {
 
     try {
       const { name, email, password } = inputs;
+      // Note: invitationCode is validated but not sent to backend yet
+      // TODO: Update backend to handle invitation codes
       await register(name, email, password);
       // If successful, the auth context will handle navigation
     } catch (err) {

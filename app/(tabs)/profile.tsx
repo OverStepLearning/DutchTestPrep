@@ -173,16 +173,18 @@ export default function ProfileScreen() {
             
             <AISettings />
 
-            {/* Developer testing buttons */}
-            <View style={styles.devSection}>
-              <Text style={styles.devSectionTitle}>Developer Tools</Text>
-              <TouchableOpacity 
-                style={styles.devButton}
-                onPress={handleForceExpireToken}
-              >
-                <Text style={styles.devButtonText}>Test Token Expiration</Text>
-              </TouchableOpacity>
-            </View>
+            {/* Developer testing buttons - only show in development */}
+            {__DEV__ && (
+              <View style={styles.devSection}>
+                <Text style={styles.devSectionTitle}>Developer Tools</Text>
+                <TouchableOpacity 
+                  style={styles.devButton}
+                  onPress={handleForceExpireToken}
+                >
+                  <Text style={styles.devButtonText}>Test Token Expiration</Text>
+                </TouchableOpacity>
+              </View>
+            )}
 
             <TouchableOpacity 
               style={styles.logoutButton}
@@ -307,7 +309,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   logoutButton: {
-    backgroundColor: '#E5AF00', // Golden Mango - logout action
+    backgroundColor: '#dc3545', // Red for logout action
     paddingVertical: 14,
     borderRadius: 8,
     alignItems: 'center',

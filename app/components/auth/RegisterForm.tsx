@@ -45,6 +45,16 @@ export function RegisterForm({ className }: RegisterFormProps) {
         autoCorrect={false}
       />
       
+      <Text style={styles.inputLabel}>Invitation Code</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Enter your invitation code"
+        value={inputs.invitationCode}
+        onChangeText={(text) => setInputs({ invitationCode: text })}
+        autoCapitalize="characters"
+        autoCorrect={false}
+      />
+      
       <Text style={styles.inputLabel}>Password</Text>
       <TextInput
         style={styles.input}
@@ -89,36 +99,41 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#212529',
+    color: '#318F65', // Forest Verdant - heading
     marginBottom: 24,
   },
   inputLabel: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#495057',
+    color: '#5CA480', // Overstep Green - label text
     marginBottom: 6,
     marginTop: 8,
   },
   input: {
     height: 50,
-    backgroundColor: 'white',
+    backgroundColor: '#FFFFFF', // Snow - input background
     borderRadius: 8,
     paddingHorizontal: 16,
     fontSize: 16,
     borderWidth: 1,
-    borderColor: '#ced4da',
+    borderColor: '#E6F4EC', // Mint Foam - border
     marginBottom: 16,
   },
   registerButton: {
     height: 50,
-    backgroundColor: '#4f86f7',
+    backgroundColor: '#318F65', // Forest Verdant - primary button
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   registerButtonText: {
-    color: 'white',
+    color: '#FFFFFF', // Snow - button text
     fontSize: 16,
     fontWeight: 'bold',
   },

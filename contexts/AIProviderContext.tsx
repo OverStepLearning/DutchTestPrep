@@ -99,14 +99,7 @@ export const AIProviderProvider: React.FC<AIProviderProps> = ({ children }) => {
       setCurrentProvider(provider);
       await storage.setItem(AI_PROVIDER_KEY, provider);
       
-      const providerName = provider === 'gpt4o' ? 'GPT-4o' : 
-                          provider === 'deepseek' ? 'DeepSeek' : 'Gemini 2.5 Flash';
-      
-      Alert.alert(
-        'AI Provider Changed',
-        `AI provider switched to ${providerName}.`,
-        [{ text: 'OK' }]
-      );
+      // No success alert here - let the calling component handle user feedback if needed
     } catch (error) {
       console.error('Error saving AI provider:', error);
       Alert.alert('Error', 'Failed to change AI provider.');
@@ -125,11 +118,7 @@ export const AIProviderProvider: React.FC<AIProviderProps> = ({ children }) => {
       setDeepseekKey(key);
       setIsDeepSeekAvailable(true);
       
-      Alert.alert(
-        'API Key Saved',
-        'DeepSeek API key has been saved successfully.',
-        [{ text: 'OK' }]
-      );
+      // No success alert - let the calling component handle user feedback if needed
     } catch (error) {
       console.error('Error saving DeepSeek API key:', error);
       Alert.alert('Error', 'Failed to save API key.');
@@ -148,11 +137,7 @@ export const AIProviderProvider: React.FC<AIProviderProps> = ({ children }) => {
       setGeminiKey(key);
       setIsGeminiAvailable(true);
       
-      Alert.alert(
-        'API Key Saved',
-        'Gemini API key has been saved successfully.',
-        [{ text: 'OK' }]
-      );
+      // No success alert - let the calling component handle user feedback if needed
     } catch (error) {
       console.error('Error saving Gemini API key:', error);
       Alert.alert('Error', 'Failed to save API key.');

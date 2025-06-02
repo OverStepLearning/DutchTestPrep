@@ -5,19 +5,17 @@ import {
   Platform, 
   View,
   Text,
-  TouchableOpacity,
-  Alert
+  Image,
+  Dimensions
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { AuthLogo } from '@/app/components/auth/AuthLogo';
 import { LoginForm } from '@/app/components/auth/LoginForm';
 import { RegisterLink } from '@/app/components/auth/RegisterLink';
 import { LoginProvider } from '@/app/components/auth/LoginProvider';
-import { storage } from '@/utils/storage';
-import Config from '@/constants/Config';
-import { NetworkSelector } from '@/app/components/auth/NetworkSelector';
-import * as apiService from '@/utils/apiService';
 import { useLocalSearchParams } from 'expo-router';
+
+const { width } = Dimensions.get('window');
 
 const LoginScreen = () => {
   const { reason } = useLocalSearchParams();
@@ -35,51 +33,6 @@ const LoginScreen = () => {
     }
   }, [reason]);
 
-  // Clear all stored data (temporary debug function)
-  const clearAllStorage = async () => {
-    try {
-      await storage.removeItem(Config.STORAGE_KEYS.AUTH_TOKEN);
-      await storage.removeItem(Config.STORAGE_KEYS.USER_DATA);
-      await storage.removeItem(Config.STORAGE_KEYS.ACTIVE_NETWORK);
-      Alert.alert('Storage Cleared', 'All authentication data has been cleared. Please log in again.');
-    } catch (error) {
-      console.error('Error clearing storage:', error);
-      Alert.alert('Error', 'Failed to clear storage');
-    }
-  };
-
-  // Test which API URL is currently being used
-  const testApiUrl = async () => {
-    try {
-      // Get current network preference
-      const activeNetwork = await storage.getItem(Config.STORAGE_KEYS.ACTIVE_NETWORK);
-      const networkName = activeNetwork || 'DEFAULT';
-      
-      // Get current baseURL from axios
-      const baseUrl = apiService.getBaseURL();
-      
-      // Try to test the connection
-      let connectionStatus = 'Unknown';
-      try {
-        const response = await apiService.testConnection(baseUrl);
-        connectionStatus = `Connected (${response.status})`;
-      } catch {
-        connectionStatus = 'Failed to connect';
-      }
-      
-      Alert.alert(
-        'API URL Information', 
-        `Active Network: ${networkName}\n` +
-        `Base URL: ${baseUrl}\n` +
-        `API_URL from Config: ${Config.API_URL}\n` +
-        `Connection Status: ${connectionStatus}`
-      );
-    } catch (error) {
-      console.error('Error testing API URL:', error);
-      Alert.alert('Error', 'Failed to get API URL information');
-    }
-  };
-
   return (
     <LoginProvider>
       <View style={styles.container}>
@@ -95,29 +48,20 @@ const LoginScreen = () => {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.container}
         >
-          <AuthLogo tagline="Prepare for your Dutch exam with AI" />
-          <LoginForm />
-          <RegisterLink />
-          
-          {/* Debug buttons */}
-          <View style={styles.debugContainer}>
-            <TouchableOpacity 
-              style={styles.debugButton} 
-              onPress={clearAllStorage}
-            >
-              <Text style={styles.debugButtonText}>Clear Storage Data</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={[styles.debugButton, { backgroundColor: '#4f86f7' }]} 
-              onPress={testApiUrl}
-            >
-              <Text style={styles.debugButtonText}>Check API URL</Text>
-            </TouchableOpacity>
+          <View style={styles.topSection}>
+            <AuthLogo tagline="Master your learning with AI" />
+            <View style={styles.mascotContainer}>
+              <Image 
+                source={require('../assets/images/mascot.png')} 
+                style={styles.mascotImage}
+                resizeMode="contain"
+              />
+            </View>
           </View>
-
-          <View style={styles.networkSelectorContainer}>
-            <NetworkSelector />
+          
+          <View style={styles.formSection}>
+            <LoginForm />
+            <RegisterLink />
           </View>
         </KeyboardAvoidingView>
       </View>
@@ -128,7 +72,7 @@ const LoginScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#E6F4EC', // Mint Foam - light background
   },
   sessionExpiredBanner: {
     backgroundColor: '#d9534f',
@@ -140,27 +84,32 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: 'bold',
   },
-  debugContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 30,
-    marginTop: 20,
-  },
-  debugButton: {
+  topSection: {
     flex: 1,
-    padding: 10,
-    backgroundColor: '#ff9494',
-    borderRadius: 5,
-    marginHorizontal: 4,
-  },
-  debugButtonText: {
-    color: '#ffffff',
-    textAlign: 'center',
-    fontWeight: 'bold',
-  },
-  networkSelectorContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
     paddingHorizontal: 30,
+  },
+  mascotContainer: {
+    width: 150,
+    height: 150,
     marginTop: 20,
+  },
+  mascotImage: {
+    width: '100%',
+    height: '100%',
+  },
+  formSection: {
+    backgroundColor: '#FFFFFF', // Snow - card surface
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 30,
+    paddingBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
   },
 });
 

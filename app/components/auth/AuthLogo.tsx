@@ -8,7 +8,7 @@ interface AuthLogoProps {
 export function AuthLogo({ tagline = "Welcome back" }: AuthLogoProps) {
   return (
     <View style={styles.logoContainer}>
-      <Text style={styles.logoText}>Dutch Test Prep</Text>
+      <Text style={styles.logoText}>Overstep</Text>
       <Text style={styles.tagline}>{tagline}</Text>
     </View>
   );
@@ -18,17 +18,17 @@ const styles = StyleSheet.create({
   logoContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 80,
-    marginBottom: 30,
+    marginBottom: 20,
   },
   logoText: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#4f86f7',
+    color: '#318F65', // Forest Verdant - primary brand color
     marginBottom: 8,
   },
   tagline: {
     fontSize: 16,
-    color: '#495057',
+    color: '#5CA480', // Overstep Green - secondary text
+    textAlign: 'center',
   },
 }); 
