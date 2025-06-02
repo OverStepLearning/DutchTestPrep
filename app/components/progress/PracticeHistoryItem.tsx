@@ -50,9 +50,9 @@ export const PracticeHistoryItem: React.FC<PracticeHistoryItemProps> = ({ practi
           <Text style={styles.practiceType}>{practiceType}</Text>
           <View style={[styles.resultBadge, isCorrect ? styles.correctBadge : styles.incorrectBadge]}>
             {isCorrect ? (
-              <Ionicons name="checkmark" size={12} color="white" />
+              <Ionicons name="checkmark" size={12} color="#FFFFFF" />
             ) : (
-              <Ionicons name="close" size={12} color="white" />
+              <Ionicons name="close" size={12} color="#FFFFFF" />
             )}
           </View>
         </View>
@@ -80,7 +80,7 @@ export const PracticeHistoryItem: React.FC<PracticeHistoryItemProps> = ({ practi
 
 const styles = StyleSheet.create({
   historyItem: {
-    backgroundColor: 'white',
+    backgroundColor: '#FFFFFF', // Snow - card surface
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
@@ -92,10 +92,10 @@ const styles = StyleSheet.create({
     borderLeftWidth: 4,
   },
   correctItem: {
-    borderLeftColor: '#4caf50',
+    borderLeftColor: '#5CA480', // Overstep Green - correct
   },
   incorrectItem: {
-    borderLeftColor: '#f44336',
+    borderLeftColor: '#E5AF00', // Golden Mango - incorrect (warning)
   },
   historyHeader: {
     flexDirection: 'row',
@@ -111,6 +111,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginRight: 8,
+    color: '#318F65', // Forest Verdant - heading
   },
   resultBadge: {
     width: 20,
@@ -120,29 +121,33 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   correctBadge: {
-    backgroundColor: '#4caf50',
+    backgroundColor: '#5CA480', // Overstep Green - correct
   },
   incorrectBadge: {
-    backgroundColor: '#f44336',
+    backgroundColor: '#E5AF00', // Golden Mango - incorrect
   },
   practiceDate: {
     fontSize: 14,
-    color: '#666',
+    color: '#5CA480', // Overstep Green - secondary text
+    fontWeight: '500',
   },
   practiceContent: {
     fontSize: 16,
     marginBottom: 12,
     lineHeight: 22,
+    color: '#212121', // Charcoal - main text
   },
   answerLabel: {
     fontSize: 14,
-    color: '#666',
+    color: '#5CA480', // Overstep Green - secondary text
     marginBottom: 4,
+    fontWeight: '500',
   },
   userAnswer: {
     fontSize: 15,
     fontWeight: '500',
     marginBottom: 12,
+    color: '#212121', // Charcoal - main text
   },
   categoryContainer: {
     flexDirection: 'row',
@@ -150,25 +155,29 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   categoryTag: {
-    backgroundColor: '#f0f8ff',
+    backgroundColor: '#E6F4EC', // Mint Foam - tag background
     borderRadius: 12,
     paddingVertical: 4,
     paddingHorizontal: 8,
     marginRight: 6,
     marginBottom: 6,
+    borderWidth: 1,
+    borderColor: '#5CA480', // Overstep Green - border
   },
   categoryText: {
     fontSize: 12,
-    color: '#4f86f7',
+    color: '#318F65', // Forest Verdant - tag text
+    fontWeight: '500',
   },
   emptyCategoriesText: {
     fontSize: 12,
-    color: '#999',
+    color: '#5CA480', // Overstep Green - secondary text
     fontStyle: 'italic',
   },
   errorText: {
     fontSize: 14,
-    color: '#f44336',
+    color: '#E5AF00', // Golden Mango - error text
     fontStyle: 'italic',
+    fontWeight: '500',
   },
 }); 

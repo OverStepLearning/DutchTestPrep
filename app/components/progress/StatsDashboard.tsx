@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   statCard: {
-    backgroundColor: 'white',
+    backgroundColor: '#FFFFFF', // Snow - card surface
     borderRadius: 12,
     padding: 16,
     width: '48%',
@@ -56,12 +56,13 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#4f86f7',
+    color: '#E5AF00', // Golden Mango - highlighted numbers
     marginBottom: 4,
   },
   statLabel: {
     fontSize: 14,
-    color: '#666',
+    color: '#5CA480', // Overstep Green - secondary text
     textAlign: 'center',
+    fontWeight: '500',
   },
 }); 

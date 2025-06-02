@@ -28,7 +28,7 @@ export const PracticeHistory: React.FC<PracticeHistoryProps> = ({
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#4f86f7" />
+        <ActivityIndicator size="large" color="#318F65" />
         <Text style={styles.loadingText}>Loading practice history...</Text>
       </View>
     );
@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 16,
-    color: '#333',
+    color: '#318F65', // Forest Verdant - heading
   },
   loadingContainer: {
     alignItems: 'center',
@@ -115,29 +115,36 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 10,
     fontSize: 16,
-    color: '#666',
+    color: '#5CA480', // Overstep Green - secondary text
+    fontWeight: '500',
   },
   errorContainer: {
     padding: 20,
-    backgroundColor: '#ffebee',
+    backgroundColor: '#FFF8D3', // Lemon Frost - error background
     borderRadius: 8,
     marginBottom: 20,
+    borderLeftWidth: 4,
+    borderLeftColor: '#E5AF00', // Golden Mango - warning accent
   },
   errorText: {
-    color: '#d32f2f',
+    color: '#318F65', // Forest Verdant - error text
     textAlign: 'center',
+    fontWeight: '500',
   },
   emptyContainer: {
     padding: 40,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#E6F4EC', // Mint Foam - empty state background
     borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#5CA480', // Overstep Green - border
   },
   emptyText: {
     fontSize: 16,
-    color: '#666',
+    color: '#212121', // Charcoal - main text
     textAlign: 'center',
+    fontWeight: '500',
   },
   paginationContainer: {
     flexDirection: 'row',
@@ -146,23 +153,29 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   paginationButton: {
-    backgroundColor: '#4f86f7',
+    backgroundColor: '#5CA480', // Overstep Green - secondary action
     borderRadius: 8,
     paddingVertical: 8,
     paddingHorizontal: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   paginationButtonText: {
-    color: 'white',
+    color: '#FFFFFF', // Snow - button text
     fontWeight: '500',
   },
   disabledButton: {
-    backgroundColor: '#e0e0e0',
+    backgroundColor: '#E6F4EC', // Mint Foam - disabled background
   },
   disabledButtonText: {
-    color: '#9e9e9e',
+    color: '#5CA480', // Overstep Green - disabled text
   },
   paginationInfo: {
     fontSize: 14,
-    color: '#666',
+    color: '#5CA480', // Overstep Green - secondary text
+    fontWeight: '500',
   },
 }); 
