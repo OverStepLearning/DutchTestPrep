@@ -128,7 +128,7 @@ export default function HomeScreen() {
         {/* Learning Streak */}
         <View style={styles.streakContainer}>
           <View style={styles.streakHeader}>
-            <Ionicons name="flame" size={24} color="#E5AF00" />
+            <Ionicons name="flame" size={24} color="#0a7ea4" />
             <Text style={styles.streakTitle}>Learning Streak</Text>
           </View>
           <Text style={styles.streakNumber}>7</Text>
@@ -141,15 +141,17 @@ export default function HomeScreen() {
           <Text style={styles.subjectTitle}>Currently Learning</Text>
           <View style={styles.subjectCard}>
             <View style={styles.subjectInfo}>
-              <Text style={styles.subjectName}>{currentSubject || 'Dutch'}</Text>
-              <Text style={styles.subjectLevel}>Intermediate Level</Text>
+              <View style={styles.subjectNameContainer}>
+                <Ionicons name="book-outline" size={20} color="#318F65" />
+                <Text style={styles.subjectName}>{currentSubject || 'Dutch'}</Text>
+              </View>
             </View>
             <TouchableOpacity 
               style={styles.changeSubjectButton}
               onPress={() => router.push('/(tabs)/profile')}
             >
+              <Ionicons name="pencil-outline" size={16} color="#318F65" />
               <Text style={styles.changeSubjectText}>Change</Text>
-              <Ionicons name="chevron-forward" size={16} color="#318F65" />
             </TouchableOpacity>
           </View>
         </View>
@@ -371,7 +373,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
     borderLeftWidth: 4,
-    borderLeftColor: '#E5AF00', // Golden Mango - accent strip
+    borderLeftColor: '#0a7ea4', // Active tab blue - accent strip
   },
   streakHeader: {
     flexDirection: 'row',
@@ -387,7 +389,7 @@ const styles = StyleSheet.create({
   streakNumber: {
     fontSize: 48,
     fontWeight: 'bold',
-    color: '#E5AF00', // Golden Mango - highlight number
+    color: '#0a7ea4', // Active tab blue - highlight number
     marginBottom: 4,
   },
   streakText: {
@@ -397,7 +399,7 @@ const styles = StyleSheet.create({
   },
   streakSubtext: {
     fontSize: 14,
-    color: '#5CA480', // Overstep Green - secondary text
+    color: '#212121', // Charcoal - changed to black as requested
   },
   goalContainer: {
     backgroundColor: '#FFFFFF', // Snow - card surface
@@ -473,29 +475,30 @@ const styles = StyleSheet.create({
   subjectInfo: {
     flex: 1,
   },
+  subjectNameContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   subjectName: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#212121', // Charcoal - main text
     marginBottom: 4,
-  },
-  subjectLevel: {
-    fontSize: 14,
-    color: '#5CA480', // Overstep Green - secondary text
+    marginLeft: 8,
   },
   changeSubjectButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFF8D3', // Lemon Frost - soft banner
+    backgroundColor: '#f0f0f0',
+    paddingVertical: 6,
     paddingHorizontal: 12,
-    paddingVertical: 8,
     borderRadius: 6,
   },
   changeSubjectText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     color: '#318F65', // Forest Verdant - action text
-    marginRight: 4,
+    marginLeft: 4,
   },
   userInitials: {
     fontSize: 24,

@@ -62,7 +62,7 @@ export const practiceStyles = StyleSheet.create({
   hintLabel: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#318F65', // Forest Verdant
+    color: '#666666', // Gray - as requested
   },
   hintToggle: {
     fontSize: 10,
@@ -119,7 +119,7 @@ export const practiceStyles = StyleSheet.create({
     color: '#212121', // Charcoal - input text
   },
   submitButton: {
-    backgroundColor: '#F6C83F', // Sunbeam Yellow - primary CTA
+    backgroundColor: '#5CA480', // Overstep Green - less attention-grabbing
     borderRadius: 8,
     padding: 14,
     alignItems: 'center',
@@ -130,7 +130,7 @@ export const practiceStyles = StyleSheet.create({
     elevation: 2,
   },
   submitButtonText: {
-    color: '#212121', // Charcoal - text on light button
+    color: '#FFFFFF', // Snow - text on dark button
     fontSize: 16,
     fontWeight: '600',
   },

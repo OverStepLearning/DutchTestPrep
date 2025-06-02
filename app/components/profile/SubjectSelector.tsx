@@ -43,17 +43,20 @@ export const SubjectSelector: React.FC<SubjectSelectorProps> = ({
           style={styles.changeButton} 
           onPress={() => setIsModalVisible(true)}
         >
-          <Ionicons name="pencil" size={16} color="#318F65" />
+          <Ionicons name="pencil-outline" size={16} color="#318F65" />
           <Text style={styles.changeText}>Change</Text>
         </TouchableOpacity>
       </View>
       
       <View style={styles.subjectContainer}>
         <Text style={styles.currentSubject}>{currentSubject}</Text>
-        <Text style={styles.helpText}>
-          This is the language or subject you are currently learning.
-          Changing this will also change your practice questions.
-        </Text>
+        <View style={styles.infoContainer}>
+          <Ionicons name="information-circle" size={16} color="#777" />
+          <Text style={styles.infoText}>
+            This is the language or subject you are currently learning.
+            Changing this will also change your practice questions.
+          </Text>
+        </View>
       </View>
 
       <Modal
@@ -144,9 +147,9 @@ const styles = StyleSheet.create({
   changeButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFF8D3', // Lemon Frost - soft action
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    backgroundColor: '#f0f0f0',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
     borderRadius: 6,
   },
   changeText: {
@@ -161,12 +164,22 @@ const styles = StyleSheet.create({
   currentSubject: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#E5AF00', // Golden Mango - highlighted value
+    color: '#212121', // Charcoal - changed to black as requested
     marginBottom: 8,
   },
-  helpText: {
+  infoContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#f8f9fa',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 10,
+    alignItems: 'flex-start',
+  },
+  infoText: {
     fontSize: 14,
-    color: '#5CA480', // Overstep Green - secondary text
+    color: '#777',
+    marginLeft: 8,
+    flex: 1,
     lineHeight: 20,
   },
   modalOverlay: {

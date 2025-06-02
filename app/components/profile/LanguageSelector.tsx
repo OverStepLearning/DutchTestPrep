@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, FlatList } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { LanguageOption } from '../../types/profile';
 
 interface LanguageSelectorProps {
@@ -32,6 +33,7 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
           style={styles.editButton}
           onPress={() => setShowLanguageModal(true)}
         >
+          <Ionicons name="pencil-outline" size={16} color="#318F65" />
           <Text style={styles.editButtonText}>Change</Text>
         </TouchableOpacity>
       </View>
@@ -112,14 +114,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   editButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#f0f0f0',
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 6,
   },
   editButtonText: {
-    color: '#4f86f7',
+    color: '#318F65',
     fontWeight: '500',
+    marginLeft: 4,
   },
   modalContainer: {
     flex: 1,

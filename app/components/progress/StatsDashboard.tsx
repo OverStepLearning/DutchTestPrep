@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#E5AF00', // Golden Mango - highlighted numbers
+    color: '#0a7ea4', // Active tab blue - highlighted numbers
     marginBottom: 4,
   },
   statLabel: {

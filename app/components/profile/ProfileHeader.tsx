@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
   },
   email: {
     fontSize: 14,
-    color: '#5CA480', // Overstep Green - secondary text
+    color: '#212121', // Charcoal - changed to black as requested
     fontWeight: '500',
   },
 }); 
