@@ -85,15 +85,16 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   topSection: {
-    flex: 1,
+    flex: 0.6,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 30,
+    paddingTop: 20,
   },
   mascotContainer: {
-    width: 150,
-    height: 150,
-    marginTop: 20,
+    width: 140,
+    height: 140,
+    marginTop: 15,
   },
   mascotImage: {
     width: '100%',

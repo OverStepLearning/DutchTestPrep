@@ -81,10 +81,9 @@ export function useRegister(): UseRegisterReturn {
     if (!validateForm()) return;
 
     try {
-      const { name, email, password } = inputs;
-      // Note: invitationCode is validated but not sent to backend yet
-      // TODO: Update backend to handle invitation codes
-      await register(name, email, password);
+      const { name, email, password, invitationCode } = inputs;
+      // Now sending invitation code to backend for validation
+      await register(name, email, password, invitationCode);
       // If successful, the auth context will handle navigation
     } catch (err) {
       console.error('Registration error:', err);
