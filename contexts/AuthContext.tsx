@@ -26,7 +26,7 @@ interface AuthContextType {
   error: string | null;
   clearError: () => void;
   login: (email: string, password: string, customApiUrl?: string) => Promise<void>;
-  register: (name: string, email: string, password: string, customApiUrl?: string) => Promise<void>;
+  register: (name: string, email: string, password: string, invitationCode?: string, customApiUrl?: string) => Promise<void>;
   logout: () => void;
   checkOnboardingStatus: () => boolean;
   checkSubjectOnboardingStatus: (subject?: string) => Promise<boolean>;
@@ -58,8 +58,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null);
       setToken(null);
       
-      // Navigate to login
-      router.replace('/login');
+      // Navigate to login with session expired reason
+      router.replace('/login?reason=session_expired');
     } catch (error) {
       console.error('Logout error:', error);
     }
@@ -328,7 +328,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   // Register handler
-  const register = async (name: string, email: string, password: string, customApiUrl?: string) => {
+  const register = async (name: string, email: string, password: string, invitationCode?: string, customApiUrl?: string) => {
     setIsLoading(true);
     try {
       // If a custom API URL is provided, update the base URL
@@ -343,7 +343,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await apiService.post('/api/auth/register', {
         name,
         email,
-        password
+        password,
+        invitationCode // Include invitation code in the request body
       });
 
       // Check if successful response from backend
@@ -430,8 +431,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Update stored user data
         await storage.setItem(Config.STORAGE_KEYS.USER_DATA, JSON.stringify(updatedUser));
         
-        // Update onboarding status on server
-        await apiService.put('/api/user/onboarding-complete');
+        // NOTE: Removed API call to /api/user/onboarding-complete because:
+        // 1. This endpoint doesn't exist in the backend
+        // 2. The onboarding completion is already handled by the /api/user/preferences endpoint
+        // 3. The setUserPreferences controller already sets hasCompletedOnboarding: true
+        console.log('[AuthContext] Onboarding marked as complete locally');
       }
     } catch (error) {
       console.error('Error updating onboarding status:', error);

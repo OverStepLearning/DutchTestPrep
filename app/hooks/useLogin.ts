@@ -128,15 +128,6 @@ export function useLogin() {
     }
   };
 
-  // Show error alert if authentication fails
-  useEffect(() => {
-    if (error) {
-      Alert.alert('Authentication Error', error, [
-        { text: 'OK', onPress: clearError }
-      ]);
-    }
-  }, [error, clearError]);
-
   return {
     email,
     setEmail,

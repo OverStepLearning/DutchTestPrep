@@ -67,12 +67,11 @@ function RootLayoutNav() {
       // Redirect to the login page if the user is not logged in 
       // and trying to access protected routes
       router.replace('/login');
-    } else if (user && !inAuthGroup) {
-      // Redirect to the home page if the user is logged in 
-      // and on an authentication page
-      // Add a small delay to prevent conflicts with login navigation
+    } else if (user && !inAuthGroup && segments[0] !== 'login' && segments[0] !== 'register') {
+      // Only redirect to home if user is logged in and not on auth pages
+      // and not currently on login/register (to prevent redirect loops)
       setTimeout(() => {
-      router.replace('/');
+        router.replace('/');
       }, 100);
     }
   }, [user, segments, isLoading]);

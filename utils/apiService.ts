@@ -324,29 +324,19 @@ export const removeTokenExpiredHandler = (handler: () => void) => {
   }
 };
 
-// Add axios response interceptor to handle token expiration and other auth failures
+// Add response interceptor to handle token expiration and other auth failures
 api.interceptors.response.use(
   response => response,
-  async (error: AxiosError) => {
-    // Check if error is due to token issues (expired token or invalid signature)
-    if (error.response?.status === 401) {
-      console.log('[API] Unauthorized error:', error.message);
-      console.log('[API] Token expired or invalid, notifying handlers');
-      
-      Sentry.addBreadcrumb({
-        category: 'auth',
-        message: 'Token invalid or expired, automatic logout triggered',
-        level: 'info',
-        data: {
-          error: error.message
-        }
-      });
-
-      try {
+  error => {
+    if (error.response) {
+      // Handle both 401 (Unauthorized) and 404 (Not Found) errors
+      if (error.response.status === 401 || error.response.status === 404) {
+        console.log('[API] Unauthorized/NotFound error - triggering logout');
+        
         // Clear auth token in API service
         delete api.defaults.headers.common['Authorization'];
         
-        // Notify all handlers about token expiration
+        // Notify all handlers about token expiration (this will trigger proper logout)
         tokenExpiredHandlers.forEach(handler => {
           try {
             handler();
@@ -354,12 +344,8 @@ api.interceptors.response.use(
             console.error('Error in token expiration handler:', handlerError);
           }
         });
-      } catch (logoutError) {
-        console.error('Error during automatic logout:', logoutError);
-        Sentry.captureException(logoutError);
       }
     }
-    
     return Promise.reject(error);
   }
 );

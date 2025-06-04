@@ -36,14 +36,8 @@ export function useRegister(): UseRegisterReturn {
     setInputsState(prev => ({ ...prev, ...newInputs }));
   };
 
-  // Show error alert if authentication fails
-  useEffect(() => {
-    if (error) {
-      Alert.alert('Registration Error', error, [
-        { text: 'OK', onPress: clearError }
-      ]);
-    }
-  }, [error, clearError]);
+  // NOTE: Removed the error alert from here since AuthContext already handles registration errors
+  // This prevents duplicate error popups
 
   // Validate form inputs
   const validateForm = (): boolean => {

@@ -18,7 +18,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "me.lizhien.desirabledifficult",
-      "buildNumber": "2",
+      "buildNumber": "4",
       "infoPlist": {
         "NSCameraUsageDescription": "This app does not use the camera",
         "NSPhotoLibraryUsageDescription": "This app does not use the photo library",
