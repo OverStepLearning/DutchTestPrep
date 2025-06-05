@@ -77,11 +77,11 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: '#FFF8D3', // Lemon Frost - inactive dot
     marginHorizontal: 4,
   },
   activeDot: {
-    backgroundColor: '#4f86f7',
+    backgroundColor: '#318F65', // Forest Verdant - active dot
     width: 12,
     height: 12,
     borderRadius: 6,
@@ -91,34 +91,44 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   backButton: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#5CA480', // Overstep Green - secondary button
     paddingVertical: 14,
     paddingHorizontal: 20,
     borderRadius: 8,
     width: '48%',
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   backButtonText: {
-    color: '#666',
+    color: '#FFFFFF', // Snow - text on dark button
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   nextButton: {
-    backgroundColor: '#4f86f7',
+    backgroundColor: '#318F65', // Forest Verdant - primary button
     paddingVertical: 14,
     paddingHorizontal: 20,
     borderRadius: 8,
     width: '48%',
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   fullWidthButton: {
     width: '100%',
   },
   nextButtonText: {
-    color: 'white',
+    color: '#FFFFFF', // Snow - text on dark button
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: '600',
   },
 }); 

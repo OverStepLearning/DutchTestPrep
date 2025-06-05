@@ -48,45 +48,53 @@ export const MotherLanguageSelector: React.FC<MotherLanguageSelectorProps> = ({
 const styles = StyleSheet.create({
   container: {
     marginBottom: 24,
+    backgroundColor: '#FFFFFF', // Snow - card surface
+    borderRadius: 12,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 8,
-    color: '#333',
+    color: '#318F65', // Forest Verdant - heading
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
+    color: '#212121', // Charcoal - body text
     marginBottom: 20,
   },
   languagesContainer: {
     maxHeight: 300,
   },
   languageItem: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#E6F4EC', // Mint Foam - light background
     padding: 16,
     borderRadius: 8,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: '#5CA480', // Overstep Green - border
   },
   selectedLanguage: {
-    backgroundColor: '#4f86f7',
-    borderColor: '#4f86f7',
+    backgroundColor: '#318F65', // Forest Verdant - selected background
+    borderColor: '#318F65', // Forest Verdant - selected border
   },
   languageText: {
     fontSize: 16,
-    color: '#333',
+    color: '#212121', // Charcoal - option text
     fontWeight: '500',
   },
   selectedLanguageText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: '#FFFFFF', // Snow - selected text
+    fontWeight: '600',
   },
   helpText: {
     fontSize: 14,
-    color: '#888',
+    color: '#5CA480', // Overstep Green - helper text
     marginTop: 16,
     fontStyle: 'italic',
   },

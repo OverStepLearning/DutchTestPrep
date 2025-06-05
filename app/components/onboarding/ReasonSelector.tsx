@@ -50,39 +50,51 @@ export const ReasonSelector: React.FC<ReasonSelectorProps> = ({
 const styles = StyleSheet.create({
   container: {
     width: '100%',
+    backgroundColor: '#FFFFFF', // Snow - card surface
+    borderRadius: 12,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#318F65', // Forest Verdant - heading
     marginBottom: 8,
   },
   description: {
     fontSize: 16,
-    color: '#666',
+    color: '#212121', // Charcoal - body text
     marginBottom: 20,
   },
   optionsContainer: {
     flexDirection: 'column',
   },
   optionButton: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#E6F4EC', // Mint Foam - light background
     paddingVertical: 16,
     paddingHorizontal: 20,
     borderRadius: 8,
     marginBottom: 12,
     alignItems: 'flex-start',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#5CA480', // Overstep Green - border
   },
   selectedOption: {
-    backgroundColor: '#4f86f7',
+    backgroundColor: '#318F65', // Forest Verdant - selected background
+    borderColor: '#318F65', // Forest Verdant - selected border
   },
   optionText: {
     fontSize: 16,
-    color: '#333',
+    color: '#212121', // Charcoal - option text
+    fontWeight: '500',
   },
   selectedOptionText: {
-    color: 'white',
-    fontWeight: '500',
+    color: '#FFFFFF', // Snow - selected text
+    fontWeight: '600',
   },
 }); 

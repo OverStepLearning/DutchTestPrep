@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { ActivityIndicator, ScrollView, View, Text, TouchableOpacity } from 'react-native';
+import { ActivityIndicator, ScrollView, View, Text, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { usePractice } from '../hooks/usePractice';
@@ -132,143 +132,66 @@ export default function PracticeScreen() {
 
   return (
     <SafeAreaView style={practiceStyles.container}>
-      <ScrollView contentContainerStyle={practiceStyles.scrollContainer}>
-        <View style={practiceStyles.header}>
-          <Text style={practiceStyles.title}>{currentSubject || 'Dutch'} Practice</Text>
-        </View>
-        
-        {/* Difficulty adjuster */}
-        {currentPractice && (
-          <DifficultyAdjuster 
-            difficultyTrend={difficultyTrend}
-            difficultyValue={subjectProgress.currentDifficulty}
-            complexityValue={subjectProgress.currentComplexity}
-            difficultyChange={difficultyChange}
-            complexityChange={complexityChange}
-            adjusting={adjusting}
-            adjustmentMode={adjustmentMode}
-            onAdjustDifficulty={showAdjustmentDialog}
-          />
-        )}
-        
-        {/* Background generation indicator */}
-        {generatingBatch && !loading && (
-          <View style={practiceStyles.backgroundGenerationContainer}>
-            <Text style={practiceStyles.backgroundGenerationText}>Generating more questions...</Text>
+      <KeyboardAvoidingView 
+        style={{ flex: 1 }} 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+        <ScrollView 
+          contentContainerStyle={practiceStyles.scrollContainer}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={practiceStyles.header}>
+            <Text style={practiceStyles.title}>{currentSubject || 'Dutch'} Practice</Text>
           </View>
-        )}
-        
-        {/* Error message display */}
-        {errorMessage && (
-          <View style={practiceStyles.errorContainer}>
-            <Text style={practiceStyles.errorText}>{errorMessage}</Text>
-            
-            {/* Add retry button for general errors (timeouts, generation failures, etc.) */}
-            <TouchableOpacity 
-              style={practiceStyles.retryButton}
-              onPress={() => {
-                console.log('[PracticeScreen] User clicked retry button');
-                // Reset the initial load flag to allow regeneration
-                initialLoadRef.current = false;
-                // Clear the error message
-                // setErrorMessage(null); // This will be handled by generatePractice
-                // Force generate new practice
-                generatePractice(true);
-              }}
-            >
-              <Text style={practiceStyles.retryButtonText}>
-                🔄 Try Again
-              </Text>
-            </TouchableOpacity>
-            
-            {/* Add onboarding button if the error is about preferences */}
-            {errorMessage.includes('onboarding') && (
+          
+          {/* Difficulty adjuster */}
+          {currentPractice && (
+            <DifficultyAdjuster 
+              difficultyTrend={difficultyTrend}
+              difficultyValue={subjectProgress.currentDifficulty}
+              complexityValue={subjectProgress.currentComplexity}
+              difficultyChange={difficultyChange}
+              complexityChange={complexityChange}
+              adjusting={adjusting}
+              adjustmentMode={adjustmentMode}
+              onAdjustDifficulty={showAdjustmentDialog}
+            />
+          )}
+          
+          {/* Background generation indicator */}
+          {generatingBatch && !loading && (
+            <View style={practiceStyles.backgroundGenerationContainer}>
+              <Text style={practiceStyles.backgroundGenerationText}>Generating more questions...</Text>
+            </View>
+          )}
+          
+          {/* Error message display */}
+          {errorMessage && (
+            <View style={practiceStyles.errorContainer}>
+              <Text style={practiceStyles.errorText}>{errorMessage}</Text>
+              
+              {/* Add retry button for general errors (timeouts, generation failures, etc.) */}
               <TouchableOpacity 
-                style={practiceStyles.onboardingButton}
+                style={practiceStyles.retryButton}
                 onPress={() => {
-                  if (navigationReadyRef.current) {
-                    router.replace('/(tabs)/onboarding');
-                  }
+                  console.log('[PracticeScreen] User clicked retry button');
+                  // Reset the initial load flag to allow regeneration
+                  initialLoadRef.current = false;
+                  // Clear the error message
+                  // setErrorMessage(null); // This will be handled by generatePractice
+                  // Force generate new practice
+                  generatePractice(true);
                 }}
               >
-                <Text style={practiceStyles.onboardingButtonText}>
-                  Go to Onboarding
+                <Text style={practiceStyles.retryButtonText}>
+                  🔄 Try Again
                 </Text>
               </TouchableOpacity>
-            )}
-            
-            {/* Add login button if the error is about auth */}
-            {errorMessage.includes('logged in') && (
-              <TouchableOpacity 
-                style={practiceStyles.onboardingButton}
-                onPress={() => {
-                  if (navigationReadyRef.current) {
-                    router.replace('/login');
-                  }
-                }}
-              >
-                <Text style={practiceStyles.onboardingButtonText}>
-                  Go to Login
-                </Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        )}
-        
-        {/* Loading indicator */}
-        {loading ? (
-          <ActivityIndicator size="large" color="#4f86f7" style={practiceStyles.loader} />
-        ) : (
-          <>
-            {/* Practice content */}
-            {currentPractice && (
-              <View style={practiceStyles.practiceContainer}>
-                <PracticeContent practice={currentPractice} subjectProgress={subjectProgress} />
-                
-                {!feedback ? (
-                  <AnswerInput 
-                    practice={currentPractice}
-                    userAnswer={userAnswer}
-                    onChangeAnswer={setUserAnswer}
-                    onSubmit={submitAnswer}
-                    disabled={!!feedback}
-                  />
-                ) : (
-                  <FeedbackDisplay 
-                    feedback={feedback}
-                    practice={currentPractice}
-                    userAnswer={userAnswer}
-                    feedbackQuestion={feedbackQuestion}
-                    feedbackAnswer={feedbackAnswer}
-                    askingQuestion={askingQuestion}
-                    onNextPractice={handleNextPractice}
-                    onSetFeedbackQuestion={setFeedbackQuestion}
-                    onAskQuestion={askFollowUpQuestion}
-                  />
-                )}
-              </View>
-            )}
-            
-            {/* Show message when no practice and no error (likely waiting for onboarding) */}
-            {!currentPractice && !errorMessage && !loading && (
-              <View style={practiceStyles.emptyStateContainer}>
-                <Text style={practiceStyles.emptyStateText}>
-                  Ready to start practicing {currentSubject || 'Dutch'}? Complete onboarding to personalize your experience.
-                </Text>
-                <TouchableOpacity 
-                  style={practiceStyles.retryButton}
-                  onPress={() => {
-                    console.log('[PracticeScreen] User clicked refresh from empty state');
-                    // Reset the initial load flag to allow regeneration
-                    initialLoadRef.current = false;
-                    // Force generate new practice
-                    generatePractice(true);
-                  }}
-                >
-                  <Text style={practiceStyles.retryButtonText}>
-                    🔄 Refresh Practice
-                  </Text>
-                </TouchableOpacity>
+              
+              {/* Add onboarding button if the error is about preferences */}
+              {errorMessage.includes('onboarding') && (
                 <TouchableOpacity 
                   style={practiceStyles.onboardingButton}
                   onPress={() => {
@@ -281,11 +204,98 @@ export default function PracticeScreen() {
                     Go to Onboarding
                   </Text>
                 </TouchableOpacity>
-              </View>
-            )}
-          </>
-        )}
-      </ScrollView>
+              )}
+              
+              {/* Add login button if the error is about auth */}
+              {errorMessage.includes('logged in') && (
+                <TouchableOpacity 
+                  style={practiceStyles.onboardingButton}
+                  onPress={() => {
+                    if (navigationReadyRef.current) {
+                      router.replace('/login');
+                    }
+                  }}
+                >
+                  <Text style={practiceStyles.onboardingButtonText}>
+                    Go to Login
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
+          
+          {/* Loading indicator */}
+          {loading ? (
+            <ActivityIndicator size="large" color="#4f86f7" style={practiceStyles.loader} />
+          ) : (
+            <>
+              {/* Practice content */}
+              {currentPractice && (
+                <View style={practiceStyles.practiceContainer}>
+                  <PracticeContent practice={currentPractice} subjectProgress={subjectProgress} />
+                  
+                  {!feedback ? (
+                    <AnswerInput 
+                      practice={currentPractice}
+                      userAnswer={userAnswer}
+                      onChangeAnswer={setUserAnswer}
+                      onSubmit={submitAnswer}
+                      disabled={!!feedback}
+                    />
+                  ) : (
+                    <FeedbackDisplay 
+                      feedback={feedback}
+                      practice={currentPractice}
+                      userAnswer={userAnswer}
+                      feedbackQuestion={feedbackQuestion}
+                      feedbackAnswer={feedbackAnswer}
+                      askingQuestion={askingQuestion}
+                      onNextPractice={handleNextPractice}
+                      onSetFeedbackQuestion={setFeedbackQuestion}
+                      onAskQuestion={askFollowUpQuestion}
+                    />
+                  )}
+                </View>
+              )}
+              
+              {/* Show message when no practice and no error (likely waiting for onboarding) */}
+              {!currentPractice && !errorMessage && !loading && (
+                <View style={practiceStyles.emptyStateContainer}>
+                  <Text style={practiceStyles.emptyStateText}>
+                    Ready to start practicing {currentSubject || 'Dutch'}? Complete onboarding to personalize your experience.
+                  </Text>
+                  <TouchableOpacity 
+                    style={practiceStyles.retryButton}
+                    onPress={() => {
+                      console.log('[PracticeScreen] User clicked refresh from empty state');
+                      // Reset the initial load flag to allow regeneration
+                      initialLoadRef.current = false;
+                      // Force generate new practice
+                      generatePractice(true);
+                    }}
+                  >
+                    <Text style={practiceStyles.retryButtonText}>
+                      🔄 Refresh Practice
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={practiceStyles.onboardingButton}
+                    onPress={() => {
+                      if (navigationReadyRef.current) {
+                        router.replace('/(tabs)/onboarding');
+                      }
+                    }}
+                  >
+                    <Text style={practiceStyles.onboardingButtonText}>
+                      Go to Onboarding
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </>
+          )}
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 } 

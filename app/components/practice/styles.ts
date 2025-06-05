@@ -293,10 +293,15 @@ export const practiceStyles = StyleSheet.create({
   translationContainer: {
     marginTop: 20,
     padding: 15,
-    backgroundColor: '#E6F4EC', // Mint Foam - background
+    backgroundColor: '#FFFFFF', // Snow - changed to white for better visibility
     borderRadius: 8,
-    borderLeftWidth: 4,
-    borderLeftColor: '#318F65', // Forest Verdant - accent
+    borderWidth: 1,
+    borderColor: '#5CA480', // Overstep Green - added border for definition
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
   },
   translationLabel: {
     fontSize: 14,
@@ -405,11 +410,16 @@ export const practiceStyles = StyleSheet.create({
   },
   feedbackQuestionContainer: {
     marginTop: 20,
-    backgroundColor: '#E6F4EC', // Mint Foam - feedback background
+    backgroundColor: '#FFFFFF', // Snow - changed to white for better visibility
     borderRadius: 12,
     padding: 15,
     borderWidth: 1,
     borderColor: '#5CA480', // Overstep Green - border
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
   },
   feedbackQuestionLabel: {
     fontSize: 16,
@@ -417,14 +427,14 @@ export const practiceStyles = StyleSheet.create({
     color: '#318F65', // Forest Verdant - label
     marginBottom: 10,
   },
-  feedbackInput: {
+  feedbackQuestionInput: {
     borderWidth: 1,
     borderColor: '#5CA480', // Overstep Green - input border
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
     color: '#212121', // Charcoal - input text
-    backgroundColor: '#FFFFFF', // Snow - input background
+    backgroundColor: '#FFFFFF', // Snow - input background (already white)
     marginBottom: 12,
     minHeight: 80,
     textAlignVertical: 'top',

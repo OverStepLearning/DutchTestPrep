@@ -117,7 +117,7 @@ export default function OnboardingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#E6F4EC', // Mint Foam - light section background
   },
   scrollContent: {
     padding: 20,
@@ -125,16 +125,24 @@ const styles = StyleSheet.create({
   },
   header: {
     marginBottom: 30,
+    backgroundColor: '#FFFFFF', // Snow - card surface
+    borderRadius: 12,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#318F65', // Forest Verdant - heading
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
+    color: '#212121', // Charcoal - body text
     marginBottom: 24,
   },
 }); 
