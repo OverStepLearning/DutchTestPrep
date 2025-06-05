@@ -6,12 +6,13 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect } from 'react';
 import 'react-native-reanimated';
-import { useColorScheme } from 'react-native';
+import { useColorScheme, AppState } from 'react-native';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { AIProviderProvider } from '@/contexts/AIProviderContext';
 import { TabProvider } from '@/contexts/TabContext';
 import * as Sentry from '@sentry/react-native';
 import Config from '@/constants/Config';
+import analytics, { initializeAnalytics, trackUserActions, setUserId, userSegmentation, retention } from '@/utils/analytics';
 
 // Initialize Sentry with the newly generated DSN
 Sentry.init({
@@ -57,6 +58,45 @@ function RootLayoutNav() {
   const segments = useSegments();
   const router = useRouter();
   
+  // Handle Firebase Analytics for authenticated users
+  useEffect(() => {
+    const setupUserAnalytics = async () => {
+      if (user && user._id) {
+        try {
+          // Ensure Firebase is initialized before setting user properties
+          await initializeAnalytics();
+          
+          // Set user ID for analytics
+          await setUserId(user._id);
+          
+          // Set user properties based on user data
+          await userSegmentation.setPrimarySubject(user.learningSubject || 'Dutch');
+          await userSegmentation.setLearningGoal('general'); // Default since learning goal isn't in User type yet
+          
+          // Determine user type - check if this is from TestFlight or invitation
+          const isTestFlight = __DEV__ || process.env.NODE_ENV === 'development';
+          const userType = isTestFlight ? 'beta_tester' : 'invited_user';
+          const acquisitionChannel = isTestFlight ? 'testflight' : 'invitation_code';
+          
+          await userSegmentation.setUserType(userType);
+          await userSegmentation.setAcquisitionChannel(acquisitionChannel);
+          
+          // Track user return and set cohort information
+          const installDate = new Date().toISOString().split('T')[0];
+          await retention.setCohort(installDate, acquisitionChannel);
+          await retention.trackDailyOpen();
+          
+          // Track user returned (using 0 for days since install for now since createdAt isn't available)
+          trackUserActions.userReturned(0, 0);
+        } catch (error) {
+          console.error('Failed to setup user analytics:', error);
+        }
+      }
+    };
+
+    setupUserAnalytics();
+  }, [user]);
+  
   // Handle navigation based on authentication state
   useEffect(() => {
     if (isLoading) return;
@@ -95,9 +135,44 @@ export default function RootLayout() {
   });
   const colorScheme = useColorScheme();
 
+  // Initialize Firebase Analytics
+  useEffect(() => {
+    const setupFirebase = async () => {
+      try {
+        await initializeAnalytics();
+        
+        // Track app opened after Firebase is initialized
+        trackUserActions.appOpened();
+      } catch (error) {
+        console.error('Failed to setup Firebase:', error);
+      }
+    };
+
+    setupFirebase();
+  }, []);
+
+  // Handle app state changes for background/foreground tracking
+  useEffect(() => {
+    const handleAppStateChange = (nextAppState: string) => {
+      if (nextAppState === 'active') {
+        trackUserActions.appForegrounded();
+        retention.trackDailyOpen(); // Track daily opens for retention
+      } else if (nextAppState === 'background') {
+        trackUserActions.appBackgrounded();
+      }
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    return () => subscription?.remove();
+  }, []);
+
   // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
-    if (error) throw error;
+    if (error) {
+      // Track error in Firebase Analytics
+      trackUserActions.errorOccurred('font_loading_error', error.message, 'root_layout');
+      throw error;
+    }
   }, [error]);
 
   useEffect(() => {

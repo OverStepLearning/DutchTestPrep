@@ -7,6 +7,7 @@ import Config from '@/constants/Config';
 import { storage } from '@/utils/storage';
 import * as apiService from '@/utils/apiService';
 import { OnboardingStep, OnboardingPreferences } from '../types/onboarding';
+import { trackUserActions } from '@/utils/analytics';
 
 // Available learning subjects
 export const LEARNING_SUBJECTS = [
@@ -47,6 +48,12 @@ export function useOnboarding() {
   const [selectedSubject, setSelectedSubject] = useState<string | null>('Dutch');
   const [selectedMotherLanguage, setSelectedMotherLanguage] = useState<string | null>('English');
   const [loading, setLoading] = useState(false);
+  const [onboardingStartTime] = useState(Date.now());
+
+  // Track onboarding start
+  useEffect(() => {
+    trackUserActions.onboardingStarted();
+  }, []);
 
   // Load selected subject from storage if coming from profile page
   useEffect(() => {
@@ -150,6 +157,10 @@ export function useOnboarding() {
       Alert.alert('Required', 'Please select your main reason for learning');
       return;
     }
+
+    // Track step completion
+    const stepNames = ['', 'subject_selection', 'language_selection', 'category_selection', 'challenge_selection', 'reason_selection'];
+    trackUserActions.onboardingStepCompleted(step, stepNames[step]);
     
     if (step < 5) {
       setStep((prevStep) => ((prevStep + 1) as OnboardingStep));
@@ -209,6 +220,10 @@ export function useOnboarding() {
       );
       
       if (response.success) {
+        // Track onboarding completion with timing
+        const timeSpent = Math.floor((Date.now() - onboardingStartTime) / 1000);
+        trackUserActions.onboardingCompleted(5, timeSpent);
+        
         // Mark onboarding as complete in AuthContext
         await setOnboardingComplete();
         

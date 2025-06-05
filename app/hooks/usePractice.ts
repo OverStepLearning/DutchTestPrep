@@ -1,11 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
 import { Alert } from 'react-native';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useAIProvider } from '../../contexts/AIProviderContext';
 import { useTabContext } from '@/contexts/TabContext';
 import { storage } from '../../utils/storage';
-import config from '../../constants/Config';
+import Config from '@/constants/Config';
 import { 
   PracticeItem, 
   FeedbackResponse, 
@@ -17,6 +17,7 @@ import {
 import * as apiService from '@/utils/apiService';
 import { useRouter } from 'expo-router';
 import { PracticeEventEmitter, practiceEvents } from '../hooks/useProfile';
+import { trackUserActions } from '@/utils/analytics';
 
 export function usePractice() {
   const { user } = useAuth();
@@ -53,7 +54,7 @@ export function usePractice() {
   // Function to fetch subject-specific progress data (same as profile)
   const fetchSubjectProgress = async (subject: string): Promise<void> => {
     try {
-      const token = await storage.getItem(config.STORAGE_KEYS.AUTH_TOKEN);
+      const token = await storage.getItem(Config.STORAGE_KEYS.AUTH_TOKEN);
       if (token) {
         apiService.setAuthToken(token);
       }
@@ -191,7 +192,7 @@ export function usePractice() {
       setLoading(true);
       
       // Check authentication before proceeding
-      const token = await storage.getItem(config.STORAGE_KEYS.AUTH_TOKEN);
+      const token = await storage.getItem(Config.STORAGE_KEYS.AUTH_TOKEN);
       if (!token) {
         console.log('[usePractice] No auth token found');
         setErrorMessage("You must be logged in to practice");
@@ -258,6 +259,13 @@ export function usePractice() {
         const practice = mapPracticeItem(response.data);
         setCurrentPractice(practice);
         
+        // Track practice started
+        trackUserActions.practiceStarted(
+          tabSubject || 'Dutch',
+          practice.difficulty,
+          practice.complexity
+        );
+        
         // Clear any error messages since we succeeded
         if (errorMessage) {
           setErrorMessage(null);
@@ -310,7 +318,7 @@ export function usePractice() {
     try {
       setGeneratingBatch(true);
       
-      const token = await storage.getItem(config.STORAGE_KEYS.AUTH_TOKEN);
+      const token = await storage.getItem(Config.STORAGE_KEYS.AUTH_TOKEN);
       if (token) {
         apiService.setAuthToken(token);
       }
@@ -434,7 +442,7 @@ export function usePractice() {
       setAdjustmentMode(newAdjustmentMode);
       
       // Update user progress on the server to enter adjustment mode
-      const token = await storage.getItem(config.STORAGE_KEYS.AUTH_TOKEN);
+      const token = await storage.getItem(Config.STORAGE_KEYS.AUTH_TOKEN);
       if (token) {
         apiService.setAuthToken(token);
       }
@@ -486,7 +494,7 @@ export function usePractice() {
     try {
       setAskingQuestion(true);
       
-      const token = await storage.getItem(config.STORAGE_KEYS.AUTH_TOKEN);
+      const token = await storage.getItem(Config.STORAGE_KEYS.AUTH_TOKEN);
       if (token) {
         apiService.setAuthToken(token);
       }
@@ -558,7 +566,7 @@ export function usePractice() {
       
       setLoading(true);
       
-      const token = await storage.getItem(config.STORAGE_KEYS.AUTH_TOKEN);
+      const token = await storage.getItem(Config.STORAGE_KEYS.AUTH_TOKEN);
       if (!token) {
         setErrorMessage("Authentication token not found. Please log in again.");
         return;
@@ -636,6 +644,14 @@ export function usePractice() {
         
         console.log(`[usePractice] Feedback received successfully`);
         setFeedback(feedbackData);
+        
+        // Track practice question answered with timing and correctness
+        const isCorrect = feedbackData.result || feedbackData.correct || feedbackData.isCorrect || false;
+        trackUserActions.practiceQuestionAnswered(
+          tabSubject || 'Dutch',
+          isCorrect,
+          5 // Default time spent - could be enhanced with actual timing
+        );
         
         // Notify that a practice has been completed - this will update stats in profile
         PracticeEventEmitter.emit(practiceEvents.PRACTICE_COMPLETED);

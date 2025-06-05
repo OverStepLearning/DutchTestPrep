@@ -6,6 +6,7 @@ import { setAuthToken, setBaseURL, getBaseURL, addTokenExpiredHandler, removeTok
 import * as apiService from '@/utils/apiService';
 import * as Sentry from '@sentry/react-native';
 import { Alert } from 'react-native';
+import { trackUserActions } from '@/utils/analytics';
 
 // Define user type
 interface User {
@@ -370,6 +371,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         // Navigate to onboarding for new users
         router.replace('/(tabs)/onboarding');
+
+        // Track user registration event with invitation code information
+        trackUserActions.userRegistered(!!invitationCode, 'invitation_code');
       } else {
         setError(data.message || 'Registration failed');
       }
