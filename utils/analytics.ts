@@ -1,19 +1,5 @@
-// Conditional Firebase imports with fallbacks
-let analytics: any = null;
-let crashlytics: any = null;
-
-try {
-  analytics = require('@react-native-firebase/analytics').default;
-} catch (error) {
-  console.log('Firebase Analytics not installed - analytics will be disabled');
-}
-
-try {
-  crashlytics = require('@react-native-firebase/crashlytics').default;
-} catch (error) {
-  console.log('Firebase Crashlytics not installed - crash reporting will be disabled');
-}
-
+import { logEvent, setUserId as firebaseSetUserId, setUserProperties, Analytics } from 'firebase/analytics';
+import { analytics, initAnalytics } from './firebase';
 import { Platform } from 'react-native';
 
 // Track initialization state
@@ -21,16 +7,16 @@ let isFirebaseReady = false;
 
 // Check if we're running on a supported platform
 const isSupportedPlatform = () => {
-  return Platform.OS === 'ios' || Platform.OS === 'android';
+  return Platform.OS === 'web' || process.env.NODE_ENV === 'production';
 };
 
-// Check if Firebase is available
+// Check if Firebase Analytics is available
 const isFirebaseAvailable = () => {
   try {
     if (!isSupportedPlatform()) {
       return false;
     }
-    return analytics && typeof analytics === 'function';
+    return analytics !== null;
   } catch (error) {
     console.warn('Firebase Analytics check failed:', error);
     return false;
@@ -45,23 +31,21 @@ export const initializeAnalytics = async (): Promise<void> => {
 
   try {
     if (!isSupportedPlatform()) {
-      console.log('Firebase Analytics: Skipping initialization on web platform');
+      console.log('Firebase Analytics: Skipping initialization on native platform in development');
       return;
     }
 
-    if (!isFirebaseAvailable()) {
+    const analyticsInstance = await initAnalytics();
+    
+    if (analyticsInstance) {
+      // Set app version as user property
+      setUserProperty('app_version', '1.1.0');
+      
+      isFirebaseReady = true;
+      console.log('Firebase Analytics initialized successfully');
+    } else {
       console.log('Firebase Analytics not available - analytics disabled');
-      return;
     }
-
-    // Enable analytics collection
-    await analytics().setAnalyticsCollectionEnabled(true);
-    
-    // Set user properties
-    await analytics().setUserProperty('app_version', '1.1.0');
-    
-    isFirebaseReady = true;
-    console.log('Firebase Analytics initialized successfully');
   } catch (error) {
     console.error('Failed to initialize Analytics:', error);
     // Don't throw error to prevent app crashes
@@ -72,7 +56,7 @@ export const initializeAnalytics = async (): Promise<void> => {
 const safeAnalyticsCall = async (operation: () => Promise<void>) => {
   try {
     if (!isSupportedPlatform()) {
-      console.log('Firebase Analytics: Skipping operation on web platform');
+      console.log('Firebase Analytics: Skipping operation on native platform in development');
       return;
     }
     
@@ -100,27 +84,32 @@ const safeAnalyticsCall = async (operation: () => Promise<void>) => {
 // Generic event tracking
 export const trackEvent = async (eventName: string, parameters?: Record<string, any>) => {
   await safeAnalyticsCall(async () => {
-    await analytics().logEvent(eventName, parameters);
-    console.log(`Analytics: ${eventName}`, parameters);
+    if (analytics) {
+      logEvent(analytics, eventName, parameters);
+      console.log(`Analytics: ${eventName}`, parameters);
+    }
   });
 };
 
 // Set user properties
 export const setUserProperty = async (name: string, value: string) => {
   await safeAnalyticsCall(async () => {
-    await analytics().setUserProperty(name, value);
-    console.log(`Analytics: Set user property ${name} = ${value}`);
+    if (analytics) {
+      const properties: Record<string, string> = {};
+      properties[name] = value;
+      setUserProperties(analytics, properties);
+      console.log(`Analytics: Set user property ${name} = ${value}`);
+    }
   });
 };
 
 // Set user ID
 export const setUserId = async (userId: string) => {
   await safeAnalyticsCall(async () => {
-    await analytics().setUserId(userId);
-    if (crashlytics) {
-      await crashlytics().setUserId(userId);
+    if (analytics) {
+      firebaseSetUserId(analytics, userId);
+      console.log(`Analytics: Set user ID ${userId}`);
     }
-    console.log(`Analytics: Set user ID ${userId}`);
   });
 };
 
@@ -252,16 +241,6 @@ export const trackUserActions = {
       screen,
       timestamp: Date.now()
     });
-    
-    // Also log to Crashlytics safely (only on supported platforms)
-    if (isSupportedPlatform() && crashlytics) {
-      try {
-        crashlytics().log(`Error on ${screen}: ${errorType}`);
-        crashlytics().recordError(new Error(`${errorType}: ${errorMessage}`));
-      } catch (error) {
-        console.warn('Failed to log to Crashlytics:', error);
-      }
-    }
   },
 
   networkError: (endpoint: string, statusCode: number) => 
