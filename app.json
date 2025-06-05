@@ -15,15 +15,10 @@
     "assetBundlePatterns": [
       "**/*"
     ],
-    "plugins": [
-      "@react-native-firebase/app",
-      "@react-native-firebase/analytics",
-      "@react-native-firebase/crashlytics"
-    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "me.lizhien.desirabledifficult",
-      "buildNumber": "4",
+      "buildNumber": "19",
       "infoPlist": {
         "NSCameraUsageDescription": "This app does not use the camera",
         "NSPhotoLibraryUsageDescription": "This app does not use the photo library",

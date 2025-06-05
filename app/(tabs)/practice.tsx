@@ -146,20 +146,6 @@ export default function PracticeScreen() {
             <Text style={practiceStyles.title}>{currentSubject || 'Dutch'} Practice</Text>
           </View>
           
-          {/* Difficulty adjuster */}
-          {currentPractice && (
-            <DifficultyAdjuster 
-              difficultyTrend={difficultyTrend}
-              difficultyValue={subjectProgress.currentDifficulty}
-              complexityValue={subjectProgress.currentComplexity}
-              difficultyChange={difficultyChange}
-              complexityChange={complexityChange}
-              adjusting={adjusting}
-              adjustmentMode={adjustmentMode}
-              onAdjustDifficulty={showAdjustmentDialog}
-            />
-          )}
-          
           {/* Background generation indicator */}
           {generatingBatch && !loading && (
             <View style={practiceStyles.backgroundGenerationContainer}>
@@ -291,6 +277,20 @@ export default function PracticeScreen() {
                     </Text>
                   </TouchableOpacity>
                 </View>
+              )}
+              
+              {/* Simplified Difficulty adjuster moved to bottom */}
+              {currentPractice && (
+                <DifficultyAdjuster 
+                  difficultyTrend={difficultyTrend}
+                  difficultyValue={subjectProgress.currentDifficulty}
+                  complexityValue={subjectProgress.currentComplexity}
+                  difficultyChange={difficultyChange}
+                  complexityChange={complexityChange}
+                  adjusting={adjusting}
+                  adjustmentMode={adjustmentMode}
+                  onAdjustDifficulty={showAdjustmentDialog}
+                />
               )}
             </>
           )}

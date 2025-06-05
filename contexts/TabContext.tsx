@@ -63,11 +63,16 @@ export function TabProvider({ children }: { children: ReactNode }) {
         // If subject has changed, force refresh all tabs
         if (lastCheckedSubject && subject !== lastCheckedSubject) {
           console.log(`[TabContext] Subject changed from ${lastCheckedSubject} to ${subject} - forcing tab refreshes`);
-          forceRefreshAllTabs();
           setCurrentSubject(subject);
           setLastCheckedSubject(subject);
+          forceRefreshAllTabs();
         } else if (!lastCheckedSubject && subject) {
           // First initialization without logging
+          setCurrentSubject(subject);
+          setLastCheckedSubject(subject);
+        } else if (subject !== currentSubject) {
+          // Update currentSubject if it's different but don't force refresh if already set
+          console.log(`[TabContext] Updating current subject from ${currentSubject} to ${subject}`);
           setCurrentSubject(subject);
           setLastCheckedSubject(subject);
         }

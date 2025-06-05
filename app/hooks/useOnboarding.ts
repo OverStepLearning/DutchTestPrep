@@ -39,7 +39,7 @@ export const MOTHER_LANGUAGES = [
 
 export function useOnboarding() {
   const router = useRouter();
-  const { user, setOnboardingComplete } = useAuth();
+  const { user, setOnboardingComplete, updateUserData } = useAuth();
   
   const [step, setStep] = useState<OnboardingStep>(1);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -63,12 +63,19 @@ export function useOnboarding() {
         if (savedSubject) {
           console.log(`[Onboarding] Found saved learning subject: ${savedSubject}`);
           
-          // Reset all onboarding state for new subject
+          // Reset all onboarding state for new subject FIRST
           resetOnboardingState();
+          
+          // Then set the new subject
           setSelectedSubject(savedSubject);
+          
+          // Ensure we're on step 1
+          setStep(1);
           
           // Clear the saved subject to prevent it from affecting future onboarding sessions
           await storage.removeItem('selectedLearningSubject');
+          
+          console.log(`[Onboarding] Reset complete - on step 1 with subject: ${savedSubject}`);
         }
       } catch (error) {
         console.error('[Onboarding] Error loading saved subject:', error);
@@ -227,8 +234,29 @@ export function useOnboarding() {
         // Mark onboarding as complete in AuthContext
         await setOnboardingComplete();
         
-        // Navigate to the main practice screen
-        router.replace('/');
+        // Update user data in AuthContext to include the new learning subject
+        await updateUserData({ 
+          learningSubject: selectedSubject || 'Dutch',
+          motherLanguage: selectedMotherLanguage || 'English',
+          hasCompletedOnboarding: true 
+        });
+        
+        console.log(`[Onboarding] Completed successfully for subject: ${selectedSubject}`);
+        
+        // Force clear any saved onboarding state
+        await storage.removeItem('selectedLearningSubject');
+        
+        // Navigate to the home tab (index) instead of root to ensure proper tab state
+        router.replace('/(tabs)/');
+        
+        // Small delay to ensure navigation is complete, then show success message
+        setTimeout(() => {
+          Alert.alert(
+            'Welcome!', 
+            `Great! You're all set to start learning ${selectedSubject}. Your personalized practice is ready!`,
+            [{ text: 'Start Learning', onPress: () => console.log('Onboarding completion message acknowledged') }]
+          );
+        }, 500);
       } else {
         throw new Error(response.message || 'Failed to save preferences');
       }

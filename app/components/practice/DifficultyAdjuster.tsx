@@ -1,7 +1,6 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { practiceStyles } from './styles';
 import { DifficultyTrend, AdjustmentModeInfo } from '../../types/practice';
 
 interface DifficultyAdjusterProps {
@@ -25,118 +24,25 @@ export const DifficultyAdjuster: React.FC<DifficultyAdjusterProps> = ({
   adjustmentMode = { isInAdjustmentMode: false, adjustmentPracticesRemaining: 0 },
   onAdjustDifficulty
 }) => {
-  // Debug logging for props
-  useEffect(() => {
-    
-    // Add warning for hardcoded value detection - helps catch bugs
-    if (adjustmentMode && 
-        adjustmentMode.isInAdjustmentMode === true && 
-        adjustmentMode.adjustmentPracticesRemaining === 10) {
-      console.warn('[DifficultyAdjuster] WARNING: Detected likely hardcoded adjustmentMode value!');
-    }
-  }, [adjustmentMode]);
-
-  const formattedDifficulty = difficultyValue ? difficultyValue.toFixed(2) : '1.00';
-  const formattedComplexity = complexityValue ? complexityValue.toFixed(2) : '1.00';
-  const adjStr = adjustmentMode ? 'Adjustment Mode' : 'Normal Mode';
   const safeAdjustmentMode = adjustmentMode || { isInAdjustmentMode: false, adjustmentPracticesRemaining: 0 };
-  const adjustmentModeStr = adjustmentMode.isInAdjustmentMode ? 'Adjustment Mode' : 'Normal Mode';
-  const hasChanges = difficultyChange !== null || complexityChange !== null;
-  const showTrend = hasChanges && difficultyTrend !== 'stable';
+
   return (
-    <View style={[
-      practiceStyles.difficultyAdjustContainer, 
-      showTrend && {
-        backgroundColor: difficultyTrend === 'increasing' ? '#e6f7ef' : '#fde8e8',
-        borderWidth: 1,
-        borderColor: difficultyTrend === 'increasing' ? '#b7ebd8' : '#f8c9c9'
-      },
-      safeAdjustmentMode.isInAdjustmentMode && practiceStyles.adjustmentModeGlow
-    ]}>
+    <View style={styles.container}>
+      {/* Adjustment Mode Indicator */}
       {safeAdjustmentMode.isInAdjustmentMode && (
-        <View style={styles.adjustmentModeHeader}>
-          <Ionicons name="trending-up" size={18} color="#4f86f7" />
+        <View style={styles.adjustmentModeIndicator}>
+          <Ionicons name="trending-up" size={14} color="#4f86f7" />
           <Text style={styles.adjustmentModeText}>
-            Adjustment Mode - {safeAdjustmentMode.adjustmentPracticesRemaining} practices remaining
+            Calibrating ({safeAdjustmentMode.adjustmentPracticesRemaining} left)
           </Text>
         </View>
       )}
-    
-      <View style={practiceStyles.difficultyHeader}>
-        <Text style={practiceStyles.difficultyText}>
-          Current {adjustmentModeStr} Learning Level: {formattedDifficulty}/10
-        </Text>
-        
-        {hasChanges && (
-          <View style={[
-            practiceStyles.trendContainer, 
-            {
-              backgroundColor: difficultyTrend === 'increasing' 
-                ? '#d4f7e7' 
-                : difficultyTrend === 'decreasing' 
-                  ? '#fad0d0'
-                  : '#f0f0f0'
-            }
-          ]}>
-            {difficultyTrend !== 'stable' ? (
-              <>
-                <Ionicons 
-                  name={difficultyTrend === 'increasing' ? 'arrow-up' : 'arrow-down'} 
-                  size={16} 
-                  color={difficultyTrend === 'increasing' ? '#27ae60' : '#e74c3c'} 
-                />
-                <Text style={[
-                  practiceStyles.trendText, 
-                  {color: difficultyTrend === 'increasing' ? '#27ae60' : '#e74c3c'}
-                ]}>
-                  {difficultyTrend === 'increasing' ? 'Increasing' : 'Decreasing'}
-                </Text>
-              </>
-            ) : (
-              <Text style={practiceStyles.trendText}>Stable</Text>
-            )}
-          </View>
-        )}
-      </View>
       
-      <View style={styles.complexityRow}>
-        <Text style={styles.complexityText}>
-          Complexity: {formattedComplexity}/10
-        </Text>
-      </View>
-      
-      {(difficultyChange || complexityChange) && (
-        <View style={practiceStyles.changesContainer}>
-          {difficultyChange && (
-            <View style={practiceStyles.changeItem}>
-              <Text style={practiceStyles.changeLabel}>Learning Level Change</Text>
-              <Text style={[
-                practiceStyles.changeValueText,
-                {color: difficultyChange.startsWith('-') ? '#e74c3c' : '#27ae60'}
-              ]}>
-                {difficultyChange}
-              </Text>
-            </View>
-          )}
-          
-          {complexityChange && (
-            <View style={practiceStyles.changeItem}>
-              <Text style={practiceStyles.changeLabel}>Complexity Change</Text>
-              <Text style={[
-                practiceStyles.changeValueText,
-                {color: complexityChange.startsWith('-') ? '#e74c3c' : '#27ae60'}
-              ]}>
-                {complexityChange}
-              </Text>
-            </View>
-          )}
-        </View>
-      )}
-      
+      {/* Simple Adjust Button */}
       <TouchableOpacity
         style={[
-          practiceStyles.adjustMeButton, 
-          adjusting && practiceStyles.adjustingButton,
+          styles.adjustButton,
+          adjusting && styles.adjustingButton,
           safeAdjustmentMode.isInAdjustmentMode && styles.inAdjustmentModeButton
         ]}
         onPress={onAdjustDifficulty}
@@ -145,15 +51,15 @@ export const DifficultyAdjuster: React.FC<DifficultyAdjusterProps> = ({
         {adjusting ? (
           <>
             <ActivityIndicator size="small" color="#fff" style={styles.buttonLoader} />
-            <Text style={practiceStyles.adjustButtonText}>Adjusting...</Text>
+            <Text style={styles.buttonText}>Adjusting...</Text>
           </>
         ) : (
           <>
-            <Ionicons name="options" size={18} color="white" />
-            <Text style={practiceStyles.adjustButtonText}>
+            <Ionicons name="options" size={16} color="#5CA480" />
+            <Text style={styles.buttonText}>
               {safeAdjustmentMode.isInAdjustmentMode 
-                ? 'Adjustment in progress...' 
-                : 'Adjust Learning Level'}
+                ? 'Calibrating...' 
+                : 'Adjust Level'}
             </Text>
           </>
         )}
@@ -163,39 +69,57 @@ export const DifficultyAdjuster: React.FC<DifficultyAdjusterProps> = ({
 };
 
 const styles = StyleSheet.create({
-  complexityRow: {
-    marginVertical: 8,
-    padding: 4
-  },
-  complexityText: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: '#555'
-  },
-  adjustmentModeContainer: {
-    backgroundColor: '#f0f7ff',
-    borderWidth: 1,
-    borderColor: '#c1d8ff'
-  },
-  adjustmentModeHeader: {
+  container: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#e0edff',
-    padding: 8,
-    borderRadius: 6,
-    marginBottom: 10
+    justifyContent: 'space-between',
+    backgroundColor: '#F8F9FA',
+    borderRadius: 8,
+    padding: 12,
+    marginVertical: 8,
+    borderWidth: 1,
+    borderColor: '#E9ECEF',
+  },
+  adjustmentModeIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E0EDFF',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
   },
   adjustmentModeText: {
     color: '#4f86f7',
     fontWeight: '600',
-    marginLeft: 6,
-    fontSize: 14
+    marginLeft: 4,
+    fontSize: 12,
+  },
+  adjustButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#5CA480',
+  },
+  adjustingButton: {
+    backgroundColor: '#E5AF00',
+    borderColor: '#E5AF00',
   },
   inAdjustmentModeButton: {
     backgroundColor: '#4f86f7',
-    opacity: 0.8
+    borderColor: '#4f86f7',
+    opacity: 0.8,
+  },
+  buttonText: {
+    color: '#5CA480',
+    fontSize: 14,
+    fontWeight: '500',
+    marginLeft: 4,
   },
   buttonLoader: {
-    marginRight: 8
-  }
+    marginRight: 4,
+  },
 }); 

@@ -742,6 +742,12 @@ export function usePractice() {
       setComplexityChange(null);
       previousDifficultyRef.current = null;
       
+      // Reset adjustment mode
+      setAdjustmentMode({
+        isInAdjustmentMode: false,
+        adjustmentPracticesRemaining: 0
+      });
+      
       // Fetch progress data for the new subject
       fetchSubjectProgress(tabSubject);
     }

@@ -1,5 +1,19 @@
-import crashlytics from '@react-native-firebase/crashlytics';
-import analytics from '@react-native-firebase/analytics';
+// Conditional Firebase imports with fallbacks
+let analytics: any = null;
+let crashlytics: any = null;
+
+try {
+  analytics = require('@react-native-firebase/analytics').default;
+} catch (error) {
+  console.log('Firebase Analytics not installed - analytics will be disabled');
+}
+
+try {
+  crashlytics = require('@react-native-firebase/crashlytics').default;
+} catch (error) {
+  console.log('Firebase Crashlytics not installed - crash reporting will be disabled');
+}
+
 import { Platform } from 'react-native';
 
 // Track initialization state
@@ -36,7 +50,7 @@ export const initializeAnalytics = async (): Promise<void> => {
     }
 
     if (!isFirebaseAvailable()) {
-      console.warn('Firebase Analytics not available');
+      console.log('Firebase Analytics not available - analytics disabled');
       return;
     }
 
@@ -103,7 +117,9 @@ export const setUserProperty = async (name: string, value: string) => {
 export const setUserId = async (userId: string) => {
   await safeAnalyticsCall(async () => {
     await analytics().setUserId(userId);
-    await crashlytics().setUserId(userId);
+    if (crashlytics) {
+      await crashlytics().setUserId(userId);
+    }
     console.log(`Analytics: Set user ID ${userId}`);
   });
 };
@@ -238,7 +254,7 @@ export const trackUserActions = {
     });
     
     // Also log to Crashlytics safely (only on supported platforms)
-    if (isSupportedPlatform()) {
+    if (isSupportedPlatform() && crashlytics) {
       try {
         crashlytics().log(`Error on ${screen}: ${errorType}`);
         crashlytics().recordError(new Error(`${errorType}: ${errorMessage}`));

@@ -364,16 +364,31 @@ export function useProfile() {
             
             if (!preferencesResponse.data) {
               console.log(`[Profile] No preferences found for subject ${subject}, redirecting to onboarding`);
+              
+              // Clear any existing practice state before onboarding
+              await storage.removeItem('currentPractice');
+              await storage.removeItem('practiceQueue');
+              
+              // Save the subject for onboarding
               await storage.setItem('selectedLearningSubject', subject);
               
-              // Redirect immediately without alert
-              router.replace('/(tabs)/onboarding');
+              // Force refresh all tabs before redirect to clear stale data
+              forceRefreshAllTabs();
+              
+              // Small delay to ensure state is cleared, then redirect
+              setTimeout(() => {
+                router.replace('/(tabs)/onboarding');
+              }, 100);
             } else {
               console.log(`[Profile] Preferences found for subject ${subject}, staying on current page`);
+              
+              // Force refresh all tabs to update with new subject data
+              forceRefreshAllTabs();
+              
               // Force refresh the profile data for the new subject
               setTimeout(() => {
                 fetchUserProfile(true);
-              }, 100);
+              }, 200);
             }
           } catch (prefError) {
             console.error(`[Profile] Error checking preferences:`, prefError);
