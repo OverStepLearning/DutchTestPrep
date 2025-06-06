@@ -18,7 +18,8 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "me.lizhien.desirabledifficult",
-      "buildNumber": "21",
+      "buildNumber": "23",
+      "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
         "NSCameraUsageDescription": "This app does not use the camera",
         "NSPhotoLibraryUsageDescription": "This app does not use the photo library",
@@ -40,6 +41,16 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static"
+          }
+        }
+      ]
+    ],
     "extra": {
       "eas": {
         "projectId": "1d03c0a7-bb58-444f-8e44-0af10c02d8ca"

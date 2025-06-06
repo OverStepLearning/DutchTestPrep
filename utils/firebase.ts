@@ -1,5 +1,5 @@
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { getAnalytics, Analytics, isSupported } from 'firebase/analytics';
+import { getAnalytics as firebaseGetAnalytics, Analytics, isSupported } from 'firebase/analytics';
 import { Platform } from 'react-native';
 
 // Firebase configuration from your GoogleService-Info.plist
@@ -20,25 +20,21 @@ if (getApps().length === 0) {
   app = getApp();
 }
 
-// Initialize Analytics (only for web platform in development, will work on all platforms when built)
+// Initialize Analytics 
 let analytics: Analytics | null = null;
 
-// Check if we're running in a supported environment for analytics
+// Initialize analytics with better compatibility
 const initAnalytics = async () => {
   try {
-    // Firebase Analytics works on web and in production builds
-    // For development, we'll only initialize on web to avoid conflicts
-    if (Platform.OS === 'web' || process.env.NODE_ENV === 'production') {
-      const supported = await isSupported();
-      if (supported) {
-        analytics = getAnalytics(app);
-        console.log('Firebase Analytics initialized successfully');
-        return analytics;
-      } else {
-        console.log('Firebase Analytics not supported in this environment');
-      }
+    // FIXED: Remove restrictive platform detection that was preventing iOS from working
+    // Firebase Web SDK can work on native platforms in production builds
+    const supported = await isSupported();
+    if (supported) {
+      analytics = firebaseGetAnalytics(app);
+      console.log('Firebase Analytics initialized successfully on platform:', Platform.OS);
+      return analytics;
     } else {
-      console.log('Firebase Analytics: Skipping initialization in development on native platforms');
+      console.log('Firebase Analytics not supported in this environment');
     }
   } catch (error) {
     console.error('Failed to initialize Firebase Analytics:', error);
@@ -46,7 +42,17 @@ const initAnalytics = async () => {
   return null;
 };
 
-// Initialize analytics
+// Check if Firebase is available
+export const isFirebaseAvailable = (): boolean => {
+  return analytics !== null;
+};
+
+// Get analytics instance
+export const getAnalyticsInstance = () => {
+  return analytics;
+};
+
+// Initialize analytics immediately
 initAnalytics();
 
 export { app, analytics, initAnalytics };

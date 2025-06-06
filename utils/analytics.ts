@@ -1,89 +1,58 @@
-import { logEvent, setUserId as firebaseSetUserId, setUserProperties, Analytics } from 'firebase/analytics';
-import { analytics, initAnalytics } from './firebase';
+import { logEvent, setUserId as firebaseSetUserId, setUserProperties } from 'firebase/analytics';
 import { Platform } from 'react-native';
+import { initAnalytics, getAnalyticsInstance, isFirebaseAvailable } from './firebase';
 
 // Track initialization state
 let isFirebaseReady = false;
 
-// Check if we're running on a supported platform
-const isSupportedPlatform = () => {
-  return Platform.OS === 'web' || process.env.NODE_ENV === 'production';
-};
-
-// Check if Firebase Analytics is available
-const isFirebaseAvailable = () => {
-  try {
-    if (!isSupportedPlatform()) {
-      return false;
-    }
-    return analytics !== null;
-  } catch (error) {
-    console.warn('Firebase Analytics check failed:', error);
-    return false;
-  }
-};
-
-// Initialize analytics with better error handling
+// Initialize analytics with Firebase Web SDK
 export const initializeAnalytics = async (): Promise<void> => {
   if (isFirebaseReady) {
     return;
   }
 
   try {
-    if (!isSupportedPlatform()) {
-      console.log('Firebase Analytics: Skipping initialization on native platform in development');
-      return;
-    }
-
     const analyticsInstance = await initAnalytics();
     
     if (analyticsInstance) {
       // Set app version as user property
-      setUserProperty('app_version', '1.1.0');
+      const properties: Record<string, string> = { app_version: '1.1.0' };
+      setUserProperties(analyticsInstance, properties);
       
       isFirebaseReady = true;
-      console.log('Firebase Analytics initialized successfully');
+      console.log('Firebase Analytics initialized and ready');
     } else {
-      console.log('Firebase Analytics not available - analytics disabled');
+      console.log('Firebase Analytics not available');
     }
   } catch (error) {
     console.error('Failed to initialize Analytics:', error);
-    // Don't throw error to prevent app crashes
   }
 };
 
 // Safe wrapper for analytics operations
 const safeAnalyticsCall = async (operation: () => Promise<void>) => {
   try {
-    if (!isSupportedPlatform()) {
-      console.log('Firebase Analytics: Skipping operation on native platform in development');
-      return;
-    }
-    
-    if (!analytics) {
-      console.log('Firebase Analytics not available, skipping operation');
-      return;
-    }
-    
+    // Initialize if not ready
     if (!isFirebaseReady) {
       await initializeAnalytics();
     }
     
-    if (!isFirebaseReady) {
-      console.log('Firebase Analytics not initialized, skipping operation');
+    // Check if Firebase is available
+    if (!isFirebaseAvailable()) {
+      console.log('Firebase Analytics not available, skipping operation');
       return;
     }
     
     await operation();
   } catch (error) {
     console.error('Analytics operation failed:', error);
-    // Don't throw error to prevent app crashes
   }
 };
 
 // Generic event tracking
 export const trackEvent = async (eventName: string, parameters?: Record<string, any>) => {
   await safeAnalyticsCall(async () => {
+    const analytics = getAnalyticsInstance();
     if (analytics) {
       logEvent(analytics, eventName, parameters);
       console.log(`Analytics: ${eventName}`, parameters);
@@ -94,6 +63,7 @@ export const trackEvent = async (eventName: string, parameters?: Record<string, 
 // Set user properties
 export const setUserProperty = async (name: string, value: string) => {
   await safeAnalyticsCall(async () => {
+    const analytics = getAnalyticsInstance();
     if (analytics) {
       const properties: Record<string, string> = {};
       properties[name] = value;
@@ -106,6 +76,7 @@ export const setUserProperty = async (name: string, value: string) => {
 // Set user ID
 export const setUserId = async (userId: string) => {
   await safeAnalyticsCall(async () => {
+    const analytics = getAnalyticsInstance();
     if (analytics) {
       firebaseSetUserId(analytics, userId);
       console.log(`Analytics: Set user ID ${userId}`);
