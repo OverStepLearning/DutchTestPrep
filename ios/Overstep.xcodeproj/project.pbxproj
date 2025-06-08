@@ -7,34 +7,34 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0BB50A497ADF454CB98CE1A0 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 859D004FDB74483F989D01D4 /* GoogleService-Info.plist */; };
 		13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.mm */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
-		558A4A23492F49D29A05C42B /* noop-file.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91F2E9F0A79146A7B7AEA5E1 /* noop-file.swift */; };
-		7903E88EB3DC25F2AC441A42 /* Pods_Overstep.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 63D27DBAC4E9814C20DE17BD /* Pods_Overstep.framework */; };
-		A147958323341779AEBCC925 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = DF5B20924997BB29FF393482 /* PrivacyInfo.xcprivacy */; };
+		742A9C5B52817B3228EF62B0 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 070631D01A944D3076755DE3 /* PrivacyInfo.xcprivacy */; };
 		B18059E884C0ABDD17F3DC3D /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAC715A2D49A985799AEE119 /* ExpoModulesProvider.swift */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
+		D2CCBBB437CF57A9FB37A2BD /* Pods_Overstep.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C6FD2AD41B25956A9EADD2A /* Pods_Overstep.framework */; };
+		E7EBAABA344F48FFB19BC834 /* noop-file.swift in Sources */ = {isa = PBXBuildFile; fileRef = A53989C9B8124775B89CCF2D /* noop-file.swift */; };
+		E95D41C0874C4EF1A059E58A /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 57AC251003DF4F47964F83BC /* GoogleService-Info.plist */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		070631D01A944D3076755DE3 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = Overstep/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* Overstep.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Overstep.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FAF1A68108700A75B9A /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = Overstep/AppDelegate.h; sourceTree = "<group>"; };
 		13B07FB01A68108700A75B9A /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AppDelegate.mm; path = Overstep/AppDelegate.mm; sourceTree = "<group>"; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = Overstep/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Overstep/Info.plist; sourceTree = "<group>"; };
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = Overstep/main.m; sourceTree = "<group>"; };
-		63D27DBAC4E9814C20DE17BD /* Pods_Overstep.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Overstep.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		4C6FD2AD41B25956A9EADD2A /* Pods_Overstep.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Overstep.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		57AC251003DF4F47964F83BC /* GoogleService-Info.plist */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "Overstep/GoogleService-Info.plist"; sourceTree = "<group>"; };
 		6C2E3173556A471DD304B334 /* Pods-Overstep.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Overstep.debug.xcconfig"; path = "Target Support Files/Pods-Overstep/Pods-Overstep.debug.xcconfig"; sourceTree = "<group>"; };
 		7A4D352CD337FB3A3BF06240 /* Pods-Overstep.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Overstep.release.xcconfig"; path = "Target Support Files/Pods-Overstep/Pods-Overstep.release.xcconfig"; sourceTree = "<group>"; };
-		859D004FDB74483F989D01D4 /* GoogleService-Info.plist */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "Overstep/GoogleService-Info.plist"; sourceTree = "<group>"; };
-		91F2E9F0A79146A7B7AEA5E1 /* noop-file.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = "noop-file.swift"; path = "Overstep/noop-file.swift"; sourceTree = "<group>"; };
+		A53989C9B8124775B89CCF2D /* noop-file.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = "noop-file.swift"; path = "Overstep/noop-file.swift"; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = Overstep/SplashScreen.storyboard; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
-		C9B4B9BBE8214AEBBD35892F /* Overstep-Bridging-Header.h */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.c.h; name = "Overstep-Bridging-Header.h"; path = "Overstep/Overstep-Bridging-Header.h"; sourceTree = "<group>"; };
-		DF5B20924997BB29FF393482 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = Overstep/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		BDD5C3257BFC46C58906CE4B /* Overstep-Bridging-Header.h */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.c.h; name = "Overstep-Bridging-Header.h"; path = "Overstep/Overstep-Bridging-Header.h"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		FAC715A2D49A985799AEE119 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-Overstep/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -44,7 +44,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7903E88EB3DC25F2AC441A42 /* Pods_Overstep.framework in Frameworks */,
+				D2CCBBB437CF57A9FB37A2BD /* Pods_Overstep.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -61,10 +61,10 @@
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				13B07FB71A68108700A75B9A /* main.m */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
-				859D004FDB74483F989D01D4 /* GoogleService-Info.plist */,
-				91F2E9F0A79146A7B7AEA5E1 /* noop-file.swift */,
-				C9B4B9BBE8214AEBBD35892F /* Overstep-Bridging-Header.h */,
-				DF5B20924997BB29FF393482 /* PrivacyInfo.xcprivacy */,
+				57AC251003DF4F47964F83BC /* GoogleService-Info.plist */,
+				A53989C9B8124775B89CCF2D /* noop-file.swift */,
+				BDD5C3257BFC46C58906CE4B /* Overstep-Bridging-Header.h */,
+				070631D01A944D3076755DE3 /* PrivacyInfo.xcprivacy */,
 			);
 			name = Overstep;
 			sourceTree = "<group>";
@@ -73,7 +73,7 @@
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				63D27DBAC4E9814C20DE17BD /* Pods_Overstep.framework */,
+				4C6FD2AD41B25956A9EADD2A /* Pods_Overstep.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -150,13 +150,13 @@
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "Overstep" */;
 			buildPhases = (
 				08A4A3CD28434E44B6B9DE2E /* [CP] Check Pods Manifest.lock */,
-				CE9B39107F8877196A9B5435 /* [Expo] Configure project */,
+				A1F9E96FADF7A948C8002B55 /* [Expo] Configure project */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
-				89B1713F5667FFEF00A48C59 /* [CP] Embed Pods Frameworks */,
+				7BF34D5993A01CD051411A55 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -206,8 +206,8 @@
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
-				0BB50A497ADF454CB98CE1A0 /* GoogleService-Info.plist in Resources */,
-				A147958323341779AEBCC925 /* PrivacyInfo.xcprivacy in Resources */,
+				E95D41C0874C4EF1A059E58A /* GoogleService-Info.plist in Resources */,
+				742A9C5B52817B3228EF62B0 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -251,6 +251,24 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
+		7BF34D5993A01CD051411A55 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Overstep/Pods-Overstep-frameworks.sh",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermes.framework/hermes",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Overstep/Pods-Overstep-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
 		800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -287,25 +305,7 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Overstep/Pods-Overstep-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		89B1713F5667FFEF00A48C59 /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Overstep/Pods-Overstep-frameworks.sh",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermes.framework/hermes",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputPaths = (
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Overstep/Pods-Overstep-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		CE9B39107F8877196A9B5435 /* [Expo] Configure project */ = {
+		A1F9E96FADF7A948C8002B55 /* [Expo] Configure project */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
@@ -334,7 +334,7 @@
 				13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
 				B18059E884C0ABDD17F3DC3D /* ExpoModulesProvider.swift in Sources */,
-				558A4A23492F49D29A05C42B /* noop-file.swift in Sources */,
+				E7EBAABA344F48FFB19BC834 /* noop-file.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
