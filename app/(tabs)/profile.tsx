@@ -26,7 +26,8 @@ export default function ProfileScreen() {
     updateLearningSubject,
     updateMotherLanguage,
     updatePreferences,
-    handleLogout
+    handleLogout,
+    deleteAccount
   } = useProfile();
   
   const { currentTab, shouldRefresh, currentSubject: tabSubject } = useTabContext();
@@ -192,6 +193,14 @@ export default function ProfileScreen() {
             >
               <Text style={styles.logoutButtonText}>Logout</Text>
             </TouchableOpacity>
+
+            {/* Account deletion button */}
+            <TouchableOpacity 
+              style={styles.deleteAccountButton}
+              onPress={deleteAccount}
+            >
+              <Text style={styles.deleteAccountButtonText}>Delete Account</Text>
+            </TouchableOpacity>
           </>
         ) : (
           <View style={styles.errorContainer}>
@@ -321,6 +330,23 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   logoutButtonText: {
+    color: '#FFFFFF', // Snow - button text
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  deleteAccountButton: {
+    backgroundColor: '#b91c1c', // Darker red for delete account action
+    paddingVertical: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  deleteAccountButtonText: {
     color: '#FFFFFF', // Snow - button text
     fontSize: 16,
     fontWeight: '600',

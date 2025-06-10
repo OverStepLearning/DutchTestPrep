@@ -431,6 +431,78 @@ export function useProfile() {
     }
   };
 
+  // Delete user account
+  const deleteAccount = async () => {
+    return new Promise<void>((resolve, reject) => {
+      Alert.alert(
+        'Delete Account',
+        'Are you sure you want to permanently delete your account? This action cannot be undone and will remove all your progress, preferences, and personal data.',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+            onPress: () => resolve()
+          },
+          {
+            text: 'Delete My Account',
+            style: 'destructive',
+            onPress: async () => {
+              try {
+                setLoading(true);
+                
+                const token = await storage.getItem(Config.STORAGE_KEYS.AUTH_TOKEN);
+                if (token) {
+                  apiService.setAuthToken(token);
+                }
+                
+                // Make the delete request
+                const response = await apiService.del('/api/user/account');
+                
+                if (response && response.success) {
+                  // Clear all local data
+                  await storage.removeItem(Config.STORAGE_KEYS.AUTH_TOKEN);
+                  await storage.removeItem(Config.STORAGE_KEYS.USER_DATA);
+                  await storage.removeItem('currentPractice');
+                  await storage.removeItem('practiceQueue');
+                  await storage.removeItem('selectedLearningSubject');
+                  
+                  // Clear API token
+                  apiService.setAuthToken(null);
+                  
+                  Alert.alert(
+                    'Account Deleted',
+                    'Your account has been successfully deleted. You will now be redirected to the login screen.',
+                    [
+                      {
+                        text: 'OK',
+                        onPress: () => {
+                          // Redirect to login
+                          router.replace('/login');
+                          resolve();
+                        }
+                      }
+                    ]
+                  );
+                } else {
+                  throw new Error(response?.message || 'Failed to delete account');
+                }
+              } catch (error) {
+                console.error('Error deleting account:', error);
+                Alert.alert(
+                  'Error',
+                  'Failed to delete your account. Please try again or contact support if the problem persists.'
+                );
+                reject(error);
+              } finally {
+                setLoading(false);
+              }
+            }
+          }
+        ]
+      );
+    });
+  };
+
   return {
     loading,
     profile,
@@ -441,6 +513,7 @@ export function useProfile() {
     updateMotherLanguage,
     updatePreferences,
     updateLearningSubject,
-    handleLogout
+    handleLogout,
+    deleteAccount
   };
 } 
