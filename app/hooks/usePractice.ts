@@ -19,9 +19,18 @@ import { useRouter } from 'expo-router';
 import { PracticeEventEmitter, practiceEvents } from '../hooks/useProfile';
 import { trackUserActions } from '@/utils/analytics';
 
+// Daily quota info returned by the backend
+export interface QuotaInfo {
+  plan: 'free' | 'pro';
+  limit: number;
+  used: number;
+  remaining: number;
+  resetsAt: string;
+}
+
 export function usePractice() {
   const { user } = useAuth();
-  const { currentProvider, deepseekApiKey, geminiApiKey } = useAIProvider();
+  const { currentProvider, deepseekApiKey } = useAIProvider();
   const { currentSubject: tabSubject } = useTabContext();
   const [loading, setLoading] = useState(false);
   const [generatingBatch, setGeneratingBatch] = useState(false);
@@ -42,6 +51,8 @@ export function usePractice() {
     isInAdjustmentMode: false,
     adjustmentPracticesRemaining: 0
   });
+  const [quota, setQuota] = useState<QuotaInfo | null>(null);
+  const [quotaExceeded, setQuotaExceeded] = useState(false);
   const [subjectProgress, setSubjectProgress] = useState<{
     currentDifficulty: number;
     currentComplexity: number;
@@ -88,6 +99,30 @@ export function usePractice() {
       });
     }
   };
+
+  // Fetch current daily quota without consuming any
+  const fetchQuota = useCallback(async (): Promise<void> => {
+    try {
+      const token = await storage.getItem(Config.STORAGE_KEYS.AUTH_TOKEN);
+      if (token) {
+        apiService.setAuthToken(token);
+      }
+      const response = await apiService.get('/api/practice/quota');
+      if (response?.success && response?.quota) {
+        setQuota(response.quota);
+        setQuotaExceeded(response.quota.remaining <= 0);
+      }
+    } catch (error) {
+      console.warn('[usePractice] Error fetching quota:', error);
+    }
+  }, []);
+
+  // Load quota on mount / when user changes
+  useEffect(() => {
+    if (user) {
+      fetchQuota();
+    }
+  }, [user, fetchQuota]);
 
   // Helper function to ensure practice item is formatted correctly
   const mapPracticeItem = (item: any): PracticeItem => {
@@ -249,12 +284,17 @@ export function usePractice() {
         learningSubject: tabSubject || 'Dutch',
         batchSize: adjustmentMode.isInAdjustmentMode ? 1 : 3,
         aiProvider: currentProvider,
-        deepseekApiKey: currentProvider === 'deepseek' ? deepseekApiKey : null,
-        geminiApiKey: currentProvider === 'gemini' ? geminiApiKey : null
+        deepseekApiKey: currentProvider === 'deepseek' ? deepseekApiKey : null
       });
       
       // Ensure we have valid data before setting it
       if (response?.success && response?.data) {
+        // Update daily quota info from the backend
+        if (response.quota) {
+          setQuota(response.quota);
+          setQuotaExceeded(false);
+        }
+
         // Set the current practice item
         const practice = mapPracticeItem(response.data);
         setCurrentPractice(practice);
@@ -288,23 +328,44 @@ export function usePractice() {
       }
     } catch (error) {
       console.error('Error generating practice:', error);
-      
+
+      // Daily quota reached
+      if (axios.isAxiosError(error) && error.response?.status === 429) {
+        const data = error.response.data as any;
+        if (data?.quota) setQuota(data.quota);
+        setQuotaExceeded(true);
+        const isFree = data?.quota?.plan !== 'pro';
+        setErrorMessage(
+          data?.message ||
+          "You've reached your daily practice limit. Come back tomorrow!"
+        );
+        Alert.alert(
+          'Daily Limit Reached',
+          isFree
+            ? `You've used all ${data?.quota?.limit ?? 10} free practices for today. Upgrade to Pro for 100 practices per day, or come back tomorrow!`
+            : `You've used all ${data?.quota?.limit ?? 100} practices for today. Come back tomorrow!`,
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+
       // Provide more detailed error information
       let errorMsg = 'Unknown error';
       if (error instanceof Error) {
         errorMsg = error.message;
-      } else if (axios.isAxiosError(error)) {
-        errorMsg = error.response ? 
-          `${error.response.status} - ${error.response.statusText || 'Error'}` : 
+      }
+      if (axios.isAxiosError(error)) {
+        errorMsg = error.response ?
+          `${error.response.status} - ${error.response.statusText || 'Error'}` :
           'Network Error';
-          
+
         // Check for auth-related errors
         if (error.response?.status === 401) {
           errorMsg = "Your session has expired. Please log in again.";
           router.replace('/login');
         }
       }
-      
+
       setErrorMessage(`Failed to generate practice: ${errorMsg}`);
     } finally {
       setLoading(false);
@@ -329,11 +390,15 @@ export function usePractice() {
         learningSubject: tabSubject || 'Dutch',
         batchSize: 3, // Reduced from 5 to 3 for better performance
         aiProvider: currentProvider,
-        deepseekApiKey: currentProvider === 'deepseek' ? deepseekApiKey : null,
-        geminiApiKey: currentProvider === 'gemini' ? geminiApiKey : null
+        deepseekApiKey: currentProvider === 'deepseek' ? deepseekApiKey : null
       });
       
       if (response?.success) {
+        // Update daily quota info from the backend
+        if (response.quota) {
+          setQuota(response.quota);
+        }
+
         // Check if backend returned batch items
         if (response?.batchItems && Array.isArray(response.batchItems) && response.batchItems.length > 0) {
           // Add all batch items to the queue - don't replace current practice
@@ -343,6 +408,11 @@ export function usePractice() {
         }
       }
     } catch (error) {
+      // Silently record quota exhaustion from background generation
+      if (axios.isAxiosError(error) && error.response?.status === 429) {
+        const data = error.response.data as any;
+        if (data?.quota) setQuota(data.quota);
+      }
       // Don't show error to user for background generation
       console.log('[usePractice] Background batch generation error:', error);
     } finally {
@@ -451,8 +521,7 @@ export function usePractice() {
         const response = await apiService.post('/api/practice/enter-adjustment-mode', {
           learningSubject: tabSubject || 'Dutch',
           aiProvider: currentProvider,
-          deepseekApiKey: currentProvider === 'deepseek' ? deepseekApiKey : null,
-          geminiApiKey: currentProvider === 'gemini' ? geminiApiKey : null
+          deepseekApiKey: currentProvider === 'deepseek' ? deepseekApiKey : null
         });
         
       } catch (apiError) {
@@ -508,8 +577,7 @@ export function usePractice() {
         question: feedbackQuestion,
         learningSubject: tabSubject || 'Dutch',
         aiProvider: currentProvider,
-        deepseekApiKey: currentProvider === 'deepseek' ? deepseekApiKey : null,
-        geminiApiKey: currentProvider === 'gemini' ? geminiApiKey : null
+        deepseekApiKey: currentProvider === 'deepseek' ? deepseekApiKey : null
       });
       
       console.log(`[usePractice] Question response:`, response ? 'Response received' : 'No response');
@@ -586,8 +654,7 @@ export function usePractice() {
           userAnswer: userAnswer,
           learningSubject: tabSubject || 'Dutch',
           aiProvider: currentProvider,
-          deepseekApiKey: currentProvider === 'deepseek' ? deepseekApiKey : null,
-          geminiApiKey: currentProvider === 'gemini' ? geminiApiKey : null
+          deepseekApiKey: currentProvider === 'deepseek' ? deepseekApiKey : null
         });
         
         console.log(`[usePractice] Submit response:`, response ? 'Response received' : 'No response');
@@ -776,7 +843,9 @@ export function usePractice() {
     feedbackAnswer,
     adjustmentMode,
     subjectProgress,
-    
+    quota,
+    quotaExceeded,
+
     setUserAnswer,
     setFeedbackQuestion,
     
@@ -787,6 +856,7 @@ export function usePractice() {
     askFollowUpQuestion,
     setFeedbackAnswer,
     enterAdjustmentMode,
-    fetchSubjectProgress
+    fetchSubjectProgress,
+    fetchQuota
   };
 } 

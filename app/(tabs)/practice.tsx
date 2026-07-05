@@ -40,7 +40,9 @@ export default function PracticeScreen() {
     askingQuestion,
     adjustmentMode,
     subjectProgress,
-    
+    quota,
+    quotaExceeded,
+
     setUserAnswer,
     setFeedbackQuestion,
     
@@ -144,8 +146,30 @@ export default function PracticeScreen() {
         >
           <View style={practiceStyles.header}>
             <Text style={practiceStyles.title}>{currentSubject || 'Dutch'} Practice</Text>
+            {quota && (
+              <Text style={{ fontSize: 13, color: quota.remaining > 0 ? '#5CA480' : '#C0392B', marginTop: 4 }}>
+                {quota.remaining > 0
+                  ? `${quota.remaining} of ${quota.limit} practices left today`
+                  : `Daily limit reached (${quota.limit}/${quota.limit})`}
+                {quota.plan === 'free' ? ' · Free plan' : ' · Pro'}
+              </Text>
+            )}
           </View>
-          
+
+          {/* Daily limit reached banner */}
+          {quotaExceeded && (
+            <View style={{ backgroundColor: '#FDF3E7', borderRadius: 8, padding: 14, marginBottom: 12 }}>
+              <Text style={{ fontSize: 15, fontWeight: '600', color: '#8A5A00', marginBottom: 4 }}>
+                Daily limit reached
+              </Text>
+              <Text style={{ fontSize: 13, color: '#8A5A00' }}>
+                {quota?.plan === 'free'
+                  ? 'Free accounts get 10 practices per day. Pro gets 100 per day — upgrade coming soon! Your quota resets at midnight (UTC).'
+                  : 'Your quota resets at midnight (UTC). See you tomorrow!'}
+              </Text>
+            </View>
+          )}
+
           {/* Background generation indicator */}
           {generatingBatch && !loading && (
             <View style={practiceStyles.backgroundGenerationContainer}>

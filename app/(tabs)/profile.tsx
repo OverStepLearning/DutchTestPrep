@@ -34,7 +34,7 @@ export default function ProfileScreen() {
   const [refreshing, setRefreshing] = React.useState(false);
   
   // Initialize DeepSeek API key if provided by the user
-  const { setDeepseekApiKey, setGeminiApiKey } = useAIProvider();
+  const { setDeepseekApiKey } = useAIProvider();
   
   // Refresh data when entering the profile tab
   useEffect(() => {
@@ -97,14 +97,13 @@ export default function ProfileScreen() {
       // but for this demo we're initializing them if they're not already set
       try {
         await setDeepseekApiKey('sk-e77b5b74b4ea4b52809bab518b73df80');
-        await setGeminiApiKey('AIzaSyDr2mzAFZrPuPDB1Jpb3X4cR70PxpQ20TY');
       } catch (error) {
         console.error('Failed to initialize API keys:', error);
       }
     };
-    
+
     initializeApiKeys();
-  }, [setDeepseekApiKey, setGeminiApiKey]);
+  }, [setDeepseekApiKey]);
 
   if (loading && !refreshing) {
     return (

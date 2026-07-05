@@ -50,7 +50,6 @@ export default {
     USER_TOKEN: 'desirabledifficult_user_token',
     USER_DATA: 'desirabledifficult_user_data',
     DEEPSEEK_API_KEY: 'desirabledifficult_deepseek_key',
-    GEMINI_API_KEY: 'desirabledifficult_gemini_key',
     AI_PROVIDER: 'desirabledifficult_ai_provider',
     THEME: 'desirabledifficult_theme',
     ACTIVE_NETWORK: 'desirabledifficult_active_network'
@@ -73,13 +72,5 @@ export const AI_PROVIDERS = [
     icon: 'logo-deepseek',
     requiresApiKey: true,
     isDefault: false
-  },
-  {
-    id: 'gemini',
-    name: 'Gemini 2.5 Flash',
-    description: 'Google\'s fast and efficient model',
-    icon: 'logo-google',
-    requiresApiKey: true,
-    isDefault: false
   }
-] as const; 
+] as const;

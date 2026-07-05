@@ -73,10 +73,10 @@ function RootLayoutNav() {
           await userSegmentation.setPrimarySubject(user.learningSubject || 'Dutch');
           await userSegmentation.setLearningGoal('general'); // Default since learning goal isn't in User type yet
           
-          // Determine user type - check if this is from TestFlight or invitation
+          // Determine user type - check if this is from TestFlight or organic signup
           const isTestFlight = __DEV__ || process.env.NODE_ENV === 'development';
-          const userType = isTestFlight ? 'beta_tester' : 'invited_user';
-          const acquisitionChannel = isTestFlight ? 'testflight' : 'invitation_code';
+          const userType = isTestFlight ? 'beta_tester' : 'organic_user';
+          const acquisitionChannel = isTestFlight ? 'testflight' : 'app_store';
           
           await userSegmentation.setUserType(userType);
           await userSegmentation.setAcquisitionChannel(acquisitionChannel);
@@ -107,7 +107,7 @@ function RootLayoutNav() {
       // Redirect to the login page if the user is not logged in 
       // and trying to access protected routes
       router.replace('/login');
-    } else if (user && !inAuthGroup && segments[0] !== 'login' && segments[0] !== 'register') {
+    } else if (user && !inAuthGroup && segments[0] !== 'login' && segments[0] !== 'register' && segments[0] !== 'verify-email') {
       // Only redirect to home if user is logged in and not on auth pages
       // and not currently on login/register (to prevent redirect loops)
       setTimeout(() => {
@@ -122,6 +122,7 @@ function RootLayoutNav() {
       <Stack>
         <Stack.Screen name="login" options={{ headerShown: false }} />
         <Stack.Screen name="register" options={{ headerShown: false }} />
+        <Stack.Screen name="verify-email" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       </Stack>
     </>

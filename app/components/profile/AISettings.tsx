@@ -14,8 +14,7 @@ export default function AISettings() {
     try {
       await setAIProvider(provider);
     } catch (error) {
-      const providerName = provider === 'gpt4o' ? 'GPT-4o' : 
-                          provider === 'deepseek' ? 'DeepSeek' : 'Gemini';
+      const providerName = provider === 'gpt4o' ? 'GPT-4o' : 'DeepSeek';
       Alert.alert(
         'Error',
         `Failed to switch to ${providerName} AI`
@@ -74,26 +73,6 @@ export default function AISettings() {
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[
-              styles.providerButton,
-              currentProvider === 'gemini' && styles.activeProviderButton
-            ]}
-            onPress={() => handleProviderSwitch('gemini')}
-            disabled={isLoading}
-          >
-            <Ionicons
-              name="logo-google"
-              size={24}
-              color={currentProvider === 'gemini' ? '#fff' : '#666'}
-            />
-            <Text style={[
-              styles.providerButtonText,
-              currentProvider === 'gemini' && styles.activeProviderButtonText
-            ]}>
-              Gemini
-            </Text>
-          </TouchableOpacity>
         </View>
       </View>
     </View>

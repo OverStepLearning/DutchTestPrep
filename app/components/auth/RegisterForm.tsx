@@ -45,16 +45,6 @@ export function RegisterForm({ className }: RegisterFormProps) {
         autoCorrect={false}
       />
       
-      <Text style={styles.inputLabel}>Invitation Code</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter your invitation code"
-        value={inputs.invitationCode}
-        onChangeText={(text) => setInputs({ invitationCode: text })}
-        autoCapitalize="characters"
-        autoCorrect={false}
-      />
-      
       <Text style={styles.inputLabel}>Password</Text>
       <TextInput
         style={styles.input}

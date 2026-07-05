@@ -27,7 +27,9 @@ interface AuthContextType {
   error: string | null;
   clearError: () => void;
   login: (email: string, password: string, customApiUrl?: string) => Promise<void>;
-  register: (name: string, email: string, password: string, invitationCode?: string, customApiUrl?: string) => Promise<void>;
+  register: (name: string, email: string, password: string, customApiUrl?: string) => Promise<void>;
+  verifyEmail: (email: string, code: string) => Promise<void>;
+  resendVerification: (email: string) => Promise<void>;
   logout: () => void;
   checkOnboardingStatus: () => boolean;
   checkSubjectOnboardingStatus: (subject?: string) => Promise<boolean>;
@@ -290,7 +292,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // The request was made and the server responded with a status code
         console.error('Response data:', error.response.data);
         console.error('Response status:', error.response.status);
-        
+
+        // Account exists but email was never confirmed - send user to the verification screen
+        if (error.response.status === 403 && error.response.data?.needsVerification) {
+          const pendingEmail = error.response.data.email || email;
+          router.push({ pathname: '/verify-email', params: { email: pendingEmail } });
+          return;
+        }
+
         // Specific error for 404 - could be API URL issue
         if (error.response.status === 404) {
           setError(`API endpoint not found (404). Please check network settings. URL: ${getBaseURL()}`);
@@ -329,7 +338,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   // Register handler
-  const register = async (name: string, email: string, password: string, invitationCode?: string, customApiUrl?: string) => {
+  const register = async (name: string, email: string, password: string, customApiUrl?: string) => {
     setIsLoading(true);
     try {
       // If a custom API URL is provided, update the base URL
@@ -344,42 +353,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await apiService.post('/api/auth/register', {
         name,
         email,
-        password,
-        invitationCode // Include invitation code in the request body
+        password
       });
 
-      // Check if successful response from backend
-      if (data && data._id) {
-        const newToken = data.token;
-        const userData = {
-          _id: data._id,
-          name: data.name,
-          email: data.email,
-          hasCompletedOnboarding: false
-        };
-        
-        // Save token and user data
-        await storage.setItem(Config.STORAGE_KEYS.AUTH_TOKEN, newToken);
-        await storage.setItem(Config.STORAGE_KEYS.USER_DATA, JSON.stringify(userData));
-        
-        // Set auth token for future requests
-        setAuthToken(newToken);
-        
-        // Update state
-        setToken(newToken);
-        setUser(userData);
-        
-        // Navigate to onboarding for new users
-        router.replace('/(tabs)/onboarding');
-
-        // Track user registration event with invitation code information
-        trackUserActions.userRegistered(!!invitationCode, 'invitation_code');
+      // Registration now requires email confirmation before a token is issued
+      if (data && data.needsVerification) {
+        router.push({ pathname: '/verify-email', params: { email: data.email || email } });
       } else {
         setError(data.message || 'Registration failed');
       }
     } catch (error: any) {
       console.error('Registration error:', error);
-      
+
       // More detailed error handling
       if (error.response) {
         // The request was made and the server responded with a status code
@@ -396,6 +381,69 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Confirm the emailed verification code; on success the backend issues the auth token
+  const verifyEmail = async (email: string, code: string) => {
+    setIsLoading(true);
+    try {
+      const data = await apiService.post('/api/auth/verify-email', {
+        email,
+        code
+      });
+
+      if (data && data._id) {
+        const newToken = data.token;
+        const userData = {
+          _id: data._id,
+          name: data.name,
+          email: data.email,
+          hasCompletedOnboarding: false
+        };
+
+        // Save token and user data
+        await storage.setItem(Config.STORAGE_KEYS.AUTH_TOKEN, newToken);
+        await storage.setItem(Config.STORAGE_KEYS.USER_DATA, JSON.stringify(userData));
+
+        // Set auth token for future requests
+        setAuthToken(newToken);
+
+        // Update state
+        setToken(newToken);
+        setUser(userData);
+
+        // Navigate to onboarding for new users
+        router.replace('/(tabs)/onboarding');
+
+        // Track user registration event (account is now fully created)
+        trackUserActions.userRegistered(false, 'open_registration');
+      } else {
+        setError(data.message || 'Verification failed');
+      }
+    } catch (error: any) {
+      console.error('Email verification error:', error);
+      if (error.response) {
+        setError(error.response.data.message || `Verification failed (${error.response.status})`);
+      } else if (error.request) {
+        setError('Network error. Please check your connection and try again.');
+      } else {
+        setError(`Request setup error: ${error.message}`);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Request a fresh verification code for an unverified account
+  const resendVerification = async (email: string) => {
+    try {
+      await apiService.post('/api/auth/resend-verification', { email });
+      Alert.alert('Code Sent', 'A new verification code has been sent to your email.');
+    } catch (error: any) {
+      console.error('Resend verification error:', error);
+      const message = error.response?.data?.message || 'Failed to resend the verification code.';
+      Alert.alert('Error', message);
     }
   };
 
@@ -477,6 +525,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         clearError,
         login,
         register,
+        verifyEmail,
+        resendVerification,
         logout,
         checkOnboardingStatus,
         checkSubjectOnboardingStatus,
