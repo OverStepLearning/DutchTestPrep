@@ -24,7 +24,10 @@
       "ios": {
         "appleId": "kenli@nyu.edu",
         "ascAppId": "6743951574",
-        "appleTeamId": "R4H7SLF2PN"
+        "appleTeamId": "R4H7SLF2PN",
+        "ascApiKeyPath": "/Users/apple/workPlace/learn/ai/AuthKey_R6SCF5DJHA.p8",
+        "ascApiKeyId": "R6SCF5DJHA",
+        "ascApiKeyIssuerId": "16be7e65-e440-4d71-bbcf-c7eb90276a6b"
       }
     }
   }
