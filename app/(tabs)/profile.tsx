@@ -9,6 +9,7 @@ import { StatsSummary } from '../components/profile/StatsSummary';
 import { PreferencesDisplay } from '../components/profile/PreferencesDisplay';
 import { DifficultyDisplay } from '../components/profile/DifficultyDisplay';
 import AISettings from '../components/profile/AISettings';
+import SubscriptionCard from '../components/profile/SubscriptionCard';
 import { useAIProvider } from '@/contexts/AIProviderContext';
 import { useTabContext } from '@/contexts/TabContext';
 import { storage } from '@/utils/storage';
@@ -130,6 +131,8 @@ export default function ProfileScreen() {
               name={profile.user.name} 
               email={profile.user.email} 
             />
+
+            <SubscriptionCard />
 
             <SubjectSelector
               currentSubject={profile.user.learningSubject || 'Dutch'}
@@ -350,4 +353,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-}); 
+});

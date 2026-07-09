@@ -9,6 +9,7 @@ import 'react-native-reanimated';
 import { useColorScheme, AppState } from 'react-native';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { AIProviderProvider } from '@/contexts/AIProviderContext';
+import { SubscriptionProvider } from '@/contexts/SubscriptionContext';
 import { TabProvider } from '@/contexts/TabContext';
 import * as Sentry from '@sentry/react-native';
 import Config from '@/constants/Config';
@@ -101,13 +102,13 @@ function RootLayoutNav() {
   useEffect(() => {
     if (isLoading) return;
 
-    const inAuthGroup = segments[0] === '(tabs)';
+    const isProtectedRoute = segments[0] === '(tabs)' || segments[0] === 'paywall';
 
-    if (!user && inAuthGroup) {
+    if (!user && isProtectedRoute) {
       // Redirect to the login page if the user is not logged in 
       // and trying to access protected routes
       router.replace('/login');
-    } else if (user && !inAuthGroup && segments[0] !== 'login' && segments[0] !== 'register' && segments[0] !== 'verify-email') {
+    } else if (user && !isProtectedRoute && segments[0] !== 'login' && segments[0] !== 'register' && segments[0] !== 'verify-email') {
       // Only redirect to home if user is logged in and not on auth pages
       // and not currently on login/register (to prevent redirect loops)
       setTimeout(() => {
@@ -123,6 +124,7 @@ function RootLayoutNav() {
         <Stack.Screen name="login" options={{ headerShown: false }} />
         <Stack.Screen name="register" options={{ headerShown: false }} />
         <Stack.Screen name="verify-email" options={{ headerShown: false }} />
+        <Stack.Screen name="paywall" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       </Stack>
     </>
@@ -188,13 +190,15 @@ export default function RootLayout() {
 
   return (
     <AuthProvider>
-      <AIProviderProvider>
-        <TabProvider>
-          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-            <RootLayoutNav />
-          </ThemeProvider>
-        </TabProvider>
-      </AIProviderProvider>
+      <SubscriptionProvider>
+        <AIProviderProvider>
+          <TabProvider>
+            <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+              <RootLayoutNav />
+            </ThemeProvider>
+          </TabProvider>
+        </AIProviderProvider>
+      </SubscriptionProvider>
     </AuthProvider>
   );
 }

@@ -22,7 +22,7 @@ export default function PracticeScreen() {
   const auth = useAuth();
   const user = auth?.user;
   const token = auth?.token;
-  const { currentSubject } = useTabContext();
+  const { currentSubject, currentTab } = useTabContext();
 
   const {
     loading,
@@ -50,7 +50,8 @@ export default function PracticeScreen() {
     submitAnswer,
     handleNextPractice,
     showAdjustmentDialog,
-    askFollowUpQuestion
+    askFollowUpQuestion,
+    fetchQuota
   } = usePractice();
   
   // Mark navigation as ready after initial render
@@ -85,6 +86,12 @@ export default function PracticeScreen() {
   useEffect(() => {
     console.log('[PracticeScreen] Adjustment mode changed:', adjustmentMode);
   }, [adjustmentMode]);
+
+  useEffect(() => {
+    if (currentTab === 'practice') {
+      fetchQuota();
+    }
+  }, [currentTab, fetchQuota]);
   
   // Log when currentPractice changes
   useEffect(() => {
@@ -164,9 +171,17 @@ export default function PracticeScreen() {
               </Text>
               <Text style={{ fontSize: 13, color: '#8A5A00' }}>
                 {quota?.plan === 'free'
-                  ? 'Free accounts get 10 practices per day. Pro gets 100 per day — upgrade coming soon! Your quota resets at midnight (UTC).'
+                  ? 'Free accounts get 10 practices per day. Pro gets 100 per day. Your quota resets at midnight (UTC).'
                   : 'Your quota resets at midnight (UTC). See you tomorrow!'}
               </Text>
+              {quota?.plan === 'free' && (
+                <TouchableOpacity
+                  style={{ backgroundColor: '#F6C83F', borderRadius: 8, paddingVertical: 10, alignItems: 'center', marginTop: 12 }}
+                  onPress={() => router.push('/paywall')}
+                >
+                  <Text style={{ color: '#212121', fontWeight: '800' }}>Upgrade to Pro</Text>
+                </TouchableOpacity>
+              )}
             </View>
           )}
 
@@ -322,4 +337,4 @@ export default function PracticeScreen() {
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
-} 
+}

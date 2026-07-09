@@ -43,6 +43,14 @@ export default {
   VERSION: '0.1.0',
   // Build number
   buildNumber: '1',
+
+  // RevenueCat / App Store subscription settings
+  SUBSCRIPTIONS: {
+    IOS_API_KEY: process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY || '',
+    ENTITLEMENT_ID: process.env.EXPO_PUBLIC_REVENUECAT_ENTITLEMENT_ID || 'pro',
+    MONTHLY_PRODUCT_ID: process.env.EXPO_PUBLIC_REVENUECAT_MONTHLY_PRODUCT_ID || 'overstep_pro_monthly',
+    FALLBACK_PRICE_LABEL: '€7.99/month',
+  },
   
   // Storage keys
   STORAGE_KEYS: {
